@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.illusionalgod.attendancetrackingsystem"
     },
     "web": {
       "output": "static",
@@ -31,7 +32,8 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 92,
+          "imageHeight": 92,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
@@ -43,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5c6347c9-5ce9-4f1b-bdd4-0e7a898f5c8c"
+      }
     }
   }
 }
