@@ -50,7 +50,7 @@ module.exports = {
     emulator: {
       type: 'android.emulator',
       device: {
-        avdName: 'Medium_Phone_API_35'
+        avdName: 'Medium_Phone_API_35' //change this to match your android studio emulator
       }
     }
   },
