@@ -1,14 +1,13 @@
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LogoRow from "../../components/LogoRow";
 import StatusLabel from "../../components/StatusLabel";
 
 const { width } = Dimensions.get("window");
 
 export default function DashboardScreen() {
-  const [selectedDate, setSelectedDate] = useState("21/10/2025");
+  const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
 
   const toggleHistoryExpansion = (index: number) => {
@@ -20,9 +19,17 @@ export default function DashboardScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <LogoRow />
+          <Image
+            source={require("../../assets/images/hm-clockr.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <TouchableOpacity style={styles.profileIcon}>
-            <AntDesign name="user" size={24} color="#666" />
+            <Image
+              source={require("../../assets/images/profile.png")}
+              style={styles.profileImage}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
         </View>
 
@@ -147,13 +154,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
+  logo: {
+    width: 120,
+    height: 40,
+  },
   profileIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#E0E0E0",
     justifyContent: "center",
     alignItems: "center",
+    overflow: "hidden",
+  },
+  profileImage: {
+    width: 13.33,
+    height: 13.33,
   },
   greetingSection: {
     flexDirection: "row",
