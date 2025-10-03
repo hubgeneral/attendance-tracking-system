@@ -14,7 +14,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // Check credentials
+    // Use thiis to test the login
     if (employeeId === "DHG0001" && password === "dhgpass") {
       // Navigate to dashboard on successful login
       router.replace("/(tabs)/dashboard");

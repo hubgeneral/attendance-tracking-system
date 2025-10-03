@@ -1,4 +1,4 @@
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, Octicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -37,8 +37,7 @@ export default function DashboardScreen() {
         <View style={styles.greetingSection}>
           <Text style={styles.greeting}>Hi Eric</Text>
           <TouchableOpacity style={styles.dateSelector}>
-            <MaterialIcons name="calendar-today" size={16} color="#666" />
-            <Text style={styles.dateSelectorText}>Select Date</Text>
+          <Octicons name="calendar" size={16} color="black" />            <Text style={styles.dateSelectorText}>Select Date</Text>
           </TouchableOpacity>
         </View>
 
@@ -162,6 +161,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#ccc",
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
@@ -180,20 +181,23 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1A1A1A",
+    color: "#29333D",
   },
   dateSelector: {
+    width: 151,
+    height: 40,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#fff",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 12,
+    borderRadius: 4,
     gap: 6,
   },
   dateSelectorText: {
     fontSize: 14,
-    color: "#666",
+    fontWeight: 500,
+    fontFamily: "Inter",
   },
   metricsGrid: {
     flexDirection: "row",
