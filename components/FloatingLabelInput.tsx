@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     transition: "all 0.2s ease",
   },
   labelFloating: {
-    top: -8,
+    top: 6,
     fontSize: 12,
     color: "#666",
   },
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 4.13,
     paddingHorizontal: 12,
-    paddingTop: 18,
+    paddingTop: 24,
     fontSize: 16,
     backgroundColor: "#fff",
   },

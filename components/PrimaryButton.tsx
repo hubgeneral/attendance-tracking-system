@@ -1,4 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type PrimaryButtonProps = {
   title: string;
@@ -8,7 +9,10 @@ type PrimaryButtonProps = {
 export default function PrimaryButton({ title, onPress }: PrimaryButtonProps) {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
-      <Text style={styles.buttonText}>{title}</Text>
+      <View style={styles.buttonContent}>
+        <MaterialIcons name="login" size={20} color="#fff" />
+        <Text style={styles.buttonText}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -20,10 +24,14 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: 8.98,
     paddingVertical: 11.02,
-    gap: 5.51,
     borderRadius: 4.13,
     alignItems: "center",
     justifyContent: "center",
+  },
+  buttonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
   buttonText: {
     color: "#fff",

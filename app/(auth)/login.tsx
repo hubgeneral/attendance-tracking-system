@@ -38,7 +38,7 @@ export default function LoginScreen() {
             showPasswordToggle={true}
           />
 
-          <PrimaryButton title="⇥ Login" onPress={handleLogin} />
+          <PrimaryButton title="Login" onPress={handleLogin} />
         </View>
       </View>
     </SafeAreaView>
