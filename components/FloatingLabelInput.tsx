@@ -23,11 +23,6 @@ export default function FloatingLabelInput({
   const [showPassword, setShowPassword] = useState(false);
   const isFloating = isFocused || value.length > 0;
   const isPasswordVisible = showPasswordToggle ? showPassword : !secureTextEntry;
-  
-  // Custom display value for password with asterisks
-  const displayValue = secureTextEntry && !isPasswordVisible 
-    ? "*".repeat(value.length) 
-    : value;
 
   return (
     <View style={styles.container}>
@@ -46,9 +41,9 @@ export default function FloatingLabelInput({
           isFocused && styles.inputFocused,
           showPasswordToggle && styles.inputWithIcon,
         ]}
-        value={displayValue}
+        value={value}
         onChangeText={onChangeText}
-        secureTextEntry={false}
+        secureTextEntry={!isPasswordVisible}
         autoCapitalize={autoCapitalize}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
