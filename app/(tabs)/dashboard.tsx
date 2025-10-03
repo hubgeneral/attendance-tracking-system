@@ -37,25 +37,25 @@ export default function DashboardScreen() {
 
         {/* Metric Cards */}
         <View style={styles.metricsGrid}>
-          <View style={[styles.metricCard, styles.clockInCard]}>
+          <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
             <Text style={styles.metricValue}>8:00 AM</Text>
           </View>
 
-          <View style={[styles.metricCard, styles.clockOutCard]}>
+          <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.orangeAccent]} />
             <Text style={styles.metricTitle}>Clock Out Time</Text>
             <Text style={styles.metricValue}>5:00 PM</Text>
           </View>
 
-          <View style={[styles.metricCard, styles.hoursWorkedCard]}>
+          <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.greenAccent]} />
             <Text style={styles.metricTitle}>Hours Worked</Text>
             <Text style={styles.metricValue}>7hrs</Text>
           </View>
 
-          <View style={[styles.metricCard, styles.timeOffCard]}>
+          <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.redAccent]} />
             <Text style={styles.metricTitle}>Time Off</Text>
             <Text style={styles.metricValue}>1hrs</Text>

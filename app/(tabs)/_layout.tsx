@@ -22,24 +22,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="attendance"
-        options={{
-          title: "Attendance",
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="calendar" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="user" size={size} color={color} />
-          ),
-        }}
-      />
     </Tabs>
   );
 }
