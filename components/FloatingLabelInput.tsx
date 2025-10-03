@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   label: {
     position: "absolute",
-    left: 12,
+    left: 9.5,
     top: 20,
     fontSize: 16,
     color: "#999",
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   labelFloating: {
     top: 8,
-    fontSize: 12,
+    fontSize: 10,
     color: "#666",
   },
   labelFocused: {
