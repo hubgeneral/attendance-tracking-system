@@ -14,6 +14,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: "Dashboard",
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign name="dashboard" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="attendance"
         options={{
           title: "Attendance",

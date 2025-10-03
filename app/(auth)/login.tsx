@@ -1,7 +1,8 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import LogoRow from "../../components/LogoRow";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import PrimaryButton from "../../components/PrimaryButton";
@@ -13,7 +14,18 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
-    // TODO: wire up auth
+    // Check credentials
+    if (employeeId === "DHG0001" && password === "dhgpass") {
+      // Navigate to dashboard on successful login
+      router.replace("/(tabs)/dashboard");
+    } else {
+      // Show error alert for invalid credentials
+      Alert.alert(
+        "Login Failed",
+        "Invalid employee ID or password. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   return (
