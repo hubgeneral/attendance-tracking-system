@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LogoRow from "../../components/LogoRow";
-import PasswordField from "../../components/PasswordField";
+import FloatingLabelInput from "../../components/FloatingLabelInput";
 import PrimaryButton from "../../components/PrimaryButton";
 
 const { width } = Dimensions.get("window");
@@ -24,17 +24,18 @@ export default function LoginScreen() {
         <Text style={styles.title}>Sign in</Text>
 
         <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Employee Id"
+          <FloatingLabelInput
             value={employeeId}
             onChangeText={setEmployeeId}
+            placeholder="Employee Id"
           />
 
-          <PasswordField
+          <FloatingLabelInput
             value={password}
             onChangeText={setPassword}
             placeholder="Password"
+            secureTextEntry={true}
+            showPasswordToggle={true}
           />
 
           <PrimaryButton title="⇥ Login" onPress={handleLogin} />
@@ -60,27 +61,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    width: 85,
-    height: 24,
     fontSize: 24,
     fontWeight: "600",
     textAlign: "center",
+    color: "#1A1A1A",
+    marginBottom: 20,
   },
   form: {
     width: 390,
-    height: 284,
     alignItems: "center",
     justifyContent: "center",
-    gap: 20,
-  },
-  input: {
-    width: 390,
-    height: 56,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4.13,
-    padding: 12,
-    fontSize: 16,
   },
 });
 

@@ -30,8 +30,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     fontSize: 20,
     fontWeight: "400",
-    lineHeight: 15.16,
-    marginTop: 10,
+    lineHeight: 24,
   },
 });
 
