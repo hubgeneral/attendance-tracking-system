@@ -1,6 +1,13 @@
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StatusLabel from "../../components/StatusLabel";
 
@@ -16,28 +23,16 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Image
-            source={require("../../assets/images/hm-clockr.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <TouchableOpacity style={styles.profileIcon}>
-            <Image
-              source={require("../../assets/images/profile.png")}
-              style={styles.profileImage}
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </View>
-
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Greeting and Date Selector */}
         <View style={styles.greetingSection}>
           <Text style={styles.greeting}>Hi Eric</Text>
           <TouchableOpacity style={styles.dateSelector}>
-          <Octicons name="calendar" size={16} color="black" />            <Text style={styles.dateSelectorText}>Select Date</Text>
+            <Octicons name="calendar" size={16} color="black" />{" "}
+            <Text style={styles.dateSelectorText}>Select Date</Text>
           </TouchableOpacity>
         </View>
 
@@ -92,7 +87,7 @@ export default function DashboardScreen() {
                     color="#666"
                   />
                 </View>
-                
+
                 {expandedHistory === index && (
                   <View style={styles.historyDetails}>
                     <View style={styles.historyRow}>
@@ -125,7 +120,10 @@ export default function DashboardScreen() {
               <StatusLabel status="approved" />
             </View>
             <Text style={styles.requestDescription}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris... Read less
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+              enim ad minim veniam, quis nostrud exercitation ullamco laboris...
+              Read less
             </Text>
           </View>
 
@@ -209,7 +207,6 @@ const styles = StyleSheet.create({
   metricCard: {
     width: (width - 52) / 2,
     backgroundColor: "#fff",
-    // borderRadius: 12,
     padding: 16,
     position: "relative",
     shadowColor: "#000",
