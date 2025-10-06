@@ -2,9 +2,15 @@ import { AntDesign, Octicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   Dimensions,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -16,9 +22,44 @@ const { width } = Dimensions.get("window");
 export default function DashboardScreen() {
   const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [requestText, setRequestText] = useState("");
+  const [requests, setRequests] = useState([
+    {
+      date: selectedDate,
+      status: "approved" as const,
+      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...",
+    },
+  ]);
+  const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showFailure, setShowFailure] = useState(false);
+  const [showAllRequests, setShowAllRequests] = useState(false);
+  const [expandedAllRequest, setExpandedAllRequest] = useState<number | null>(
+    null
+  );
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
+  };
+
+  const handleSubmitRequest = () => {
+    if (requestText.trim()) {
+      setRequests([
+        {
+          date: selectedDate,
+          status: "approved" as const,
+          text: requestText.trim(),
+        },
+        ...requests,
+      ]);
+      setRequestText("");
+      setModalVisible(false);
+      setTimeout(() => setShowSuccess(true), 300);
+    } else {
+      setModalVisible(false);
+      setTimeout(() => setShowFailure(true), 300);
+    }
   };
 
   return (
@@ -109,27 +150,253 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Requests</Text>
-            <TouchableOpacity style={styles.makeRequestButton}>
+            <TouchableOpacity
+              style={styles.makeRequestButton}
+              onPress={() => setModalVisible(true)}
+            >
               <Text style={styles.makeRequestButtonText}>Make a Request</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.requestItem}>
-            <View style={styles.requestHeader}>
-              <Text style={styles.requestDate}>{selectedDate}</Text>
-              <StatusLabel status="approved" />
-            </View>
-            <Text style={styles.requestDescription}>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris...
-              Read less
-            </Text>
+          <View style={{ maxHeight: 260 }}>
+            {requests.length > 0 ? (
+              <View style={styles.requestItem}>
+                <View style={styles.requestHeader}>
+                  <Text style={styles.requestDate}>{requests[0].date}</Text>
+                  <StatusLabel status={requests[0].status} />
+                </View>
+                <Text
+                  style={styles.requestDescription}
+                  numberOfLines={expandedRequest === 0 ? undefined : 3}
+                >
+                  {requests[0].text}
+                </Text>
+                {requests[0].text.length > 80 && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      setExpandedRequest(expandedRequest === 0 ? null : 0)
+                    }
+                  >
+                    <Text
+                      style={{
+                        color: "#004E2B",
+                        fontWeight: "500",
+                        marginTop: 4,
+                      }}
+                    >
+                      {expandedRequest === 0 ? "Read less" : "Read more"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <Text
+                style={{ color: "#888", textAlign: "center", marginTop: 16 }}
+              >
+                No requests yet.
+              </Text>
+            )}
           </View>
 
-          <TouchableOpacity style={styles.viewAllButton}>
+          <TouchableOpacity
+            style={styles.viewAllButton}
+            onPress={() => setShowAllRequests(true)}
+          >
             <Text style={styles.viewAllText}>View All Request →</Text>
           </TouchableOpacity>
+
+          {/* Modal for making a request */}
+          <Modal
+            visible={modalVisible}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <View style={styles.bottomModalContent}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Requests</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="Type your request here"
+                    value={requestText}
+                    onChangeText={setRequestText}
+                    multiline
+                    numberOfLines={5}
+                    textAlignVertical="top"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleSubmitRequest}
+                >
+                  <Text style={styles.modalButtonText}>Submit Request</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
+
+          {/* Success Modal */}
+          <Modal
+            visible={showSuccess}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowSuccess(false)}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <View style={styles.bottomModalContent}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowSuccess(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_success.png")}
+                  style={styles.successImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.successText}>
+                  Your requests has been submitted successfully.
+                </Text>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
+
+          {/* Failure Modal */}
+          <Modal
+            visible={showFailure}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowFailure(false)}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <View style={styles.bottomModalContent}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowFailure(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_warning.png")}
+                  style={styles.failureImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.failureText}>
+                  Sorry, we could not submit your request.
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setShowFailure(false);
+                    setModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
+
+          {/* View All Requests Modal */}
+          <Modal
+            visible={showAllRequests}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowAllRequests(false)}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <View style={styles.bottomModalContent}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowAllRequests(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Text style={styles.allRequestsTitle}>All Requests</Text>
+                <FlatList
+                  data={requests}
+                  keyExtractor={(_, idx) => idx.toString()}
+                  renderItem={({ item, index }) => (
+                    <View style={styles.allRequestItem}>
+                      <View style={styles.allRequestHeader}>
+                        <Text style={styles.allRequestDate}>{item.date}</Text>
+                        <View
+                          style={{ position: "absolute", top: 0, right: 0 }}
+                        >
+                          <View
+                            style={[
+                              styles.statusBadge,
+                              styles[`statusBadge_${item.status}`],
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.statusBadgeText,
+                                styles[`statusBadgeText_${item.status}`],
+                              ]}
+                            >
+                              {item.status.charAt(0).toUpperCase() +
+                                item.status.slice(1)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                      {expandedAllRequest === index ? (
+                        <Text style={styles.allRequestText}>
+                          {item.text}{" "}
+                          <Text
+                            style={styles.readMoreText}
+                            onPress={() => setExpandedAllRequest(null)}
+                          >
+                            Read less
+                          </Text>
+                        </Text>
+                      ) : item.text.length > 99 ? (
+                        <Text
+                          style={styles.allRequestText}
+                          numberOfLines={4}
+                          ellipsizeMode="tail"
+                        >
+                          {item.text.slice(0, item.text.length - 10) + "... "}
+                          <Text
+                            style={styles.readMoreText}
+                            onPress={() => setExpandedAllRequest(index)}
+                          >
+                            Read more
+                          </Text>
+                        </Text>
+                      ) : (
+                        <Text style={styles.allRequestText}>{item.text}</Text>
+                      )}
+                    </View>
+                  )}
+                  showsVerticalScrollIndicator={true}
+                  style={{ width: "100%" }}
+                  contentContainerStyle={{ paddingBottom: 16 }}
+                />
+              </View>
+            </KeyboardAvoidingView>
+          </Modal>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -220,7 +487,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    // borderRadius: 2,
   },
   blueAccent: {
     left: 0,
@@ -253,7 +519,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
     fontWeight: 500,
     fontFamily: "Inter",
-    // marginBottom: 8,
   },
   metricValue: {
     fontSize: 20,
@@ -273,17 +538,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1A1A1A",
+    color: "#D1D9E0",
   },
   filterButton: {
-    backgroundColor: "#E0E0E0",
+    backgroundColor: "#fff",
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#D1D9E0",
   },
   filterButtonText: {
     fontSize: 12,
-    color: "#666",
+    color: "#000000ff",
   },
   makeRequestButton: {
     backgroundColor: "#004E2B",
@@ -301,12 +568,13 @@ const styles = StyleSheet.create({
   },
   historyItem: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 4,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
+    borderColor: "#FCFCFC",
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.05,
+    // shadowRadius: 2,
     elevation: 2,
   },
   historyItemHeader: {
@@ -371,6 +639,211 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontSize: 14,
     color: "#004E2B",
+    fontWeight: "500",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "stretch",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#00274D",
+    textAlign: "center",
+    margin: 25,
+  },
+  inputWrapper: {
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 4,
+    backgroundColor: "#FAFAFA",
+    marginBottom: 20,
+    padding: 4,
+    width: "100%",
+  },
+  modalInput: {
+    minHeight: 200,
+    padding: 12,
+    fontSize: 15,
+    backgroundColor: "transparent",
+    width: "100%",
+  },
+  modalButton: {
+    backgroundColor: "#004E2B",
+    borderRadius: 4,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 8,
+    width: "100%",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalClose: {
+    position: "absolute",
+    right: 8,
+    top: 8,
+    zIndex: 2,
+  },
+  bottomModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+  bottomModalContent: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    minHeight: "40%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  successOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  successContent: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    position: "relative",
+  },
+  successImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 18,
+  },
+  successText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginBottom: 50,
+    fontWeight: "500",
+  },
+  failureImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 18,
+  },
+  failureText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginTop: 8,
+    fontWeight: "500",
+    marginBottom: 18,
+  },
+  allRequestsModalContent: {
+    width: "95%",
+    maxHeight: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "stretch",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    marginTop: 32,
+    alignSelf: "center",
+    position: "relative",
+  },
+  allRequestsTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#00274D",
+    textAlign: "center",
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  allRequestItem: {
+    marginBottom: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    paddingBottom: 12,
+  },
+  allRequestHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  allRequestDate: {
+    fontSize: 15,
+    color: "#222",
+    marginRight: 8,
+  },
+  statusBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    marginLeft: 4,
+    alignSelf: "flex-start",
+  },
+  statusBadge_approved: {
+    backgroundColor: "#E8F5E8",
+  },
+  statusBadge_pending: {
+    backgroundColor: "#FFF3E0",
+  },
+  statusBadge_rejected: {
+    backgroundColor: "#FFEBEE",
+  },
+  statusBadgeText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  statusBadgeText_approved: {
+    color: "#2E7D32",
+  },
+  statusBadgeText_pending: {
+    color: "#E65100",
+  },
+  statusBadgeText_rejected: {
+    color: "#C62828",
+  },
+  allRequestText: {
+    fontSize: 15,
+    color: "#222",
+    marginTop: 5,
+  },
+  readMoreText: {
+    color: "#758DA3",
+    fontSize: 14,
     fontWeight: "500",
   },
 });
