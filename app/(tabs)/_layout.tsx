@@ -34,10 +34,9 @@ export default function TabsLayout() {
           style={{ width: logoWidth, height: logoHeight }}
           resizeMode="contain"
         />
-        {/* TEMP: Show current breakpoint for debugging */}
-        <Text style={{ marginHorizontal: 8, color: "#888", fontSize: 12 }}>
+        {/* <Text style={{ marginHorizontal: 8, color: "#888", fontSize: 12 }}>
           bp: {bp}
-        </Text>
+        </Text> */}
         <TouchableOpacity
           style={[
             styles.profileIcon,
