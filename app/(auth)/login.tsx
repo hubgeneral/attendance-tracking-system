@@ -1,10 +1,9 @@
-import { AntDesign } from "@expo/vector-icons";
-import { useState } from "react";
-import { Alert, Dimensions, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import LogoRow from "../../components/LogoRow";
+import { useState } from "react";
+import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
+import LogoRow from "../../components/LogoRow";
 import PrimaryButton from "../../components/PrimaryButton";
 
 const { width } = Dimensions.get("window");
