@@ -1,8 +1,11 @@
+import ProfileCard from "@/components/Profile";
 import { Stack } from "expo-router";
-import { View, StyleSheet, Image, TouchableOpacity, Text } from "react-native";
+import { useState } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useBreakpoint } from "../../hooks/useBreakpoint";
 
 export default function TabsLayout() {
+  const [showProfile, setShowProfile] = useState(false);
   const bp = useBreakpoint();
   // Make the differences more visually distinct for each breakpoint
   const headerPadding =
@@ -47,6 +50,7 @@ export default function TabsLayout() {
               borderRadius: profileSize / 2,
             },
           ]}
+          onPress={() => setShowProfile((prev) => !prev)}
         >
           <Image
             source={require("../../assets/images/profile.png")}
@@ -57,6 +61,13 @@ export default function TabsLayout() {
             resizeMode="cover"
           />
         </TouchableOpacity>
+        {/* Show ProfileCard when clicked */}
+      {showProfile && (
+        <ProfileCard
+          onChangePassword={() => alert("Change Password tapped")}
+          onLogout={() => setShowProfile(false)}
+        />
+      )}
       </View>
       <Stack screenOptions={{ headerShown: false }} />
     </View>
