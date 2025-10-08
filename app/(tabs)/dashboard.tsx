@@ -106,311 +106,313 @@ export default function DashboardScreen() {
 
         {/* History Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>History</Text>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text style={styles.filterButtonText}>This Week</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.historyList}>
-            {[0, 1, 2, 3, 4].map((index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.historyItem}
-                onPress={() => toggleHistoryExpansion(index)}
-              >
-                <View style={styles.historyItemHeader}>
-                  <Text style={styles.historyDate}>{selectedDate}</Text>
-                  <AntDesign
-                    name={expandedHistory === index ? "up" : "down"}
-                    size={16}
-                    color="#666"
-                  />
-                </View>
-
-                {expandedHistory === index && (
-                  <View style={styles.historyDetails}>
-                    <View style={styles.historyRow}>
-                      <Text style={styles.historyLabel}>Clock In</Text>
-                      <Text style={styles.historyValue}>8:30 AM</Text>
-                    </View>
-                    <View style={styles.historyRow}>
-                      <Text style={styles.historyLabel}>Clock Out</Text>
-                      <Text style={styles.historyValue}>5:49 PM</Text>
-                    </View>
-                  </View>
-                )}
+          <View style={styles.cardContainer}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>History</Text>
+              <TouchableOpacity style={styles.filterButton}>
+                <Text style={styles.filterButtonText}>This Week</Text>
               </TouchableOpacity>
-            ))}
+            </View>
+
+            <View style={styles.historyList}>
+              {[0, 1, 2, 3, 4].map((index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.historyItem}
+                  onPress={() => toggleHistoryExpansion(index)}
+                >
+                  <View style={styles.historyItemHeader}>
+                    <Text style={styles.historyDate}>{selectedDate}</Text>
+                    <AntDesign
+                      name={expandedHistory === index ? "up" : "down"}
+                      size={16}
+                      color="#666"
+                    />
+                  </View>
+
+                  {expandedHistory === index && (
+                    <View style={styles.historyDetails}>
+                      <View style={styles.historyRow}>
+                        <Text style={styles.historyLabel}>Clock In</Text>
+                        <Text style={styles.historyValue}>8:30 AM</Text>
+                      </View>
+                      <View style={styles.historyRow}>
+                        <Text style={styles.historyLabel}>Clock Out</Text>
+                        <Text style={styles.historyValue}>5:49 PM</Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
 
         {/* Requests Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Requests</Text>
-            <TouchableOpacity
-              style={styles.makeRequestButton}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.makeRequestButtonText}>Make a Request</Text>
-            </TouchableOpacity>
-          </View>
+          <View style={styles.cardContainer}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.sectionTitle}>Requests</Text>
+              <TouchableOpacity
+                style={styles.makeRequestButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={styles.makeRequestButtonText}>Make a Request</Text>
+              </TouchableOpacity>
+            </View>
 
-          <View style={{ maxHeight: 260 }}>
-            {requests.length > 0 ? (
-              <View style={styles.requestItem}>
-                <View style={styles.requestHeader}>
-                  <Text style={styles.requestDate}>{requests[0].date}</Text>
-                  <StatusLabel status={requests[0].status as any} />
-                </View>
-                <Text
-                  style={styles.requestDescription}
-                  numberOfLines={expandedRequest === 0 ? undefined : 3}
-                >
-                  {requests[0].text}
-                </Text>
-                {requests[0].text.length > 80 && (
-                  <TouchableOpacity
-                    onPress={() =>
-                      setExpandedRequest(expandedRequest === 0 ? null : 0)
-                    }
+            <View style={{ maxHeight: 260 }}>
+              {requests.length > 0 ? (
+                <View style={styles.requestItem}>
+                  <View style={styles.requestHeader}>
+                    <Text style={styles.requestDate}>{requests[0].date}</Text>
+                    <StatusLabel status={requests[0].status as any} />
+                  </View>
+                  <Text
+                    style={styles.requestDescription}
+                    numberOfLines={expandedRequest === 0 ? undefined : 3}
                   >
-                    <Text
-                      style={{
-                        color: "#004E2B",
-                        fontWeight: "500",
-                        marginTop: 4,
-                      }}
+                    {requests[0].text}
+                  </Text>
+                  {requests[0].text.length > 80 && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        setExpandedRequest(expandedRequest === 0 ? null : 0)
+                      }
                     >
-                      {expandedRequest === 0 ? "Read less" : "Read more"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ) : (
-              <View style={styles.emptyRequestsCard}>
-                <Image
-                  source={require("../../assets/images/form_success.png")}
-                  style={styles.emptyImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.emptyText}>No requests available</Text>
-              </View>
+                      <Text
+                        style={{
+                          color: "#004E2B",
+                          fontWeight: "500",
+                          marginTop: 4,
+                        }}
+                      >
+                        {expandedRequest === 0 ? "Read less" : "Read more"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.emptyRequestsCard}>
+                  <Image
+                    source={require("../../assets/images/empty_request.png")}
+                    style={styles.emptyImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.emptyText}>No requests available</Text>
+                </View>
+              )}
+            </View>
+
+            {requests.length > 0 && (
+              <TouchableOpacity
+                style={styles.viewAllButton}
+                onPress={() => setShowAllRequests(true)}
+              >
+                <Text style={styles.viewAllText}>View All Request →</Text>
+              </TouchableOpacity>
             )}
           </View>
+        </View>
 
-          {requests.length > 0 && (
-            <TouchableOpacity
-              style={styles.viewAllButton}
-              onPress={() => setShowAllRequests(true)}
-            >
-              <Text style={styles.viewAllText}>View All Request →</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Modal for making a request */}
-          <Modal
-            visible={modalVisible}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setModalVisible(false)}
+        {/* Modal for making a request */}
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <View style={styles.bottomModalContent}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>Requests</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="Type your request here"
-                    value={requestText}
-                    onChangeText={setRequestText}
-                    multiline
-                    numberOfLines={5}
-                    textAlignVertical="top"
-                  />
-                </View>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={handleSubmitRequest}
-                >
-                  <Text style={styles.modalButtonText}>Submit Request</Text>
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </Modal>
-
-          {/* Success Modal */}
-          <Modal
-            visible={showSuccess}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowSuccess(false)}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <View style={styles.bottomModalContent}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowSuccess(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Image
-                  source={require("../../assets/images/form_success.png")}
-                  style={styles.successImage}
-                  resizeMode="contain"
+            <View style={styles.bottomModalContent}>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setModalVisible(false)}
+              >
+                <AntDesign name="close" size={22} color="#ccc" />
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Requests</Text>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Type your request here"
+                  value={requestText}
+                  onChangeText={setRequestText}
+                  multiline
+                  numberOfLines={5}
+                  textAlignVertical="top"
                 />
-                <Text style={styles.successText}>
-                  Your requests has been submitted successfully.
-                </Text>
               </View>
-            </KeyboardAvoidingView>
-          </Modal>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={handleSubmitRequest}
+              >
+                <Text style={styles.modalButtonText}>Submit Request</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
 
-          {/* Failure Modal */}
-          <Modal
-            visible={showFailure}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowFailure(false)}
+        {/* Success Modal */}
+        <Modal
+          visible={showSuccess}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowSuccess(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <View style={styles.bottomModalContent}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowFailure(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Image
-                  source={require("../../assets/images/form_warning.png")}
-                  style={styles.failureImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.failureText}>
-                  Sorry, we could not submit your request.
-                </Text>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={() => {
-                    setShowFailure(false);
-                    setModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Try Again</Text>
-                </TouchableOpacity>
-              </View>
-            </KeyboardAvoidingView>
-          </Modal>
+            <View style={styles.bottomModalContent}>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowSuccess(false)}
+              >
+                <AntDesign name="close" size={22} color="#ccc" />
+              </TouchableOpacity>
+              <Image
+                source={require("../../assets/images/form_success.png")}
+                style={styles.successImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.successText}>
+                Your requests has been submitted successfully.
+              </Text>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
 
-          {/* View All Requests Modal */}
-          <Modal
-            visible={showAllRequests}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowAllRequests(false)}
+        {/* Failure Modal */}
+        <Modal
+          visible={showFailure}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowFailure(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <View style={styles.bottomModalContent}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowAllRequests(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Text style={styles.allRequestsTitle}>All Requests</Text>
-                <FlatList
-                  data={requests}
-                  keyExtractor={(_, idx) => idx.toString()}
-                  renderItem={({ item, index }) => (
-                    <View style={styles.allRequestItem}>
-                      <View style={styles.allRequestHeader}>
-                        <Text style={styles.allRequestDate}>{item.date}</Text>
+            <View style={styles.bottomModalContent}>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowFailure(false)}
+              >
+                <AntDesign name="close" size={22} color="#ccc" />
+              </TouchableOpacity>
+              <Image
+                source={require("../../assets/images/form_warning.png")}
+                style={styles.failureImage}
+                resizeMode="contain"
+              />
+              <Text style={styles.failureText}>
+                Sorry, we could not submit your request.
+              </Text>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setShowFailure(false);
+                  setModalVisible(true);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+
+        {/* View All Requests Modal */}
+        <Modal
+          visible={showAllRequests}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowAllRequests(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay}
+          >
+            <View style={styles.bottomModalContent}>
+              <TouchableOpacity
+                style={styles.modalClose}
+                onPress={() => setShowAllRequests(false)}
+              >
+                <AntDesign name="close" size={22} color="#ccc" />
+              </TouchableOpacity>
+              <Text style={styles.allRequestsTitle}>All Requests</Text>
+              <FlatList
+                data={requests}
+                keyExtractor={(_, idx) => idx.toString()}
+                renderItem={({ item, index }) => (
+                  <View style={styles.allRequestItem}>
+                    <View style={styles.allRequestHeader}>
+                      <Text style={styles.allRequestDate}>{item.date}</Text>
+                      <View style={{ position: "absolute", top: 0, right: 0 }}>
                         <View
-                          style={{ position: "absolute", top: 0, right: 0 }}
+                          style={[
+                            styles.statusBadge,
+                            item.status === "approved"
+                              ? styles.statusBadge_approved
+                              : item.status === "pending"
+                              ? styles.statusBadge_pending
+                              : styles.statusBadge_rejected,
+                          ]}
                         >
-                          <View
+                          <Text
                             style={[
-                              styles.statusBadge,
+                              styles.statusBadgeText,
                               item.status === "approved"
-                                ? styles.statusBadge_approved
+                                ? styles.statusBadgeText_approved
                                 : item.status === "pending"
-                                ? styles.statusBadge_pending
-                                : styles.statusBadge_rejected,
+                                ? styles.statusBadgeText_pending
+                                : styles.statusBadgeText_rejected,
                             ]}
                           >
-                            <Text
-                              style={[
-                                styles.statusBadgeText,
-                                item.status === "approved"
-                                  ? styles.statusBadgeText_approved
-                                  : item.status === "pending"
-                                  ? styles.statusBadgeText_pending
-                                  : styles.statusBadgeText_rejected,
-                              ]}
-                            >
-                              {item.status.charAt(0).toUpperCase() +
-                                item.status.slice(1)}
-                            </Text>
-                          </View>
+                            {item.status.charAt(0).toUpperCase() +
+                              item.status.slice(1)}
+                          </Text>
                         </View>
                       </View>
-                      {expandedAllRequest === index ? (
-                        <Text style={styles.allRequestText}>
-                          {item.text}{" "}
-                          <Text
-                            style={styles.readMoreText}
-                            onPress={() => setExpandedAllRequest(null)}
-                          >
-                            Read less
-                          </Text>
-                        </Text>
-                      ) : item.text.length > 99 ? (
-                        <Text
-                          style={styles.allRequestText}
-                          numberOfLines={4}
-                          ellipsizeMode="tail"
-                        >
-                          {item.text.slice(0, item.text.length - 10) + "... "}
-                          <Text
-                            style={styles.readMoreText}
-                            onPress={() => setExpandedAllRequest(index)}
-                          >
-                            Read more
-                          </Text>
-                        </Text>
-                      ) : (
-                        <Text style={styles.allRequestText}>{item.text}</Text>
-                      )}
                     </View>
-                  )}
-                  showsVerticalScrollIndicator={true}
-                  style={{ width: "100%" }}
-                  contentContainerStyle={{ paddingBottom: 16 }}
-                />
-              </View>
-            </KeyboardAvoidingView>
-          </Modal>
-        </View>
+                    {expandedAllRequest === index ? (
+                      <Text style={styles.allRequestText}>
+                        {item.text}{" "}
+                        <Text
+                          style={styles.readMoreText}
+                          onPress={() => setExpandedAllRequest(null)}
+                        >
+                          Read less
+                        </Text>
+                      </Text>
+                    ) : item.text.length > 99 ? (
+                      <Text
+                        style={styles.allRequestText}
+                        numberOfLines={4}
+                        ellipsizeMode="tail"
+                      >
+                        {item.text.slice(0, item.text.length - 10) + "... "}
+                        <Text
+                          style={styles.readMoreText}
+                          onPress={() => setExpandedAllRequest(index)}
+                        >
+                          Read more
+                        </Text>
+                      </Text>
+                    ) : (
+                      <Text style={styles.allRequestText}>{item.text}</Text>
+                    )}
+                  </View>
+                )}
+                showsVerticalScrollIndicator={true}
+                style={{ width: "100%" }}
+                contentContainerStyle={{ paddingBottom: 16 }}
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -543,6 +545,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 32,
   },
+  cardContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    marginBottom: 16,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -568,14 +587,14 @@ const styles = StyleSheet.create({
   },
   makeRequestButton: {
     backgroundColor: "#004E2B",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
   },
   makeRequestButtonText: {
-    fontSize: 18,
+    fontSize: 14,
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: "500",
   },
   historyList: {
     gap: 8,
@@ -585,7 +604,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 16,
     borderColor: "#FCFCFC",
-    elevation: 2,
+    // elevation: 2,
   },
   historyItemHeader: {
     flexDirection: "row",
@@ -858,25 +877,21 @@ const styles = StyleSheet.create({
   },
   emptyRequestsCard: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 24,
+    borderRadius: 8,
+    padding: 5,
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 160,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    minHeight: 200,
   },
   emptyImage: {
-    width: 120,
-    height: 120,
+    width: 93,
+    height: 84,
     marginBottom: 12,
   },
   emptyText: {
     color: "#666",
-    fontSize: 15,
-    marginTop: 6,
+    fontSize: 14,
+    // marginTop: 6,
+    width: 144,
   },
 });
