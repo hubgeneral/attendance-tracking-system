@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StatusLabel from "../../components/StatusLabel";
+import DashboardHeader from "../../components/DashboardHeader";
 
 const { width } = Dimensions.get("window");
 
@@ -64,6 +65,7 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <DashboardHeader />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -72,7 +74,7 @@ export default function DashboardScreen() {
         <View style={styles.greetingSection}>
           <Text style={styles.greeting}>Hi Eric</Text>
           <TouchableOpacity style={styles.dateSelector}>
-            <Octicons name="calendar" size={16} color="black" />{" "}
+            <Octicons name="calendar" size={16} color="black" />
             <Text style={styles.dateSelectorText}>Select Date</Text>
           </TouchableOpacity>
         </View>
