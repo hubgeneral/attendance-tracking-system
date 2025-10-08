@@ -25,13 +25,10 @@ export default function DashboardScreen() {
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [requestText, setRequestText] = useState("");
-  const [requests, setRequests] = useState([
-    {
-      date: selectedDate,
-      status: "approved" as const,
-      text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris...",
-    },
-  ]);
+  // start with no requests (empty state)
+  const [requests, setRequests] = useState<
+    { date: string; status: string; text: string }[]
+  >([]);
   const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
@@ -49,7 +46,8 @@ export default function DashboardScreen() {
       setRequests([
         {
           date: selectedDate,
-          status: "approved" as const,
+          // newly submitted requests should be pending
+          status: "pending",
           text: requestText.trim(),
         },
         ...requests,
@@ -165,7 +163,7 @@ export default function DashboardScreen() {
               <View style={styles.requestItem}>
                 <View style={styles.requestHeader}>
                   <Text style={styles.requestDate}>{requests[0].date}</Text>
-                  <StatusLabel status={requests[0].status} />
+                  <StatusLabel status={requests[0].status as any} />
                 </View>
                 <Text
                   style={styles.requestDescription}
@@ -192,20 +190,25 @@ export default function DashboardScreen() {
                 )}
               </View>
             ) : (
-              <Text
-                style={{ color: "#888", textAlign: "center", marginTop: 16 }}
-              >
-                No requests yet.
-              </Text>
+              <View style={styles.emptyRequestsCard}>
+                <Image
+                  source={require("../../assets/images/form_success.png")}
+                  style={styles.emptyImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.emptyText}>No requests available</Text>
+              </View>
             )}
           </View>
 
-          <TouchableOpacity
-            style={styles.viewAllButton}
-            onPress={() => setShowAllRequests(true)}
-          >
-            <Text style={styles.viewAllText}>View All Request →</Text>
-          </TouchableOpacity>
+          {requests.length > 0 && (
+            <TouchableOpacity
+              style={styles.viewAllButton}
+              onPress={() => setShowAllRequests(true)}
+            >
+              <Text style={styles.viewAllText}>View All Request →</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Modal for making a request */}
           <Modal
@@ -348,13 +351,21 @@ export default function DashboardScreen() {
                           <View
                             style={[
                               styles.statusBadge,
-                              styles[`statusBadge_${item.status}`],
+                              item.status === "approved"
+                                ? styles.statusBadge_approved
+                                : item.status === "pending"
+                                ? styles.statusBadge_pending
+                                : styles.statusBadge_rejected,
                             ]}
                           >
                             <Text
                               style={[
                                 styles.statusBadgeText,
-                                styles[`statusBadgeText_${item.status}`],
+                                item.status === "approved"
+                                  ? styles.statusBadgeText_approved
+                                  : item.status === "pending"
+                                  ? styles.statusBadgeText_pending
+                                  : styles.statusBadgeText_rejected,
                               ]}
                             >
                               {item.status.charAt(0).toUpperCase() +
@@ -559,12 +570,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#004E2B",
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 4,
   },
   makeRequestButtonText: {
-    fontSize: 14,
+    fontSize: 18,
     color: "#fff",
-    fontWeight: "500",
+    fontWeight: "600",
   },
   historyList: {
     gap: 8,
@@ -574,10 +585,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 16,
     borderColor: "#FCFCFC",
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.05,
-    // shadowRadius: 2,
     elevation: 2,
   },
   historyItemHeader: {
@@ -848,5 +855,28 @@ const styles = StyleSheet.create({
     color: "#758DA3",
     fontSize: 14,
     fontWeight: "500",
+  },
+  emptyRequestsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 160,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  emptyImage: {
+    width: 120,
+    height: 120,
+    marginBottom: 12,
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 15,
+    marginTop: 6,
   },
 });
