@@ -444,6 +444,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     marginBottom: 24,
+    marginTop: 24,
   },
   greeting: {
     fontSize: 24,
