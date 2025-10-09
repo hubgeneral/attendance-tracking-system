@@ -1,4 +1,4 @@
-import { AntDesign, Octicons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   Dimensions,
@@ -15,17 +15,19 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import StatusLabel from "../../components/StatusLabel";
 import DashboardHeader from "../../components/DashboardHeader";
+import DateRangePicker from "../../components/DateRangePicker";
+import StatusLabel from "../../components/StatusLabel";
 
 const { width } = Dimensions.get("window");
 
 export default function DashboardScreen() {
   const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [requestText, setRequestText] = useState("");
-  // start with no requests (empty state)
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
   >([]);
@@ -46,7 +48,6 @@ export default function DashboardScreen() {
       setRequests([
         {
           date: selectedDate,
-          // newly submitted requests should be pending
           status: "pending",
           text: requestText.trim(),
         },
@@ -71,10 +72,14 @@ export default function DashboardScreen() {
         {/* Greeting and Date Selector */}
         <View style={styles.greetingSection}>
           <Text style={styles.greeting}>Hi Eric</Text>
-          <TouchableOpacity style={styles.dateSelector}>
-            <Octicons name="calendar" size={16} color="black" />
-            <Text style={styles.dateSelectorText}>Select Date</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <DateRangePicker
+              onApply={(s, e) => {
+                setRangeStart(s);
+                setRangeEnd(e);
+              }}
+            />
+          </View>
         </View>
 
         {/* Metric Cards */}
@@ -115,35 +120,61 @@ export default function DashboardScreen() {
             </View>
 
             <View style={styles.historyList}>
-              {[0, 1, 2, 3, 4].map((index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.historyItem}
-                  onPress={() => toggleHistoryExpansion(index)}
-                >
-                  <View style={styles.historyItemHeader}>
-                    <Text style={styles.historyDate}>{selectedDate}</Text>
-                    <AntDesign
-                      name={expandedHistory === index ? "up" : "down"}
-                      size={16}
-                      color="#666"
-                    />
-                  </View>
+              {/* Example static history data with date strings matching DD/MM/YYYY */}
+              {(() => {
+                const exampleData = [
+                  { date: "02/10/2025", in: "8:00 AM", out: "5:00 PM" },
+                  { date: "03/10/2025", in: "8:02 AM", out: "4:59 PM" },
+                  { date: "04/10/2025", in: "8:05 AM", out: "5:10 PM" },
+                  { date: "05/10/2025", in: "8:00 AM", out: "5:00 PM" },
+                  { date: "06/10/2025", in: "8:15 AM", out: "5:05 PM" },
+                ];
 
-                  {expandedHistory === index && (
-                    <View style={styles.historyDetails}>
-                      <View style={styles.historyRow}>
-                        <Text style={styles.historyLabel}>Clock In</Text>
-                        <Text style={styles.historyValue}>8:30 AM</Text>
-                      </View>
-                      <View style={styles.historyRow}>
-                        <Text style={styles.historyLabel}>Clock Out</Text>
-                        <Text style={styles.historyValue}>5:49 PM</Text>
-                      </View>
+                // filter by selected range if provided
+                const filtered = exampleData.filter((d) => {
+                  if (!rangeStart || !rangeEnd) return true;
+                  const parts = d.date.split("/");
+                  const dt = new Date(
+                    Number(parts[2]),
+                    Number(parts[1]) - 1,
+                    Number(parts[0])
+                  );
+                  return (
+                    dt.getTime() >= rangeStart.getTime() &&
+                    dt.getTime() <= rangeEnd.getTime()
+                  );
+                });
+
+                return filtered.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.date + index}
+                    style={styles.historyItem}
+                    onPress={() => toggleHistoryExpansion(index)}
+                  >
+                    <View style={styles.historyItemHeader}>
+                      <Text style={styles.historyDate}>{item.date}</Text>
+                      <AntDesign
+                        name={expandedHistory === index ? "up" : "down"}
+                        size={14}
+                        color="#666"
+                      />
                     </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+
+                    {expandedHistory === index && (
+                      <View style={styles.historyDetails}>
+                        <View style={styles.historyRow}>
+                          <Text style={styles.historyLabel}>Clock In</Text>
+                          <Text style={styles.historyValue}>{item.in}</Text>
+                        </View>
+                        <View style={styles.historyRow}>
+                          <Text style={styles.historyLabel}>Clock Out</Text>
+                          <Text style={styles.historyValue}>{item.out}</Text>
+                        </View>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ));
+              })()}
             </View>
           </View>
         </View>
@@ -209,7 +240,7 @@ export default function DashboardScreen() {
                 style={styles.viewAllButton}
                 onPress={() => setShowAllRequests(true)}
               >
-                <Text style={styles.viewAllText}>View All Request →</Text>
+                <Text style={styles.viewAllText}>View All Requests →</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -279,7 +310,7 @@ export default function DashboardScreen() {
                 resizeMode="contain"
               />
               <Text style={styles.successText}>
-                Your requests has been submitted successfully.
+                Your request has been submitted successfully.
               </Text>
             </View>
           </KeyboardAvoidingView>
@@ -448,8 +479,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   profileImage: {
-    width: 13.33,
-    height: 13.33,
+    width: 20,
+    height: 20,
   },
   greetingSection: {
     flexDirection: "row",
@@ -543,17 +574,11 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 20,
-    marginBottom: 32,
   },
   cardContainer: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    padding: 10,
     marginBottom: 16,
   },
   cardHeader: {
@@ -569,9 +594,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 24,
+    fontWeight: "300",
     color: "#D1D9E0",
+    margin: 8,
   },
   filterButton: {
     backgroundColor: "#fff",
@@ -590,9 +616,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
+    margin: 10,
   },
   makeRequestButtonText: {
-    fontSize: 14,
+    fontSize: 18,
     color: "#fff",
     fontWeight: "500",
   },
@@ -602,9 +629,9 @@ const styles = StyleSheet.create({
   historyItem: {
     backgroundColor: "#fff",
     borderRadius: 4,
-    padding: 16,
-    borderColor: "#FCFCFC",
-    // elevation: 2,
+    padding: 13,
+    borderColor: "#D1D9E0",
+    borderWidth: 1,
   },
   historyItemHeader: {
     flexDirection: "row",
@@ -639,11 +666,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
   },
   requestHeader: {
     flexDirection: "row",
@@ -689,8 +711,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
     margin: 25,
@@ -726,9 +748,17 @@ const styles = StyleSheet.create({
   },
   modalClose: {
     position: "absolute",
-    right: 8,
-    top: 8,
+    right: 15,
+    top: 15,
     zIndex: 2,
+    width: 33.13,
+    height: 33.13,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FAFAFA",
+    color: "#797979",
   },
   bottomModalOverlay: {
     flex: 1,
@@ -868,7 +898,7 @@ const styles = StyleSheet.create({
   allRequestText: {
     fontSize: 15,
     color: "#222",
-    marginTop: 5,
+    marginTop: 4,
   },
   readMoreText: {
     color: "#758DA3",
@@ -891,7 +921,7 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#666",
     fontSize: 14,
-    // marginTop: 6,
     width: 144,
+    marginTop: 12,
   },
 });

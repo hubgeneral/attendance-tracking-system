@@ -24,7 +24,7 @@ export default function DashboardHeader() {
 
   return (
     <SafeAreaView
-      edges={["top"]}
+      edges={[]}
       style={[
         styles.header,
         { paddingHorizontal: headerPadding, paddingVertical: headerPadding },
