@@ -5,10 +5,10 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Calendar } from "react-native-calendars";
 
 type Props = {
   startDate?: Date;
@@ -23,15 +23,7 @@ function formatDate(d: Date) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-function parseDate(str: string): Date | null {
-  const parts = str.split("/");
-  if (parts.length !== 3) return null;
-  const dd = parseInt(parts[0], 10);
-  const mm = parseInt(parts[1], 10) - 1;
-  const yyyy = parseInt(parts[2], 10);
-  const d = new Date(yyyy, mm, dd);
-  return isNaN(d.getTime()) ? null : d;
-}
+// parseDate removed: using native Date objects now
 
 export default function DateRangePicker({
   startDate,
@@ -45,18 +37,24 @@ export default function DateRangePicker({
     new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
 
   const [visible, setVisible] = useState(false);
-  const [start, setStart] = useState(formatDate(defaultStart));
-  const [end, setEnd] = useState(formatDate(defaultEnd));
+  const [start, setStart] = useState<Date>(defaultStart);
+  const [end, setEnd] = useState<Date>(defaultEnd);
+
+  // helper to manage calendar marked dates
+  const toKey = (d: Date) => d.toISOString().slice(0, 10);
+  const [marked, setMarked] = useState<any>({
+    [toKey(start)]: {
+      startingDay: true,
+      color: "#cde9d7",
+      textColor: "#004E2B",
+    },
+    [toKey(end)]: { endingDay: true, color: "#cde9d7", textColor: "#004E2B" },
+  });
 
   const apply = () => {
-    const ps = parseDate(start);
-    const pe = parseDate(end);
-    if (ps && pe && ps.getTime() <= pe.getTime()) {
-      onApply(ps, pe);
+    if (start && end && start.getTime() <= end.getTime()) {
+      onApply(start, end);
       setVisible(false);
-    } else {
-      // invalid, simple fallback: do nothing
-      // In a real app we could surface an error
     }
   };
 
@@ -68,8 +66,8 @@ export default function DateRangePicker({
       now.getMonth(),
       now.getDate() - 6
     );
-    setStart(formatDate(startD));
-    setEnd(formatDate(endD));
+    setStart(startD);
+    setEnd(endD);
     onApply(startD, endD);
   };
 
@@ -82,7 +80,9 @@ export default function DateRangePicker({
           color="black"
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.buttonText}>{`${start} - ${end}`}</Text>
+        <Text style={styles.buttonText}>{`${formatDate(start)} - ${formatDate(
+          end
+        )}`}</Text>
       </TouchableOpacity>
 
       <Modal visible={visible} animationType="slide" transparent>
@@ -104,33 +104,74 @@ export default function DateRangePicker({
                     now.getDate() - 6
                   );
                   const e = now;
-                  setStart(formatDate(s));
-                  setEnd(formatDate(e));
+                  setStart(s);
+                  setEnd(e);
                 }}
               >
                 <Text style={styles.quickBtnText}>Last 7 days</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputRow}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Start</Text>
-                <TextInput
-                  value={start}
-                  onChangeText={setStart}
-                  style={styles.input}
-                  placeholder="DD/MM/YYYY"
-                />
-              </View>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>End</Text>
-                <TextInput
-                  value={end}
-                  onChangeText={setEnd}
-                  style={styles.input}
-                  placeholder="DD/MM/YYYY"
-                />
-              </View>
+            <View>
+              <Calendar
+                markingType={"period"}
+                markedDates={marked}
+                onDayPress={(day: any) => {
+                  const date = new Date(day.timestamp);
+                  if (
+                    !start ||
+                    (start && end && start.getTime() && end.getTime())
+                  ) {
+                    // start fresh
+                    setStart(date);
+                    setEnd(date);
+                    const key = toKey(date);
+                    setMarked({
+                      [key]: {
+                        startingDay: true,
+                        endingDay: true,
+                        color: "#cde9d7",
+                        textColor: "#004E2B",
+                      },
+                    });
+                  } else if (start && !end) {
+                    if (date.getTime() < start.getTime()) {
+                      setEnd(start);
+                      setStart(date);
+                    } else {
+                      setEnd(date);
+                    }
+                    // build range marking
+                    const range: any = {};
+                    const s = start.getTime();
+                    const e = date.getTime();
+                    const step = 24 * 60 * 60 * 1000;
+                    for (
+                      let t = Math.min(s, e);
+                      t <= Math.max(s, e);
+                      t += step
+                    ) {
+                      const d = new Date(t);
+                      const k = toKey(d);
+                      range[k] = { color: "#cde9d7", textColor: "#004E2B" };
+                    }
+                    // mark endpoints
+                    const ks = toKey(start);
+                    const ke = toKey(date);
+                    range[ks] = {
+                      startingDay: true,
+                      color: "#cde9d7",
+                      textColor: "#004E2B",
+                    };
+                    range[ke] = {
+                      endingDay: true,
+                      color: "#cde9d7",
+                      textColor: "#004E2B",
+                    };
+                    setMarked(range);
+                  }
+                }}
+              />
             </View>
 
             <View style={styles.actionsRow}>
