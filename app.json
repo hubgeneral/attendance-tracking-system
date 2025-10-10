@@ -9,7 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to alert you when you enter specific areas.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need background location access to detect when you enter locations.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +27,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.illusionalgod.attendancetrackingsystem"
+      "package": "com.illusionalgod.attendancetrackingsystem",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
     },
     "web": {
       "output": "static",
@@ -47,11 +59,8 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "5c6347c9-5ce9-4f1b-bdd4-0e7a898f5c8c"
-      }
-    },
-    "owner": "illusionalgod"
+      "owner": "illusionalgod"
+    }
   }
+ 
 }
