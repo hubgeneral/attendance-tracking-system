@@ -29,7 +29,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       <View style={styles.divider} />
 
       <TouchableOpacity style={styles.option} onPress={onChangePassword}>
-        <Ionicons name="lock-closed-outline" size={20} color="#333" />
+        <Ionicons name="lock-closed-outline" size={20} color="#54708C" />
         <Text style={styles.optionText}>Change Password</Text>
       </TouchableOpacity>
 
