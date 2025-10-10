@@ -38,20 +38,52 @@ export default function DateRangePicker({
 
   const [visible, setVisible] = useState(false);
   const [start, setStart] = useState<Date>(defaultStart);
-  const [end, setEnd] = useState<Date>(defaultEnd);
+  const [end, setEnd] = useState<Date | null>(defaultEnd);
+  const [selecting, setSelecting] = useState<boolean>(false);
 
   // helper to manage calendar marked dates
   const toKey = (d: Date) => d.toISOString().slice(0, 10);
-  const [marked, setMarked] = useState<any>({
-    [toKey(start)]: {
+
+  const buildMarked = (s: Date | null, e: Date | null) => {
+    const out: any = {};
+    if (!s) return out;
+    if (!e) {
+      const k = toKey(s);
+      out[k] = {
+        startingDay: true,
+        endingDay: true,
+        color: "#cde9d7",
+        textColor: "#004E2B",
+      };
+      return out;
+    }
+    const sTime = s.getTime();
+    const eTime = e.getTime();
+    const step = 24 * 60 * 60 * 1000;
+    for (
+      let t = Math.min(sTime, eTime);
+      t <= Math.max(sTime, eTime);
+      t += step
+    ) {
+      const d = new Date(t);
+      const k = toKey(d);
+      out[k] = { color: "#cde9d7", textColor: "#004E2B" };
+    }
+    out[toKey(s)] = {
       startingDay: true,
       color: "#cde9d7",
       textColor: "#004E2B",
-    },
-    [toKey(end)]: { endingDay: true, color: "#cde9d7", textColor: "#004E2B" },
-  });
+    };
+    out[toKey(e)] = { endingDay: true, color: "#cde9d7", textColor: "#004E2B" };
+    return out;
+  };
+
+  const [marked, setMarked] = useState<any>(
+    buildMarked(defaultStart, defaultEnd)
+  );
 
   const apply = () => {
+    if (!end) return;
     if (start && end && start.getTime() <= end.getTime()) {
       onApply(start, end);
       setVisible(false);
@@ -73,16 +105,22 @@ export default function DateRangePicker({
 
   return (
     <>
-      <TouchableOpacity style={styles.button} onPress={() => setVisible(true)}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          setVisible(true);
+          setSelecting(false);
+        }}
+      >
         <Octicons
           name="calendar"
           size={16}
           color="black"
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.buttonText}>{`${formatDate(start)} - ${formatDate(
-          end
-        )}`}</Text>
+        <Text style={styles.buttonText}>{`${formatDate(start)} - ${
+          end ? formatDate(end) : formatDate(start)
+        }`}</Text>
       </TouchableOpacity>
 
       <Modal visible={visible} animationType="slide" transparent>
@@ -118,57 +156,26 @@ export default function DateRangePicker({
                 markedDates={marked}
                 onDayPress={(day: any) => {
                   const date = new Date(day.timestamp);
-                  if (
-                    !start ||
-                    (start && end && start.getTime() && end.getTime())
-                  ) {
-                    // start fresh
+                  if (!selecting) {
+                    // set start and clear end
                     setStart(date);
-                    setEnd(date);
-                    const key = toKey(date);
-                    setMarked({
-                      [key]: {
-                        startingDay: true,
-                        endingDay: true,
-                        color: "#cde9d7",
-                        textColor: "#004E2B",
-                      },
-                    });
-                  } else if (start && !end) {
-                    if (date.getTime() < start.getTime()) {
-                      setEnd(start);
-                      setStart(date);
-                    } else {
-                      setEnd(date);
+                    setEnd(null);
+                    setSelecting(true);
+                    setMarked(buildMarked(date, null));
+                  } else {
+                    // finalize end
+                    let s = start;
+                    let e = date;
+                    if (!s) s = date;
+                    if (e.getTime() < s.getTime()) {
+                      const tmp = s;
+                      s = e;
+                      e = tmp;
                     }
-                    // build range marking
-                    const range: any = {};
-                    const s = start.getTime();
-                    const e = date.getTime();
-                    const step = 24 * 60 * 60 * 1000;
-                    for (
-                      let t = Math.min(s, e);
-                      t <= Math.max(s, e);
-                      t += step
-                    ) {
-                      const d = new Date(t);
-                      const k = toKey(d);
-                      range[k] = { color: "#cde9d7", textColor: "#004E2B" };
-                    }
-                    // mark endpoints
-                    const ks = toKey(start);
-                    const ke = toKey(date);
-                    range[ks] = {
-                      startingDay: true,
-                      color: "#cde9d7",
-                      textColor: "#004E2B",
-                    };
-                    range[ke] = {
-                      endingDay: true,
-                      color: "#cde9d7",
-                      textColor: "#004E2B",
-                    };
-                    setMarked(range);
+                    setStart(s as Date);
+                    setEnd(e as Date);
+                    setSelecting(false);
+                    setMarked(buildMarked(s as Date, e as Date));
                   }
                 }}
               />
