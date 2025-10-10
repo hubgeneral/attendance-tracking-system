@@ -1,5 +1,8 @@
-import { AntDesign } from "@expo/vector-icons";
-import { useState } from "react";
+import { AntDesign, Octicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import { startGeofencing } from '../../components/geoFencing';
+import regions from '../../components/regions';
+
 import {
   Dimensions,
   FlatList,
@@ -38,6 +41,11 @@ export default function DashboardScreen() {
   const [expandedAllRequest, setExpandedAllRequest] = useState<number | null>(
     null
   );
+
+  useEffect(() => {
+    startGeofencing(regions);
+    console.log("Geofencing started with regions:", regions);
+  }, []);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
