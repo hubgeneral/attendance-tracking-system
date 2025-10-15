@@ -12,6 +12,7 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We use your location to alert you when you enter specific areas.",
+        "NSLocationAlwaysUsageDescription": "We need background location access to detect when you enter locations.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "We need background location access to detect when you enter locations.",
         "UIBackgroundModes": [
           "location"
@@ -31,6 +32,7 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
+        "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS"
       ],
     },
