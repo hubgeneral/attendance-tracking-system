@@ -1,9 +1,10 @@
 import { AntDesign, Octicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { startGeofencing } from '../../components/geoFencing';
+import { startGeofencing,isUserInsideRegion } from '../../components/geoFencing';
 import regions from '../../components/regions';
 
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -21,9 +22,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 const { width } = Dimensions.get("window");
-
 export default function DashboardScreen() {
   const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
@@ -42,10 +52,43 @@ export default function DashboardScreen() {
     null
   );
 
-  useEffect(() => {
-    startGeofencing(regions);
-    console.log("Geofencing started with regions:", regions);
+  // useEffect(() => {
+  //   startGeofencing(regions);
+  //   console.log("Geofencing started with regions:", regions);
+  // }, []);
+
+   useEffect(() => {
+    const init = async () => {
+      await startGeofencing(regions);
+
+      // ✅ Auto-check on launch
+      const inside = await isUserInsideRegion(regions[0]);
+      if (inside) {
+        console.log(`✅ You are currently inside ${regions[0].identifier}`);
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'You are already inside 🏢',
+            body: `Currently inside ${regions[0].identifier}`,
+          },
+          trigger: null,
+        });
+      } else {
+        console.log(`🚶‍♂️ You are outside ${regions[0].identifier}`);
+      }
+    };
+    handleManualCheck();
+    init();
   }, []);
+
+  const handleManualCheck = async () => {
+    const inside = await isUserInsideRegion(regions[0]);
+    Alert.alert(
+      'Geofence Check',
+      inside
+        ? `✅ You are currently inside ${regions[0].identifier}`
+        : `🚶‍♂️ You are outside ${regions[0].identifier}`
+    );
+  };
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
