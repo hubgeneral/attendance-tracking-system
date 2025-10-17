@@ -182,13 +182,19 @@ export default function DashboardScreen() {
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
-            <Text style={styles.metricValue}>8:00 Am</Text>
+            <Text style={styles.metricValue}>
+              <Text style={styles.metricTime}>8:00</Text>
+              <Text style={styles.metricPeriod}> Am</Text>
+            </Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.orangeAccent]} />
             <Text style={styles.metricTitle}>Clock Out Time</Text>
-            <Text style={styles.metricValue}>5:00 Pm</Text>
+            <Text style={styles.metricValue}>
+              <Text style={styles.metricTime}>5:00</Text>
+              <Text style={styles.metricPeriod}> Pm</Text>
+            </Text>
           </View>
 
           <View style={styles.metricCard}>
@@ -294,29 +300,26 @@ export default function DashboardScreen() {
                     <Text style={styles.requestDate}>{requests[0].date}</Text>
                     <StatusLabel status={requests[0].status as any} />
                   </View>
-                  <Text
-                    style={styles.requestDescription}
-                    numberOfLines={expandedRequest === 0 ? undefined : 3}
-                  >
-                    {requests[0].text}
-                  </Text>
-                  {requests[0].text.length > 80 && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        setExpandedRequest(expandedRequest === 0 ? null : 0)
-                      }
+                  <View style={styles.requestDescriptionWrapper}>
+                    <Text
+                      style={styles.requestDescription}
+                      numberOfLines={expandedRequest === 0 ? undefined : 3}
                     >
-                      <Text
-                        style={{
-                          color: "#004E2B",
-                          fontWeight: "500",
-                          marginTop: 4,
-                        }}
+                      {requests[0].text}
+                    </Text>
+                    {requests[0].text.length > 80 && (
+                      <TouchableOpacity
+                        style={styles.readMoreButton}
+                        onPress={() =>
+                          setExpandedRequest(expandedRequest === 0 ? null : 0)
+                        }
                       >
-                        {expandedRequest === 0 ? "Read less" : "Read more"}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                        <Text style={styles.readMoreText}>
+                          {expandedRequest === 0 ? "Read less" : "Read more"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
               ) : (
                 <View style={styles.emptyRequestsCard}>
@@ -493,7 +496,12 @@ export default function DashboardScreen() {
                 data={requests}
                 keyExtractor={(_, idx) => idx.toString()}
                 renderItem={({ item, index }) => (
-                  <View style={styles.allRequestItem}>
+                  <View
+                    style={[
+                      styles.allRequestItem,
+                      styles.allRequestItemWithButton,
+                    ]}
+                  >
                     <View style={styles.allRequestHeader}>
                       <Text style={styles.allRequestDate}>{item.date}</Text>
                       <View style={{ position: "absolute", top: 0, right: 0 }}>
@@ -523,33 +531,35 @@ export default function DashboardScreen() {
                         </View>
                       </View>
                     </View>
-                    {expandedAllRequest === index ? (
-                      <Text style={styles.allRequestText}>
-                        {item.text}{" "}
-                        <Text
-                          style={styles.readMoreText}
-                          onPress={() => setExpandedAllRequest(null)}
-                        >
-                          Read less
-                        </Text>
-                      </Text>
-                    ) : item.text.length > 99 ? (
+
+                    <View style={styles.allRequestTextWrapper}>
                       <Text
                         style={styles.allRequestText}
-                        numberOfLines={4}
+                        numberOfLines={
+                          expandedAllRequest === index ? undefined : 4
+                        }
                         ellipsizeMode="tail"
                       >
-                        {item.text.slice(0, item.text.length - 10) + "... "}
-                        <Text
-                          style={styles.readMoreText}
-                          onPress={() => setExpandedAllRequest(index)}
-                        >
-                          Read more
-                        </Text>
+                        {item.text}
                       </Text>
-                    ) : (
-                      <Text style={styles.allRequestText}>{item.text}</Text>
-                    )}
+
+                      {item.text.length > 99 && (
+                        <TouchableOpacity
+                          style={styles.readMoreButton}
+                          onPress={() =>
+                            setExpandedAllRequest(
+                              expandedAllRequest === index ? null : index
+                            )
+                          }
+                        >
+                          <Text style={styles.readMoreText}>
+                            {expandedAllRequest === index
+                              ? "Read less"
+                              : "Read more"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                 )}
                 showsVerticalScrollIndicator={true}
@@ -642,7 +652,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 8,
   },
   cardAccent: {
     position: "absolute",
@@ -685,6 +695,16 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 30,
     fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricTime: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricPeriod: {
+    fontSize: 14,
+    fontWeight: "600",
     color: "#1A1A1A",
   },
   section: {
@@ -741,7 +761,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   historyItem: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FCFCFC",
     borderRadius: 4,
     padding: 13,
     borderColor: "#D1D9E0",
@@ -796,6 +816,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     lineHeight: 20,
+  },
+  requestDescriptionWrapper: {
+    position: "relative",
+    paddingBottom: 28,
+  },
+  readMoreButton: {
+    position: "absolute",
+    right: 8,
+    bottom: 6,
+    backgroundColor: "transparent",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   viewAllButton: {
     alignItems: "center",
@@ -973,6 +1005,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
     paddingBottom: 12,
+  },
+  allRequestItemWithButton: {
+    position: "relative",
+    paddingBottom: 36,
+  },
+  allRequestTextWrapper: {
+    position: "relative",
+    paddingBottom: 28,
   },
   allRequestHeader: {
     flexDirection: "row",
