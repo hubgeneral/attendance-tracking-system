@@ -246,6 +246,7 @@ export const startGeofencing = async (regions: GeofenceRegion[]): Promise<void> 
 // ✅ Manual check if user is inside a region
 export const isUserInsideRegion = async (region: GeofenceRegion): Promise<boolean> => {
   const { coords } = await Location.getCurrentPositionAsync({});
+
   const distance = getDistanceFromLatLonInMeters(
     coords.latitude,
     coords.longitude,
