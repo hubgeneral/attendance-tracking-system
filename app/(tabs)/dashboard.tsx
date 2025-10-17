@@ -1,13 +1,8 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useEffect, useState, useRef } from "react";
-import {
-  startGeofencing,
-  isUserInsideRegion,
-} from "../../components/geoFencing";
-import { regions } from "../../components/regions";
+// geofencing helpers removed from this file
 
 import {
-  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -24,22 +19,13 @@ import {
   Animated,
   Easing,
 } from "react-native";
+// Alert import removed
 import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import * as Notifications from "expo-notifications";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 const { width } = Dimensions.get("window");
+
 export default function DashboardScreen() {
   const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
@@ -50,44 +36,14 @@ export default function DashboardScreen() {
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
   >([]);
-  const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
+  // deprecated per-item expansion state removed; ReadMoreText handles expansion internally
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [showAllRequests, setShowAllRequests] = useState(false);
-  const [expandedAllRequest, setExpandedAllRequest] = useState<number | null>(
-    null
-  );
+  // per-item expansion state removed
 
   // Animated value used to move bottom modals above the keyboard
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-
-  // useEffect(() => {
-  //   startGeofencing(regions);
-  //   console.log("Geofencing started with regions:", regions);
-  // }, []);
-
-  useEffect(() => {
-    const init = async () => {
-      await startGeofencing(regions);
-
-      // ✅ Auto-check on launch
-      const inside = await isUserInsideRegion(regions[0]);
-      if (inside) {
-        console.log(`✅ You are currently inside ${regions[0].identifier}`);
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "You are already inside 🏢",
-            body: `Currently inside ${regions[0].identifier}`,
-          },
-          trigger: null,
-        });
-      } else {
-        console.log(`🚶‍♂️ You are outside ${regions[0].identifier}`);
-      }
-    };
-    handleManualCheck();
-    init();
-  }, []);
 
   // Listen for keyboard events and animate bottom modals
   useEffect(() => {
@@ -124,15 +80,7 @@ export default function DashboardScreen() {
     };
   }, [keyboardOffset]);
 
-  const handleManualCheck = async () => {
-    const inside = await isUserInsideRegion(regions[0]);
-    Alert.alert(
-      "Geofence Check",
-      inside
-        ? `✅ You are currently inside ${regions[0].identifier}`
-        : `🚶‍♂️ You are outside ${regions[0].identifier}`
-    );
-  };
+  // manual geofence check removed; use isUserInsideRegion where needed
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -155,6 +103,61 @@ export default function DashboardScreen() {
       setModalVisible(false);
       setTimeout(() => setShowFailure(true), 300);
     }
+  };
+
+  // Clipped inline ReadMoreText: render trimmed text inside an overflow:hidden View so the
+  // native ellipsize doesn't clip our appended "... Read more" link. This is a simple
+  // implementation (no layout measuring) that trims to a word boundary roughly by
+  // character count and shows the inline link. It's deterministic and easy to tweak.
+  const ReadMoreText = ({
+    text,
+    numberOfLines = 4,
+    style,
+  }: {
+    text: string;
+    numberOfLines?: number;
+    style?: any;
+  }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    // Basic heuristic: approximate chars per line and trim accordingly.
+    // This avoids heavy onTextLayout calculations. We use 40 chars/line as default.
+    const approxCharsPerLine = 40;
+    const maxChars = numberOfLines * approxCharsPerLine;
+
+    const needsTrim = text.length > maxChars;
+
+    let displayText = text;
+    if (!expanded && needsTrim) {
+      // Trim to nearest word boundary before maxChars - leave room for ellipses + link
+      const reserve = 12; // space for '... Read more'
+      const cutAt = Math.max(0, maxChars - reserve);
+      const head = text.slice(0, cutAt);
+      // remove trailing partial word
+      const trimmed = head.replace(/\s?\S+$/, "").trim();
+      displayText = trimmed + "... ";
+    }
+
+    return (
+      <View style={{ overflow: expanded ? "visible" : "hidden" }}>
+        <Text style={style}>
+          {displayText}
+          {!expanded && needsTrim ? (
+            <Text style={styles.readMoreText} onPress={() => setExpanded(true)}>
+              Read more
+            </Text>
+          ) : null}
+          {expanded ? (
+            <Text
+              style={styles.readMoreText}
+              onPress={() => setExpanded(false)}
+            >
+              {"\n"}Read less
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -267,6 +270,7 @@ export default function DashboardScreen() {
                           <Text style={styles.historyLabel}>Clock In</Text>
                           <Text style={styles.historyValue}>{item.in}</Text>
                         </View>
+
                         <View style={styles.historyRow}>
                           <Text style={styles.historyLabel}>Clock Out</Text>
                           <Text style={styles.historyValue}>{item.out}</Text>
@@ -300,26 +304,11 @@ export default function DashboardScreen() {
                     <Text style={styles.requestDate}>{requests[0].date}</Text>
                     <StatusLabel status={requests[0].status as any} />
                   </View>
-                  <View style={styles.requestDescriptionWrapper}>
-                    <Text
-                      style={styles.requestDescription}
-                      numberOfLines={expandedRequest === 0 ? undefined : 3}
-                    >
-                      {requests[0].text}
-                    </Text>
-                    {requests[0].text.length > 80 && (
-                      <TouchableOpacity
-                        style={styles.readMoreButton}
-                        onPress={() =>
-                          setExpandedRequest(expandedRequest === 0 ? null : 0)
-                        }
-                      >
-                        <Text style={styles.readMoreText}>
-                          {expandedRequest === 0 ? "Read less" : "Read more"}
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
+                  <ReadMoreText
+                    text={requests[0].text}
+                    numberOfLines={3}
+                    style={styles.requestDescription}
+                  />
                 </View>
               ) : (
                 <View style={styles.emptyRequestsCard}>
@@ -532,34 +521,15 @@ export default function DashboardScreen() {
                       </View>
                     </View>
 
-                    <View style={styles.allRequestTextWrapper}>
-                      <Text
+                    {item.text.length > 99 ? (
+                      <ReadMoreText
+                        text={item.text}
+                        numberOfLines={4}
                         style={styles.allRequestText}
-                        numberOfLines={
-                          expandedAllRequest === index ? undefined : 4
-                        }
-                        ellipsizeMode="tail"
-                      >
-                        {item.text}
-                      </Text>
-
-                      {item.text.length > 99 && (
-                        <TouchableOpacity
-                          style={styles.readMoreButton}
-                          onPress={() =>
-                            setExpandedAllRequest(
-                              expandedAllRequest === index ? null : index
-                            )
-                          }
-                        >
-                          <Text style={styles.readMoreText}>
-                            {expandedAllRequest === index
-                              ? "Read less"
-                              : "Read more"}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
+                      />
+                    ) : (
+                      <Text style={styles.allRequestText}>{item.text}</Text>
+                    )}
                   </View>
                 )}
                 showsVerticalScrollIndicator={true}
@@ -1062,6 +1032,10 @@ const styles = StyleSheet.create({
     color: "#758DA3",
     fontSize: 14,
     fontWeight: "500",
+  },
+  readMoreRow: {
+    alignItems: "flex-end",
+    marginTop: 6,
   },
   emptyRequestsCard: {
     backgroundColor: "#fff",
