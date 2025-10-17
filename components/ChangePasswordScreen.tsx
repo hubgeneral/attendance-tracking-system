@@ -121,11 +121,12 @@ export default function CreatePasswordScreen() {
 
 const styles = StyleSheet.create({
   container: {
-     flexGrow: 1,
-  justifyContent: 'flex-start',
-  paddingHorizontal: 10,
-  backgroundColor: '#fff',
-},
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+   
+  },
   title: {
     textAlign: 'center',
     fontSize: 20,
