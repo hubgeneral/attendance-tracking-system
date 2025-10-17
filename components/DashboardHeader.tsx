@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/useAuth";
 import React, { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,7 +5,6 @@ import ProfileCard from "../components/Profile";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 
 export default function DashboardHeader() {
-const { currentUser, logout } = useAuth();
 const [isProfileVisible, setIsProfileVisible] = useState(false);
   const bp = useBreakpoint();
   const headerPadding =
@@ -82,17 +80,16 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
             style={styles.modalContentContainer}
           >
             <ProfileCard
-            // name={currentUser?.userName}
-            // email={currentUser?.email}
-            // initials={initials}
-            onChangePassword={() => {
-              setIsProfileVisible(false);
-              console.log("Change Password pressed");
-            }}
-            onLogout={() => {
-              setIsProfileVisible(false);
-              logout(); 
-            }}
+             setIsProfileVisible={setIsProfileVisible}
+              onChangePassword={() => {
+                setIsProfileVisible(false);
+                console.log("Change Password pressed");
+              }}
+              onLogout={() => {
+                setIsProfileVisible(false);
+                console.log("Logout pressed");
+              }}
+             
             />
           </Pressable>
         </Pressable>

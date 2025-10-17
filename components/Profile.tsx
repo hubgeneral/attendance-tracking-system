@@ -21,6 +21,7 @@ interface ProfileCardProps {
   initials?: string;
   onChangePassword?: () => void;
   onLogout?: () => void;
+ setIsProfileVisible?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -29,6 +30,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   initials,
   onChangePassword,
   onLogout,
+  setIsProfileVisible,
 }) => {
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
@@ -192,5 +194,41 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 8,
   },
+    modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+
+  },
+
+  bottomModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  bottomModalContent: {
+    backgroundColor: "#fff",
+    width: "100%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    maxHeight: "50%",
+    // minHeight: "50%",
+    height: 600,
+  },
+  modalClose: {
+    alignSelf: "flex-end",
+    padding: 8,
+  },
+  modalContentContainer: {
+     width: "100%",
+    alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+
+
 });
 
