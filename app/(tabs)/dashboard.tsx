@@ -184,7 +184,7 @@ export default function DashboardScreen() {
       const head = text.slice(0, cutAt);
       // remove trailing partial word
       const trimmed = head.replace(/\s?\S+$/, "").trim();
-      displayText = trimmed + "... ";
+      displayText = trimmed + "...";
     }
 
     return (
@@ -308,7 +308,7 @@ export default function DashboardScreen() {
                       <Text style={styles.historyDate}>{item.date}</Text>
                       <AntDesign
                         name={expandedHistory === index ? "up" : "down"}
-                        size={14}
+                        size={12}
                         color="#666"
                       />
                     </View>
@@ -527,7 +527,7 @@ export default function DashboardScreen() {
                 style={styles.modalClose}
                 onPress={() => setShowAllRequests(false)}
               >
-                <AntDesign name="close" size={22} color="#ccc" />
+                <AntDesign name="close" size={15} color="#797979" />
               </TouchableOpacity>
               <Text style={styles.allRequestsTitle}>All Requests</Text>
               <FlatList
@@ -913,8 +913,8 @@ const styles = StyleSheet.create({
   },
   modalClose: {
     position: "absolute",
-    right: 16,
-    top: 20,
+    right: 10,
+    top: 10,
     zIndex: 2,
     width: 33.13,
     height: 33.13,
@@ -1017,7 +1017,7 @@ const styles = StyleSheet.create({
     color: "#00274D",
     textAlign: "center",
     marginBottom: 16,
-    marginTop: 8,
+    marginTop: 25,
   },
   allRequestItem: {
     marginBottom: 18,
@@ -1051,26 +1051,32 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   statusBadge_approved: {
-    backgroundColor: "#E8F5E8",
+    backgroundColor: "#F2FBF6",
+    borderWidth: 1,
+    borderColor: "#D9F2E5",
   },
   statusBadge_pending: {
-    backgroundColor: "#FFF3E0",
+    backgroundColor: "#FFF6ED",
+    borderWidth: 1,
+    borderColor: "#FFE9D6",
   },
   statusBadge_rejected: {
-    backgroundColor: "#FFEBEE",
+    backgroundColor: "#FFEDED",
+    borderWidth: 1,
+    borderColor: "#FFD0D1",
   },
   statusBadgeText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
   },
   statusBadgeText_approved: {
-    color: "#2E7D32",
+    color: "#00AB50",
   },
   statusBadgeText_pending: {
-    color: "#E65100",
+    color: "#FF8D28",
   },
   statusBadgeText_rejected: {
-    color: "#C62828",
+    color: "#FF383C",
   },
   allRequestText: {
     fontSize: 15,
