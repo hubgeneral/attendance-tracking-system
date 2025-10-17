@@ -1,6 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import CreatePasswordScreen from "../components/ChangePasswordScreen";
 
 interface ProfileCardProps {
   name?: string;
@@ -8,6 +9,7 @@ interface ProfileCardProps {
   initials?: string;
   onChangePassword?: () => void;
   onLogout?: () => void;
+ setIsProfileVisible?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -16,7 +18,19 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   initials = "TA",
   onChangePassword,
   onLogout,
+  setIsProfileVisible,
 }) => {
+
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = React.useState(false);
+  const [isLogoutVisible, setIsLogoutVisible] = React.useState(false);  
+
+  const onChangePasswordPress = () => {
+    setIsChangePasswordVisible(true);
+      if (setIsProfileVisible) {
+    setIsProfileVisible(true); 
+  }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.avatar}>
@@ -28,7 +42,9 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
       <View style={styles.divider} />
 
-      <TouchableOpacity style={styles.option} onPress={onChangePassword}>
+      <TouchableOpacity style={styles.option} 
+      onPress={onChangePasswordPress} 
+      >
         <Ionicons name="lock-closed-outline" size={20} color="#54708C" />
         <Text style={styles.optionText}>Change Password</Text>
       </TouchableOpacity>
@@ -37,6 +53,33 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <Ionicons name="log-out-outline" size={20} color="#DA0901" />
         <Text style={[styles.optionText, styles.logoutText]}>Log out</Text>
       </TouchableOpacity>
+
+   <Modal
+        visible={isChangePasswordVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setIsChangePasswordVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.bottomModalOverlay}
+        >
+          {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
+          <View style={styles.bottomModalContent}>
+            <TouchableOpacity
+              style={styles.modalClose}
+              onPress={() => setIsChangePasswordVisible(false)}
+            >
+              <AntDesign name="close" size={18} color="#ccc" />
+            </TouchableOpacity>
+
+            {/* Your existing password component */}
+            <CreatePasswordScreen />
+          </View>
+          {/* </TouchableWithoutFeedback> */}
+        </KeyboardAvoidingView>
+      </Modal>
+
     </View>
   );
 };
@@ -55,9 +98,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 4,
-    width: 300,
-    alignSelf: "center",
-    marginTop: 100,
+    // width: 300,
+    // alignSelf: "center",
+   
+    width: "100%",
+    alignSelf: "stretch",
+    marginTop: 80,
+  
+  
   },
   avatar: {
     backgroundColor: "#CCEBE9",
@@ -110,4 +158,40 @@ const styles = StyleSheet.create({
     color: "#00274D",
 
   },
+    modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+
+  },
+
+  bottomModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  bottomModalContent: {
+    backgroundColor: "#fff",
+    width: "100%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    maxHeight: "50%",
+    // minHeight: "50%",
+    height: 600,
+  },
+  modalClose: {
+    alignSelf: "flex-end",
+    padding: 8,
+  },
+  modalContentContainer: {
+     width: "100%",
+    alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+
+
 });
