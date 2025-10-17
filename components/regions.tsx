@@ -50,8 +50,8 @@ import { GeofenceRegion } from './geoFencing';
 export const regions: GeofenceRegion[] = [
   {
     identifier: 'Office',
-    latitude: 5.6207846,
-    longitude: -0.1853460,
+    latitude: 5.620772,
+    longitude: -0.185382,
     radius: 0.1,
     notifyOnEnter: true,
     notifyOnExit: true,
