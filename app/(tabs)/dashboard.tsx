@@ -1,13 +1,14 @@
-import { AntDesign, Octicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { AntDesign } from "@expo/vector-icons";
+import { useEffect, useState, useRef } from "react";
 import { startGeofencing,isUserInsideRegion } from '../../components/geoFencing';
-import regions from '../../components/regions';
+import { regions } from '../../components/regions';
 
 import {
   Alert,
   Dimensions,
   FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -17,6 +18,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Animated,
+  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
@@ -52,13 +55,16 @@ export default function DashboardScreen() {
     null
   );
 
+  // Animated value used to move bottom modals above the keyboard
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+
   // useEffect(() => {
   //   startGeofencing(regions);
   //   console.log("Geofencing started with regions:", regions);
   // }, []);
 
-   useEffect(() => {
-    const init = async () => {
+  useEffect(() => {
+   const init = async () => {
       await startGeofencing(regions);
 
       // ✅ Auto-check on launch
@@ -79,6 +85,39 @@ export default function DashboardScreen() {
     handleManualCheck();
     init();
   }, []);
+
+  // Listen for keyboard events and animate bottom modals
+  useEffect(() => {
+    const onShow = (e: any) => {
+      const height = e.endCoordinates?.height ?? 300;
+      Animated.timing(keyboardOffset, {
+        toValue: -height + (Platform.OS === 'ios' ? 0 : 0),
+        duration: e.duration ?? 250,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const onHide = (e: any) => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: e?.duration ?? 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardOffset]);
 
   const handleManualCheck = async () => {
     const inside = await isUserInsideRegion(regions[0]);
@@ -308,7 +347,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setModalVisible(false)}
@@ -333,7 +377,7 @@ export default function DashboardScreen() {
               >
                 <Text style={styles.modalButtonText}>Submit Request</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -348,7 +392,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowSuccess(false)}
@@ -363,7 +412,7 @@ export default function DashboardScreen() {
               <Text style={styles.successText}>
                 Your request has been submitted successfully.
               </Text>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -378,7 +427,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowFailure(false)}
@@ -402,7 +456,7 @@ export default function DashboardScreen() {
               >
                 <Text style={styles.modalButtonText}>Try Again</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -417,7 +471,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.allRequestsModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowAllRequests(false)}
@@ -492,7 +551,7 @@ export default function DashboardScreen() {
                 style={{ width: "100%" }}
                 contentContainerStyle={{ paddingBottom: 16 }}
               />
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
       </ScrollView>
