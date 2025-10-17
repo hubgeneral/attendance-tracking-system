@@ -1,14 +1,17 @@
 import { AntDesign } from "@expo/vector-icons";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  startGeofencing,
   isUserInsideRegion,
+  startGeofencing,
 } from "../../components/geoFencing";
 import { regions } from "../../components/regions";
 
+import * as Notifications from "expo-notifications";
 import {
   Alert,
+  Animated,
   Dimensions,
+  Easing,
   FlatList,
   Image,
   Keyboard,
@@ -21,14 +24,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Animated,
-  Easing,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import * as Notifications from "expo-notifications";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -38,7 +38,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
-
 
 const { width } = Dimensions.get("window");
 
@@ -52,17 +51,12 @@ export default function DashboardScreen() {
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
   >([]);
-  const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [showAllRequests, setShowAllRequests] = useState(false);
-  const [expandedAllRequest, setExpandedAllRequest] = useState<number | null>(
-    null
-  );
 
   // Animated value used to move bottom modals above the keyboard
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-
 
   // useEffect(() => {
   //   startGeofencing(regions);
@@ -1110,5 +1104,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     width: 144,
     marginTop: 12,
+    marginLeft: 25,
   },
 });
