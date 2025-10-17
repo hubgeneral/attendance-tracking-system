@@ -1,9 +1,11 @@
-import React from "react";
-import { Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { Image, Modal, Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import ProfileCard from "../components/Profile";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 
 export default function DashboardHeader() {
+const [isProfileVisible, setIsProfileVisible] = useState(false);
   const bp = useBreakpoint();
   const headerPadding =
     bp === "xs" ? 4 : bp === "s" ? 8 : bp === "m" ? 16 : bp === "l" ? 24 : 32;
@@ -44,6 +46,7 @@ export default function DashboardHeader() {
             borderRadius: profileSize / 0.5,
           },
         ]}
+         onPress={() => setIsProfileVisible(true)} 
       >
         <Image
           source={require("../assets/images/profile.png")}
@@ -51,6 +54,38 @@ export default function DashboardHeader() {
           resizeMode="cover"
         />
       </TouchableOpacity>
+        {/* Modal for ProfileCard */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={isProfileVisible}
+        onRequestClose={() => setIsProfileVisible(false)}
+      >
+        {/* Outer Pressable closes modal */}
+        <Pressable
+          style={styles.modalBackground}
+          onPress={() => setIsProfileVisible(false)}
+        >
+         
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={styles.modalContentContainer}
+          >
+            <ProfileCard
+             setIsProfileVisible={setIsProfileVisible}
+              onChangePassword={() => {
+                setIsProfileVisible(false);
+                console.log("Change Password pressed");
+              }}
+              onLogout={() => {
+                setIsProfileVisible(false);
+                console.log("Logout pressed");
+              }}
+             
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -71,4 +106,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
+  //   modalBackground: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0,0,0,0.5)",
+  //   justifyContent: "flex-start",
+  //   alignItems: "flex-end",
+  //   marginTop: -20,
+  //   marginRight: -40,
+  // },
+
+//   modalBackground: {
+//   flex: 1,
+//   backgroundColor: "rgba(0,0,0,0.5)",
+//   justifyContent: "flex-start",
+//   alignItems: "flex-end",
+//   paddingTop: 0, 
+//   paddingRight: 0,
+// },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+
+  },
+  modalContentContainer: {
+     width: "100%",
+    alignSelf: "stretch",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+  },
+
 });
+

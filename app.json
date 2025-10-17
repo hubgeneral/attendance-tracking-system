@@ -30,9 +30,9 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.illusionalgod.attendancetrackingsystem",
       "permissions": [
+        "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
-        "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS"
       ]
     },
