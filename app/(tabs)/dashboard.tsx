@@ -1,7 +1,10 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useEffect, useState, useRef } from "react";
-import { startGeofencing,isUserInsideRegion } from '../../components/geoFencing';
-import { regions } from '../../components/regions';
+import {
+  startGeofencing,
+  isUserInsideRegion,
+} from "../../components/geoFencing";
+import { regions } from "../../components/regions";
 
 import {
   Alert,
@@ -25,7 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -64,7 +67,7 @@ export default function DashboardScreen() {
   // }, []);
 
   useEffect(() => {
-   const init = async () => {
+    const init = async () => {
       await startGeofencing(regions);
 
       // ✅ Auto-check on launch
@@ -73,7 +76,7 @@ export default function DashboardScreen() {
         console.log(`✅ You are currently inside ${regions[0].identifier}`);
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: 'You are already inside 🏢',
+            title: "You are already inside 🏢",
             body: `Currently inside ${regions[0].identifier}`,
           },
           trigger: null,
@@ -91,7 +94,7 @@ export default function DashboardScreen() {
     const onShow = (e: any) => {
       const height = e.endCoordinates?.height ?? 300;
       Animated.timing(keyboardOffset, {
-        toValue: -height + (Platform.OS === 'ios' ? 0 : 0),
+        toValue: -height + (Platform.OS === "ios" ? 0 : 0),
         duration: e.duration ?? 250,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
@@ -107,8 +110,10 @@ export default function DashboardScreen() {
       }).start();
     };
 
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
     const showSub = Keyboard.addListener(showEvent, onShow);
     const hideSub = Keyboard.addListener(hideEvent, onHide);
@@ -122,7 +127,7 @@ export default function DashboardScreen() {
   const handleManualCheck = async () => {
     const inside = await isUserInsideRegion(regions[0]);
     Alert.alert(
-      'Geofence Check',
+      "Geofence Check",
       inside
         ? `✅ You are currently inside ${regions[0].identifier}`
         : `🚶‍♂️ You are outside ${regions[0].identifier}`
@@ -177,13 +182,13 @@ export default function DashboardScreen() {
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
-            <Text style={styles.metricValue}>8:00 AM</Text>
+            <Text style={styles.metricValue}>8:00 Am</Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.orangeAccent]} />
             <Text style={styles.metricTitle}>Clock Out Time</Text>
-            <Text style={styles.metricValue}>5:00 PM</Text>
+            <Text style={styles.metricValue}>5:00 Pm</Text>
           </View>
 
           <View style={styles.metricCard}>
@@ -626,7 +631,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 15,
   },
   metricCard: {
     width: (width - 52) / 2,
@@ -672,13 +677,13 @@ const styles = StyleSheet.create({
   metricTitle: {
     fontSize: 16,
     color: "#758DA3",
-    lineHeight: 34,
+    lineHeight: 25,
     letterSpacing: 0,
     fontWeight: 500,
     fontFamily: "Inter",
   },
   metricValue: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#1A1A1A",
   },
@@ -687,9 +692,9 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 10,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   cardHeader: {
     flexDirection: "row",
@@ -704,9 +709,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: "300",
-    color: "#D1D9E0",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#758DA3",
     margin: 8,
   },
   filterButton: {
@@ -726,10 +731,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    margin: 10,
   },
   makeRequestButtonText: {
-    fontSize: 18,
+    fontSize: 14,
     color: "#fff",
     fontWeight: "500",
   },
@@ -858,8 +862,8 @@ const styles = StyleSheet.create({
   },
   modalClose: {
     position: "absolute",
-    right: 15,
-    top: 15,
+    right: 16,
+    top: 20,
     zIndex: 2,
     width: 33.13,
     height: 33.13,
@@ -912,8 +916,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   successImage: {
-    width: 120,
-    height: 120,
+    width: 182,
+    height: 185,
     marginBottom: 18,
   },
   successText: {
@@ -922,10 +926,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 50,
     fontWeight: "500",
+    width: 335,
+    height: 24,
   },
   failureImage: {
-    width: 120,
-    height: 120,
+    width: 197,
+    height: 147,
     marginBottom: 18,
   },
   failureText: {
@@ -935,6 +941,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: "500",
     marginBottom: 18,
+    width: 313,
+    height: 24,
   },
   allRequestsModalContent: {
     width: "95%",
