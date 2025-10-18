@@ -29,6 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
+import { useGetAttendanceByIdQuery } from "@/src/generated/graphql";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -57,6 +58,79 @@ export default function DashboardScreen() {
 
   // Animated value used to move bottom modals above the keyboard
   const keyboardOffset = useRef(new Animated.Value(0)).current;
+
+  const { data, loading, error } = useGetAttendanceByIdQuery({
+    variables: { username: "DHG1030" },
+  });
+
+  // UI state for metric cards (updated when query result changes)
+  const [clockInText, setClockInText] = useState<string>("-");
+  const [clockOutText, setClockOutText] = useState<string>("-");
+  const [hoursWorkedText, setHoursWorkedText] = useState<string>("-");
+  const [timeOffText, setTimeOffText] = useState<string>("-");
+
+  const formatTime = (dt: any) => {
+    if (!dt) return "-";
+    try {
+      const d = new Date(dt);
+      if (isNaN(d.getTime())) return "-";
+      let hours = d.getHours();
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      const period = hours >= 12 ? "Pm" : "Am";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${period}`;
+    } catch {
+      return "-";
+    }
+  };
+
+  const formatHours = (val: number) => {
+    // Display integer as '1' and decimals up to 2 places trimmed (eg 1.5)
+    if (Number.isInteger(val)) return `${val}`;
+    return `${parseFloat(val.toFixed(2))}`;
+  };
+
+  useEffect(() => {
+    if (loading) {
+      setClockInText("...");
+      setClockOutText("...");
+      setHoursWorkedText("...");
+      setTimeOffText("-");
+      return;
+    }
+
+    if (error || !data || !data.attendanceByUserId) {
+      setClockInText("-");
+      setClockOutText("-");
+      setHoursWorkedText("-");
+      setTimeOffText("-");
+      return;
+    }
+
+    // pick the first attendance entry (assumed to be the most relevant)
+    const latestAttendance =
+      data.attendanceByUserId && data.attendanceByUserId.length
+        ? data.attendanceByUserId[0]
+        : null;
+
+    setClockInText(formatTime(latestAttendance?.clockIn));
+    setClockOutText(formatTime(latestAttendance?.clockOut));
+    // parse totalHoursWorked (may be string or number)
+    let hoursNum: number | null = null;
+    if (latestAttendance?.totalHoursWorked != null) {
+      const parsed = Number(latestAttendance.totalHoursWorked as any);
+      if (!isNaN(parsed)) hoursNum = parsed;
+    }
+
+    if (hoursNum != null) {
+      setHoursWorkedText(`${formatHours(hoursNum)}hrs`);
+      const timeOff = Math.max(0, 8 - hoursNum);
+      setTimeOffText(`${formatHours(timeOff)}hrs`);
+    } else {
+      setHoursWorkedText("-");
+      setTimeOffText("-");
+    }
+  }, [data, loading, error]);
 
   // useEffect(() => {
   //   startGeofencing(regions);
@@ -229,8 +303,10 @@ export default function DashboardScreen() {
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
             <Text style={styles.metricValue}>
-              <Text style={styles.metricTime}>8:00</Text>
-              <Text style={styles.metricPeriod}> Am</Text>
+              <Text style={styles.metricTime}>{clockInText.split(" ")[0]}</Text>
+              <Text style={styles.metricPeriod}>
+                {" " + (clockInText.split(" ")[1] ?? "")}
+              </Text>
             </Text>
           </View>
 
@@ -238,21 +314,25 @@ export default function DashboardScreen() {
             <View style={[styles.cardAccent, styles.orangeAccent]} />
             <Text style={styles.metricTitle}>Clock Out Time</Text>
             <Text style={styles.metricValue}>
-              <Text style={styles.metricTime}>5:00</Text>
-              <Text style={styles.metricPeriod}> Pm</Text>
+              <Text style={styles.metricTime}>
+                {clockOutText.split(" ")[0]}
+              </Text>
+              <Text style={styles.metricPeriod}>
+                {" " + (clockOutText.split(" ")[1] ?? "")}
+              </Text>
             </Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.greenAccent]} />
             <Text style={styles.metricTitle}>Hours Worked</Text>
-            <Text style={styles.metricValue}>7hrs</Text>
+            <Text style={styles.metricValue}>{hoursWorkedText}</Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.redAccent]} />
             <Text style={styles.metricTitle}>Time Off</Text>
-            <Text style={styles.metricValue}>1hrs</Text>
+            <Text style={styles.metricValue}>{timeOffText}</Text>
           </View>
         </View>
 

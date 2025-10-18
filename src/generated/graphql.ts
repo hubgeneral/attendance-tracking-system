@@ -1,114 +1,101 @@
-import { gql } from "@apollo/client";
-import * as Apollo from "@apollo/client/react";
+import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T
-> = { [_ in K]?: never };
-export type Incremental<T> =
-  | T
-  | {
-      [P in keyof T]?: P extends " $fragmentName" | "__typename" ? T[P] : never;
-    };
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: { input: string; output: string };
-  String: { input: string; output: string };
-  Boolean: { input: boolean; output: boolean };
-  Int: { input: number; output: number };
-  Float: { input: number; output: number };
-  DateTime: { input: any; output: any };
-  Decimal: { input: any; output: any };
-  LocalDate: { input: any; output: any };
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+  DateTime: { input: any; output: any; }
+  Decimal: { input: any; output: any; }
+  LocalDate: { input: any; output: any; }
 };
 
 export type ActivityLogger = {
-  __typename?: "ActivityLogger";
-  activityDescription?: Maybe<Scalars["String"]["output"]>;
-  activityLog?: Maybe<Scalars["String"]["output"]>;
-  appUserId: Scalars["Int"]["output"];
-  id: Scalars["Int"]["output"];
-  timeOfDay: Scalars["DateTime"]["output"];
+  __typename?: 'ActivityLogger';
+  activityDescription?: Maybe<Scalars['String']['output']>;
+  activityLog?: Maybe<Scalars['String']['output']>;
+  appUserId: Scalars['Int']['output'];
+  id: Scalars['Int']['output'];
+  timeOfDay: Scalars['DateTime']['output'];
   user?: Maybe<AppUser>;
 };
 
 export type ActivityLoggerFilterInput = {
   activityDescription?: InputMaybe<StringOperationFilterInput>;
   activityLog?: InputMaybe<StringOperationFilterInput>;
-  and?: InputMaybe<ActivityLoggerFilterInput[]>;
+  and?: InputMaybe<Array<ActivityLoggerFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<ActivityLoggerFilterInput[]>;
+  or?: InputMaybe<Array<ActivityLoggerFilterInput>>;
   timeOfDay?: InputMaybe<DateTimeOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
 export type AppRole = {
-  __typename?: "AppRole";
-  concurrencyStamp?: Maybe<Scalars["String"]["output"]>;
-  id: Scalars["Int"]["output"];
-  name?: Maybe<Scalars["String"]["output"]>;
-  normalizedName?: Maybe<Scalars["String"]["output"]>;
-  userRoles: AppUserRole[];
+  __typename?: 'AppRole';
+  concurrencyStamp?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  normalizedName?: Maybe<Scalars['String']['output']>;
+  userRoles: Array<AppUserRole>;
 };
 
 export type AppRoleFilterInput = {
-  and?: InputMaybe<AppRoleFilterInput[]>;
+  and?: InputMaybe<Array<AppRoleFilterInput>>;
   concurrencyStamp?: InputMaybe<StringOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
   name?: InputMaybe<StringOperationFilterInput>;
   normalizedName?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<AppRoleFilterInput[]>;
+  or?: InputMaybe<Array<AppRoleFilterInput>>;
   userRoles?: InputMaybe<ListFilterInputTypeOfAppUserRoleFilterInput>;
 };
 
 export type AppUser = {
-  __typename?: "AppUser";
-  accessFailedCount: Scalars["Int"]["output"];
-  activityLoggers?: Maybe<ActivityLogger[]>;
-  attendances?: Maybe<Attendance[]>;
-  concurrencyStamp?: Maybe<Scalars["String"]["output"]>;
-  email?: Maybe<Scalars["String"]["output"]>;
-  emailConfirmed: Scalars["Boolean"]["output"];
-  employeeName?: Maybe<Scalars["String"]["output"]>;
-  employeeType?: Maybe<Scalars["String"]["output"]>;
-  exitLogs?: Maybe<ExitLog[]>;
-  id: Scalars["Int"]["output"];
-  isPasswordReset: Scalars["Boolean"]["output"];
-  leaves?: Maybe<Leave[]>;
-  lockoutEnabled: Scalars["Boolean"]["output"];
-  lockoutEnd?: Maybe<Scalars["DateTime"]["output"]>;
-  normalizedEmail?: Maybe<Scalars["String"]["output"]>;
-  normalizedUserName?: Maybe<Scalars["String"]["output"]>;
-  password?: Maybe<Scalars["String"]["output"]>;
-  passwordHash?: Maybe<Scalars["String"]["output"]>;
-  phoneNumber?: Maybe<Scalars["String"]["output"]>;
-  phoneNumberConfirmed: Scalars["Boolean"]["output"];
-  refreshTokens: RefreshToken[];
-  requests?: Maybe<Request[]>;
-  securityStamp?: Maybe<Scalars["String"]["output"]>;
-  staffId?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<Scalars["String"]["output"]>;
-  twoFactorEnabled: Scalars["Boolean"]["output"];
-  userName?: Maybe<Scalars["String"]["output"]>;
-  userRoles: AppUserRole[];
+  __typename?: 'AppUser';
+  accessFailedCount: Scalars['Int']['output'];
+  activityLoggers?: Maybe<Array<ActivityLogger>>;
+  attendances?: Maybe<Array<Attendance>>;
+  concurrencyStamp?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  emailConfirmed: Scalars['Boolean']['output'];
+  employeeName?: Maybe<Scalars['String']['output']>;
+  employeeType?: Maybe<Scalars['String']['output']>;
+  exitLogs?: Maybe<Array<ExitLog>>;
+  id: Scalars['Int']['output'];
+  isPasswordReset: Scalars['Boolean']['output'];
+  leaves?: Maybe<Array<Leave>>;
+  lockoutEnabled: Scalars['Boolean']['output'];
+  lockoutEnd?: Maybe<Scalars['DateTime']['output']>;
+  normalizedEmail?: Maybe<Scalars['String']['output']>;
+  normalizedUserName?: Maybe<Scalars['String']['output']>;
+  password?: Maybe<Scalars['String']['output']>;
+  passwordHash?: Maybe<Scalars['String']['output']>;
+  phoneNumber?: Maybe<Scalars['String']['output']>;
+  phoneNumberConfirmed: Scalars['Boolean']['output'];
+  refreshTokens: Array<RefreshToken>;
+  requests?: Maybe<Array<Request>>;
+  securityStamp?: Maybe<Scalars['String']['output']>;
+  staffId?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  twoFactorEnabled: Scalars['Boolean']['output'];
+  userName?: Maybe<Scalars['String']['output']>;
+  userRoles: Array<AppUserRole>;
 };
 
 export type AppUserFilterInput = {
   accessFailedCount?: InputMaybe<IntOperationFilterInput>;
   activityLoggers?: InputMaybe<ListFilterInputTypeOfActivityLoggerFilterInput>;
-  and?: InputMaybe<AppUserFilterInput[]>;
+  and?: InputMaybe<Array<AppUserFilterInput>>;
   attendances?: InputMaybe<ListFilterInputTypeOfAttendanceFilterInput>;
   concurrencyStamp?: InputMaybe<StringOperationFilterInput>;
   email?: InputMaybe<StringOperationFilterInput>;
@@ -123,7 +110,7 @@ export type AppUserFilterInput = {
   lockoutEnd?: InputMaybe<DateTimeOperationFilterInput>;
   normalizedEmail?: InputMaybe<StringOperationFilterInput>;
   normalizedUserName?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<AppUserFilterInput[]>;
+  or?: InputMaybe<Array<AppUserFilterInput>>;
   password?: InputMaybe<StringOperationFilterInput>;
   passwordHash?: InputMaybe<StringOperationFilterInput>;
   phoneNumber?: InputMaybe<StringOperationFilterInput>;
@@ -139,16 +126,16 @@ export type AppUserFilterInput = {
 };
 
 export type AppUserRole = {
-  __typename?: "AppUserRole";
+  __typename?: 'AppUserRole';
   role: AppRole;
-  roleId: Scalars["Int"]["output"];
+  roleId: Scalars['Int']['output'];
   user: AppUser;
-  userId: Scalars["Int"]["output"];
+  userId: Scalars['Int']['output'];
 };
 
 export type AppUserRoleFilterInput = {
-  and?: InputMaybe<AppUserRoleFilterInput[]>;
-  or?: InputMaybe<AppUserRoleFilterInput[]>;
+  and?: InputMaybe<Array<AppUserRoleFilterInput>>;
+  or?: InputMaybe<Array<AppUserRoleFilterInput>>;
   role?: InputMaybe<AppRoleFilterInput>;
   roleId?: InputMaybe<IntOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
@@ -180,27 +167,27 @@ export type AppUserSortInput = {
 };
 
 export type Attendance = {
-  __typename?: "Attendance";
-  appUserId: Scalars["Int"]["output"];
-  clockIn?: Maybe<Scalars["DateTime"]["output"]>;
-  clockOut?: Maybe<Scalars["DateTime"]["output"]>;
-  clockingType: Scalars["Boolean"]["output"];
-  currentDate?: Maybe<Scalars["LocalDate"]["output"]>;
-  id: Scalars["Int"]["output"];
-  status?: Maybe<Scalars["String"]["output"]>;
-  totalHoursWorked?: Maybe<Scalars["Decimal"]["output"]>;
+  __typename?: 'Attendance';
+  appUserId: Scalars['Int']['output'];
+  clockIn?: Maybe<Scalars['DateTime']['output']>;
+  clockOut?: Maybe<Scalars['DateTime']['output']>;
+  clockingType: Scalars['Boolean']['output'];
+  currentDate?: Maybe<Scalars['LocalDate']['output']>;
+  id: Scalars['Int']['output'];
+  status?: Maybe<Scalars['String']['output']>;
+  totalHoursWorked?: Maybe<Scalars['Decimal']['output']>;
   user?: Maybe<AppUser>;
 };
 
 export type AttendanceFilterInput = {
-  and?: InputMaybe<AttendanceFilterInput[]>;
+  and?: InputMaybe<Array<AttendanceFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   clockIn?: InputMaybe<DateTimeOperationFilterInput>;
   clockOut?: InputMaybe<DateTimeOperationFilterInput>;
   clockingType?: InputMaybe<BooleanOperationFilterInput>;
   currentDate?: InputMaybe<LocalDateOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<AttendanceFilterInput[]>;
+  or?: InputMaybe<Array<AttendanceFilterInput>>;
   status?: InputMaybe<StringOperationFilterInput>;
   totalHoursWorked?: InputMaybe<DecimalOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
@@ -219,93 +206,93 @@ export type AttendanceSortInput = {
 };
 
 export type BooleanOperationFilterInput = {
-  eq?: InputMaybe<Scalars["Boolean"]["input"]>;
-  neq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  eq?: InputMaybe<Scalars['Boolean']['input']>;
+  neq?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type DateTimeOperationFilterInput = {
-  eq?: InputMaybe<Scalars["DateTime"]["input"]>;
-  gt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  gte?: InputMaybe<Scalars["DateTime"]["input"]>;
-  in?: InputMaybe<InputMaybe<Scalars["DateTime"]["input"]>[]>;
-  lt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  lte?: InputMaybe<Scalars["DateTime"]["input"]>;
-  neq?: InputMaybe<Scalars["DateTime"]["input"]>;
-  ngt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  ngte?: InputMaybe<Scalars["DateTime"]["input"]>;
-  nin?: InputMaybe<InputMaybe<Scalars["DateTime"]["input"]>[]>;
-  nlt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  nlte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  eq?: InputMaybe<Scalars['DateTime']['input']>;
+  gt?: InputMaybe<Scalars['DateTime']['input']>;
+  gte?: InputMaybe<Scalars['DateTime']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['DateTime']['input']>>>;
+  lt?: InputMaybe<Scalars['DateTime']['input']>;
+  lte?: InputMaybe<Scalars['DateTime']['input']>;
+  neq?: InputMaybe<Scalars['DateTime']['input']>;
+  ngt?: InputMaybe<Scalars['DateTime']['input']>;
+  ngte?: InputMaybe<Scalars['DateTime']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['DateTime']['input']>>>;
+  nlt?: InputMaybe<Scalars['DateTime']['input']>;
+  nlte?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 export type DecimalOperationFilterInput = {
-  eq?: InputMaybe<Scalars["Decimal"]["input"]>;
-  gt?: InputMaybe<Scalars["Decimal"]["input"]>;
-  gte?: InputMaybe<Scalars["Decimal"]["input"]>;
-  in?: InputMaybe<InputMaybe<Scalars["Decimal"]["input"]>[]>;
-  lt?: InputMaybe<Scalars["Decimal"]["input"]>;
-  lte?: InputMaybe<Scalars["Decimal"]["input"]>;
-  neq?: InputMaybe<Scalars["Decimal"]["input"]>;
-  ngt?: InputMaybe<Scalars["Decimal"]["input"]>;
-  ngte?: InputMaybe<Scalars["Decimal"]["input"]>;
-  nin?: InputMaybe<InputMaybe<Scalars["Decimal"]["input"]>[]>;
-  nlt?: InputMaybe<Scalars["Decimal"]["input"]>;
-  nlte?: InputMaybe<Scalars["Decimal"]["input"]>;
+  eq?: InputMaybe<Scalars['Decimal']['input']>;
+  gt?: InputMaybe<Scalars['Decimal']['input']>;
+  gte?: InputMaybe<Scalars['Decimal']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['Decimal']['input']>>>;
+  lt?: InputMaybe<Scalars['Decimal']['input']>;
+  lte?: InputMaybe<Scalars['Decimal']['input']>;
+  neq?: InputMaybe<Scalars['Decimal']['input']>;
+  ngt?: InputMaybe<Scalars['Decimal']['input']>;
+  ngte?: InputMaybe<Scalars['Decimal']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['Decimal']['input']>>>;
+  nlt?: InputMaybe<Scalars['Decimal']['input']>;
+  nlte?: InputMaybe<Scalars['Decimal']['input']>;
 };
 
 export type ExitLog = {
-  __typename?: "ExitLog";
-  appUserId: Scalars["Int"]["output"];
-  currentDate: Scalars["LocalDate"]["output"];
-  entryTime: Scalars["DateTime"]["output"];
-  exitTime: Scalars["DateTime"]["output"];
-  id: Scalars["Int"]["output"];
-  totalExitTime: Scalars["Int"]["output"];
+  __typename?: 'ExitLog';
+  appUserId: Scalars['Int']['output'];
+  currentDate: Scalars['LocalDate']['output'];
+  entryTime: Scalars['DateTime']['output'];
+  exitTime: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  totalExitTime: Scalars['Int']['output'];
   user?: Maybe<AppUser>;
 };
 
 export type ExitLogFilterInput = {
-  and?: InputMaybe<ExitLogFilterInput[]>;
+  and?: InputMaybe<Array<ExitLogFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   currentDate?: InputMaybe<LocalDateOperationFilterInput>;
   entryTime?: InputMaybe<DateTimeOperationFilterInput>;
   exitTime?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<ExitLogFilterInput[]>;
+  or?: InputMaybe<Array<ExitLogFilterInput>>;
   totalExitTime?: InputMaybe<IntOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
 export type IntOperationFilterInput = {
-  eq?: InputMaybe<Scalars["Int"]["input"]>;
-  gt?: InputMaybe<Scalars["Int"]["input"]>;
-  gte?: InputMaybe<Scalars["Int"]["input"]>;
-  in?: InputMaybe<InputMaybe<Scalars["Int"]["input"]>[]>;
-  lt?: InputMaybe<Scalars["Int"]["input"]>;
-  lte?: InputMaybe<Scalars["Int"]["input"]>;
-  neq?: InputMaybe<Scalars["Int"]["input"]>;
-  ngt?: InputMaybe<Scalars["Int"]["input"]>;
-  ngte?: InputMaybe<Scalars["Int"]["input"]>;
-  nin?: InputMaybe<InputMaybe<Scalars["Int"]["input"]>[]>;
-  nlt?: InputMaybe<Scalars["Int"]["input"]>;
-  nlte?: InputMaybe<Scalars["Int"]["input"]>;
+  eq?: InputMaybe<Scalars['Int']['input']>;
+  gt?: InputMaybe<Scalars['Int']['input']>;
+  gte?: InputMaybe<Scalars['Int']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  lt?: InputMaybe<Scalars['Int']['input']>;
+  lte?: InputMaybe<Scalars['Int']['input']>;
+  neq?: InputMaybe<Scalars['Int']['input']>;
+  ngt?: InputMaybe<Scalars['Int']['input']>;
+  ngte?: InputMaybe<Scalars['Int']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  nlt?: InputMaybe<Scalars['Int']['input']>;
+  nlte?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type Leave = {
-  __typename?: "Leave";
-  appUserId: Scalars["Int"]["output"];
-  approvalStatus?: Maybe<Scalars["String"]["output"]>;
-  daysRequested?: Maybe<Scalars["Int"]["output"]>;
-  email?: Maybe<Scalars["String"]["output"]>;
-  employeeName?: Maybe<Scalars["String"]["output"]>;
-  endDate?: Maybe<Scalars["DateTime"]["output"]>;
-  id: Scalars["Int"]["output"];
-  startDate?: Maybe<Scalars["DateTime"]["output"]>;
+  __typename?: 'Leave';
+  appUserId: Scalars['Int']['output'];
+  approvalStatus?: Maybe<Scalars['String']['output']>;
+  daysRequested?: Maybe<Scalars['Int']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  employeeName?: Maybe<Scalars['String']['output']>;
+  endDate?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['Int']['output'];
+  startDate?: Maybe<Scalars['DateTime']['output']>;
   user?: Maybe<AppUser>;
 };
 
 export type LeaveFilterInput = {
-  and?: InputMaybe<LeaveFilterInput[]>;
+  and?: InputMaybe<Array<LeaveFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   approvalStatus?: InputMaybe<StringOperationFilterInput>;
   daysRequested?: InputMaybe<IntOperationFilterInput>;
@@ -313,83 +300,83 @@ export type LeaveFilterInput = {
   employeeName?: InputMaybe<StringOperationFilterInput>;
   endDate?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<LeaveFilterInput[]>;
+  or?: InputMaybe<Array<LeaveFilterInput>>;
   startDate?: InputMaybe<DateTimeOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
 export type ListFilterInputTypeOfActivityLoggerFilterInput = {
   all?: InputMaybe<ActivityLoggerFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<ActivityLoggerFilterInput>;
   some?: InputMaybe<ActivityLoggerFilterInput>;
 };
 
 export type ListFilterInputTypeOfAppUserRoleFilterInput = {
   all?: InputMaybe<AppUserRoleFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<AppUserRoleFilterInput>;
   some?: InputMaybe<AppUserRoleFilterInput>;
 };
 
 export type ListFilterInputTypeOfAttendanceFilterInput = {
   all?: InputMaybe<AttendanceFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<AttendanceFilterInput>;
   some?: InputMaybe<AttendanceFilterInput>;
 };
 
 export type ListFilterInputTypeOfExitLogFilterInput = {
   all?: InputMaybe<ExitLogFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<ExitLogFilterInput>;
   some?: InputMaybe<ExitLogFilterInput>;
 };
 
 export type ListFilterInputTypeOfLeaveFilterInput = {
   all?: InputMaybe<LeaveFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<LeaveFilterInput>;
   some?: InputMaybe<LeaveFilterInput>;
 };
 
 export type ListFilterInputTypeOfRefreshTokenFilterInput = {
   all?: InputMaybe<RefreshTokenFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<RefreshTokenFilterInput>;
   some?: InputMaybe<RefreshTokenFilterInput>;
 };
 
 export type ListFilterInputTypeOfRequestFilterInput = {
   all?: InputMaybe<RequestFilterInput>;
-  any?: InputMaybe<Scalars["Boolean"]["input"]>;
+  any?: InputMaybe<Scalars['Boolean']['input']>;
   none?: InputMaybe<RequestFilterInput>;
   some?: InputMaybe<RequestFilterInput>;
 };
 
 export type LocalDateOperationFilterInput = {
-  eq?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  gt?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  gte?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  in?: InputMaybe<InputMaybe<Scalars["LocalDate"]["input"]>[]>;
-  lt?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  lte?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  neq?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  ngt?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  ngte?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  nin?: InputMaybe<InputMaybe<Scalars["LocalDate"]["input"]>[]>;
-  nlt?: InputMaybe<Scalars["LocalDate"]["input"]>;
-  nlte?: InputMaybe<Scalars["LocalDate"]["input"]>;
+  eq?: InputMaybe<Scalars['LocalDate']['input']>;
+  gt?: InputMaybe<Scalars['LocalDate']['input']>;
+  gte?: InputMaybe<Scalars['LocalDate']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['LocalDate']['input']>>>;
+  lt?: InputMaybe<Scalars['LocalDate']['input']>;
+  lte?: InputMaybe<Scalars['LocalDate']['input']>;
+  neq?: InputMaybe<Scalars['LocalDate']['input']>;
+  ngt?: InputMaybe<Scalars['LocalDate']['input']>;
+  ngte?: InputMaybe<Scalars['LocalDate']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['LocalDate']['input']>>>;
+  nlt?: InputMaybe<Scalars['LocalDate']['input']>;
+  nlte?: InputMaybe<Scalars['LocalDate']['input']>;
 };
 
 export type Mutation = {
-  __typename?: "Mutation";
+  __typename?: 'Mutation';
   createAttendance: Attendance;
   createUser: AppUser;
-  deleteAttendance: Scalars["Boolean"]["output"];
-  deleteUser: Scalars["Boolean"]["output"];
-  geoFenceClockIn: Scalars["String"]["output"];
-  geofenceClockOut: Scalars["String"]["output"];
+  deleteAttendance: Scalars['Boolean']['output'];
+  deleteUser: Scalars['Boolean']['output'];
+  geoFenceClockIn: Scalars['String']['output'];
+  geofenceClockOut: Scalars['String']['output'];
   login: UserLoginResponse;
   loginForForgottenPassword: UserLoginResponse;
   resetPassword: UserResetPasswordResponse;
@@ -397,206 +384,222 @@ export type Mutation = {
   updateUser?: Maybe<AppUser>;
 };
 
+
 export type MutationCreateAttendanceArgs = {
-  appuserid: Scalars["Int"]["input"];
-  clockin: Scalars["DateTime"]["input"];
-  clockout: Scalars["DateTime"]["input"];
-  currentdate: Scalars["LocalDate"]["input"];
-  status: Scalars["String"]["input"];
-  totalhoursworked: Scalars["Int"]["input"];
+  appuserid: Scalars['Int']['input'];
+  clockin: Scalars['DateTime']['input'];
+  clockout: Scalars['DateTime']['input'];
+  currentdate: Scalars['LocalDate']['input'];
+  status: Scalars['String']['input'];
+  totalhoursworked: Scalars['Int']['input'];
 };
+
 
 export type MutationCreateUserArgs = {
-  email: Scalars["String"]["input"];
-  employeeName: Scalars["String"]["input"];
-  password: Scalars["String"]["input"];
-  role: Scalars["String"]["input"];
-  staffId: Scalars["String"]["input"];
-  status: Scalars["String"]["input"];
+  email: Scalars['String']['input'];
+  employeeName: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+  role: Scalars['String']['input'];
+  staffId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
 };
+
 
 export type MutationDeleteAttendanceArgs = {
-  id: Scalars["Int"]["input"];
+  id: Scalars['Int']['input'];
 };
+
 
 export type MutationDeleteUserArgs = {
-  id: Scalars["Int"]["input"];
+  id: Scalars['Int']['input'];
 };
+
 
 export type MutationGeoFenceClockInArgs = {
-  clockin: Scalars["DateTime"]["input"];
-  username: Scalars["String"]["input"];
+  clockin: Scalars['DateTime']['input'];
+  username: Scalars['String']['input'];
 };
+
 
 export type MutationGeofenceClockOutArgs = {
-  username: Scalars["String"]["input"];
+  username: Scalars['String']['input'];
 };
+
 
 export type MutationLoginArgs = {
-  password: Scalars["String"]["input"];
-  username: Scalars["String"]["input"];
+  password: Scalars['String']['input'];
+  username: Scalars['String']['input'];
 };
+
 
 export type MutationLoginForForgottenPasswordArgs = {
-  email: Scalars["String"]["input"];
-  phoneno: Scalars["String"]["input"];
-  staffid: Scalars["String"]["input"];
+  email: Scalars['String']['input'];
+  phoneno: Scalars['String']['input'];
+  staffid: Scalars['String']['input'];
 };
+
 
 export type MutationResetPasswordArgs = {
-  password: Scalars["String"]["input"];
-  token: Scalars["String"]["input"];
-  username: Scalars["String"]["input"];
+  password: Scalars['String']['input'];
+  token: Scalars['String']['input'];
+  username: Scalars['String']['input'];
 };
+
 
 export type MutationUpdateAttendanceArgs = {
-  appuserid: Scalars["Int"]["input"];
-  clockin: Scalars["DateTime"]["input"];
-  clockout: Scalars["DateTime"]["input"];
-  currentdate: Scalars["LocalDate"]["input"];
-  status: Scalars["String"]["input"];
-  totalhoursworked: Scalars["Int"]["input"];
+  appuserid: Scalars['Int']['input'];
+  clockin: Scalars['DateTime']['input'];
+  clockout: Scalars['DateTime']['input'];
+  currentdate: Scalars['LocalDate']['input'];
+  status: Scalars['String']['input'];
+  totalhoursworked: Scalars['Int']['input'];
 };
 
+
 export type MutationUpdateUserArgs = {
-  email: Scalars["String"]["input"];
-  employeeName: Scalars["String"]["input"];
-  id: Scalars["Int"]["input"];
-  password: Scalars["String"]["input"];
-  role: Scalars["String"]["input"];
-  staffId: Scalars["String"]["input"];
-  status: Scalars["String"]["input"];
+  email: Scalars['String']['input'];
+  employeeName: Scalars['String']['input'];
+  id: Scalars['Int']['input'];
+  password: Scalars['String']['input'];
+  role: Scalars['String']['input'];
+  staffId: Scalars['String']['input'];
+  status: Scalars['String']['input'];
 };
 
 export type Query = {
-  __typename?: "Query";
-  attendanceByUserId: Attendance[];
-  attendances: Attendance[];
+  __typename?: 'Query';
+  attendanceByUserId: Array<Attendance>;
+  attendances: Array<Attendance>;
   userById?: Maybe<AppUser>;
-  users: AppUser[];
-  usersWithRoles: UserWithRoleResponse[];
+  users: Array<AppUser>;
+  usersWithRoles: Array<UserWithRoleResponse>;
 };
+
 
 export type QueryAttendanceByUserIdArgs = {
-  username: Scalars["String"]["input"];
+  username: Scalars['String']['input'];
 };
 
+
 export type QueryAttendancesArgs = {
-  order?: InputMaybe<AttendanceSortInput[]>;
+  order?: InputMaybe<Array<AttendanceSortInput>>;
   where?: InputMaybe<AttendanceFilterInput>;
 };
 
+
 export type QueryUserByIdArgs = {
-  id: Scalars["Int"]["input"];
+  id: Scalars['Int']['input'];
 };
 
+
 export type QueryUsersArgs = {
-  order?: InputMaybe<AppUserSortInput[]>;
+  order?: InputMaybe<Array<AppUserSortInput>>;
   where?: InputMaybe<AppUserFilterInput>;
 };
 
+
 export type QueryUsersWithRolesArgs = {
-  order?: InputMaybe<UserWithRoleResponseSortInput[]>;
+  order?: InputMaybe<Array<UserWithRoleResponseSortInput>>;
   where?: InputMaybe<UserWithRoleResponseFilterInput>;
 };
 
 export type RefreshToken = {
-  __typename?: "RefreshToken";
-  appUserId: Scalars["Int"]["output"];
-  expires: Scalars["DateTime"]["output"];
-  id: Scalars["Int"]["output"];
-  isRevoked: Scalars["Boolean"]["output"];
-  isUsed: Scalars["Boolean"]["output"];
-  token: Scalars["String"]["output"];
+  __typename?: 'RefreshToken';
+  appUserId: Scalars['Int']['output'];
+  expires: Scalars['DateTime']['output'];
+  id: Scalars['Int']['output'];
+  isRevoked: Scalars['Boolean']['output'];
+  isUsed: Scalars['Boolean']['output'];
+  token: Scalars['String']['output'];
   user?: Maybe<AppUser>;
 };
 
 export type RefreshTokenFilterInput = {
-  and?: InputMaybe<RefreshTokenFilterInput[]>;
+  and?: InputMaybe<Array<RefreshTokenFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   expires?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
   isRevoked?: InputMaybe<BooleanOperationFilterInput>;
   isUsed?: InputMaybe<BooleanOperationFilterInput>;
-  or?: InputMaybe<RefreshTokenFilterInput[]>;
+  or?: InputMaybe<Array<RefreshTokenFilterInput>>;
   token?: InputMaybe<StringOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
 export type Request = {
-  __typename?: "Request";
-  appUserId: Scalars["Int"]["output"];
-  description?: Maybe<Scalars["String"]["output"]>;
-  id: Scalars["Int"]["output"];
-  timeOfDay: Scalars["DateTime"]["output"];
+  __typename?: 'Request';
+  appUserId: Scalars['Int']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['Int']['output'];
+  timeOfDay: Scalars['DateTime']['output'];
   user?: Maybe<AppUser>;
 };
 
 export type RequestFilterInput = {
-  and?: InputMaybe<RequestFilterInput[]>;
+  and?: InputMaybe<Array<RequestFilterInput>>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   description?: InputMaybe<StringOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<RequestFilterInput[]>;
+  or?: InputMaybe<Array<RequestFilterInput>>;
   timeOfDay?: InputMaybe<DateTimeOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
 export enum SortEnumType {
-  Asc = "ASC",
-  Desc = "DESC",
+  Asc = 'ASC',
+  Desc = 'DESC'
 }
 
 export type StringOperationFilterInput = {
-  and?: InputMaybe<StringOperationFilterInput[]>;
-  contains?: InputMaybe<Scalars["String"]["input"]>;
-  endsWith?: InputMaybe<Scalars["String"]["input"]>;
-  eq?: InputMaybe<Scalars["String"]["input"]>;
-  in?: InputMaybe<InputMaybe<Scalars["String"]["input"]>[]>;
-  ncontains?: InputMaybe<Scalars["String"]["input"]>;
-  nendsWith?: InputMaybe<Scalars["String"]["input"]>;
-  neq?: InputMaybe<Scalars["String"]["input"]>;
-  nin?: InputMaybe<InputMaybe<Scalars["String"]["input"]>[]>;
-  nstartsWith?: InputMaybe<Scalars["String"]["input"]>;
-  or?: InputMaybe<StringOperationFilterInput[]>;
-  startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  and?: InputMaybe<Array<StringOperationFilterInput>>;
+  contains?: InputMaybe<Scalars['String']['input']>;
+  endsWith?: InputMaybe<Scalars['String']['input']>;
+  eq?: InputMaybe<Scalars['String']['input']>;
+  in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  ncontains?: InputMaybe<Scalars['String']['input']>;
+  nendsWith?: InputMaybe<Scalars['String']['input']>;
+  neq?: InputMaybe<Scalars['String']['input']>;
+  nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  nstartsWith?: InputMaybe<Scalars['String']['input']>;
+  or?: InputMaybe<Array<StringOperationFilterInput>>;
+  startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UserLoginResponse = {
-  __typename?: "UserLoginResponse";
-  accessToken?: Maybe<Scalars["String"]["output"]>;
-  id?: Maybe<Scalars["String"]["output"]>;
-  isPasswordReset: Scalars["Boolean"]["output"];
-  refreshToken?: Maybe<Scalars["String"]["output"]>;
-  role?: Maybe<Scalars["String"]["output"]>;
-  userName?: Maybe<Scalars["String"]["output"]>;
+  __typename?: 'UserLoginResponse';
+  accessToken?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['String']['output']>;
+  isPasswordReset: Scalars['Boolean']['output'];
+  refreshToken?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  userName?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserResetPasswordResponse = {
-  __typename?: "UserResetPasswordResponse";
-  isPasswordReset?: Maybe<Scalars["Boolean"]["output"]>;
-  message?: Maybe<Scalars["String"]["output"]>;
+  __typename?: 'UserResetPasswordResponse';
+  isPasswordReset?: Maybe<Scalars['Boolean']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserWithRoleResponse = {
-  __typename?: "UserWithRoleResponse";
-  email?: Maybe<Scalars["String"]["output"]>;
-  employeeName?: Maybe<Scalars["String"]["output"]>;
-  employeeType?: Maybe<Scalars["String"]["output"]>;
-  roleId: Scalars["Int"]["output"];
-  roleName?: Maybe<Scalars["String"]["output"]>;
-  staffId?: Maybe<Scalars["String"]["output"]>;
-  status?: Maybe<Scalars["String"]["output"]>;
-  userId: Scalars["Int"]["output"];
-  userName?: Maybe<Scalars["String"]["output"]>;
+  __typename?: 'UserWithRoleResponse';
+  email?: Maybe<Scalars['String']['output']>;
+  employeeName?: Maybe<Scalars['String']['output']>;
+  employeeType?: Maybe<Scalars['String']['output']>;
+  roleId: Scalars['Int']['output'];
+  roleName?: Maybe<Scalars['String']['output']>;
+  staffId?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  userId: Scalars['Int']['output'];
+  userName?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserWithRoleResponseFilterInput = {
-  and?: InputMaybe<UserWithRoleResponseFilterInput[]>;
+  and?: InputMaybe<Array<UserWithRoleResponseFilterInput>>;
   email?: InputMaybe<StringOperationFilterInput>;
   employeeName?: InputMaybe<StringOperationFilterInput>;
   employeeType?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<UserWithRoleResponseFilterInput[]>;
+  or?: InputMaybe<Array<UserWithRoleResponseFilterInput>>;
   roleId?: InputMaybe<IntOperationFilterInput>;
   roleName?: InputMaybe<StringOperationFilterInput>;
   staffId?: InputMaybe<StringOperationFilterInput>;
@@ -618,74 +621,46 @@ export type UserWithRoleResponseSortInput = {
 };
 
 export type LoginMutationVariables = Exact<{
-  username: Scalars["String"]["input"];
-  password: Scalars["String"]["input"];
+  username: Scalars['String']['input'];
+  password: Scalars['String']['input'];
 }>;
 
-export type LoginMutation = {
-  __typename?: "Mutation";
-  login: {
-    __typename?: "UserLoginResponse";
-    id?: string | null;
-    accessToken?: string | null;
-    refreshToken?: string | null;
-    isPasswordReset: boolean;
-    userName?: string | null;
-    role?: string | null;
-  };
-};
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserLoginResponse', id?: string | null, accessToken?: string | null, refreshToken?: string | null, isPasswordReset: boolean, userName?: string | null, role?: string | null } };
+
+export type GetAttendanceByIdQueryVariables = Exact<{
+  username: Scalars['String']['input'];
+}>;
+
+
+export type GetAttendanceByIdQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
 
 export type GetUserByIdQueryVariables = Exact<{
-  id: Scalars["Int"]["input"];
+  id: Scalars['Int']['input'];
 }>;
 
-export type GetUserByIdQuery = {
-  __typename?: "Query";
-  userById?: {
-    __typename?: "AppUser";
-    id: number;
-    employeeName?: string | null;
-    email?: string | null;
-    staffId?: string | null;
-    phoneNumber?: string | null;
-    status?: string | null;
-    employeeType?: string | null;
-    userName?: string | null;
-    isPasswordReset: boolean;
-    userRoles: {
-      __typename?: "AppUserRole";
-      role: { __typename?: "AppRole"; name?: string | null };
-    }[];
-  } | null;
-};
 
-export type GetAllUsersQueryVariables = Exact<{ [key: string]: never }>;
+export type GetUserByIdQuery = { __typename?: 'Query', userById?: { __typename?: 'AppUser', id: number, employeeName?: string | null, email?: string | null, staffId?: string | null, phoneNumber?: string | null, status?: string | null, employeeType?: string | null, userName?: string | null, isPasswordReset: boolean, userRoles: Array<{ __typename?: 'AppUserRole', role: { __typename?: 'AppRole', name?: string | null } }> } | null };
 
-export type GetAllUsersQuery = {
-  __typename?: "Query";
-  users: {
-    __typename?: "AppUser";
-    userName?: string | null;
-    status?: string | null;
-  }[];
-};
+export type GetAllUsersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllUsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'AppUser', userName?: string | null, status?: string | null }> };
+
 
 export const LoginDocument = gql`
-  mutation Login($username: String!, $password: String!) {
-    login(username: $username, password: $password) {
-      id
-      accessToken
-      refreshToken
-      isPasswordReset
-      userName
-      role
-    }
+    mutation Login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
+    id
+    accessToken
+    refreshToken
+    isPasswordReset
+    userName
+    role
   }
-`;
-export type LoginMutationFn = Apollo.MutationFunction<
-  LoginMutation,
-  LoginMutationVariables
->;
+}
+    `;
+export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
 
 /**
  * __useLoginMutation__
@@ -705,44 +680,75 @@ export type LoginMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useLoginMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    LoginMutation,
-    LoginMutationVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<LoginMutation, LoginMutationVariables>(
-    LoginDocument,
-    options
-  );
-}
+export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginMutation, LoginMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoginMutation, LoginMutationVariables>(LoginDocument, options);
+      }
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
-export type LoginMutationOptions = Apollo.BaseMutationOptions<
-  LoginMutation,
-  LoginMutationVariables
->;
-export const GetUserByIdDocument = gql`
-  query getUserById($id: Int!) {
-    userById(id: $id) {
-      id
-      employeeName
-      email
-      staffId
-      phoneNumber
-      status
-      employeeType
-      userName
-      isPasswordReset
-      userRoles {
-        role {
-          name
+export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export const GetAttendanceByIdDocument = gql`
+    query getAttendanceById($username: String!) {
+  attendanceByUserId(username: $username) {
+    clockIn
+    clockOut
+    totalHoursWorked
+  }
+}
+    `;
+
+/**
+ * __useGetAttendanceByIdQuery__
+ *
+ * To run a query within a React component, call `useGetAttendanceByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAttendanceByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAttendanceByIdQuery({
+ *   variables: {
+ *      username: // value for 'username'
+ *   },
+ * });
+ */
+export function useGetAttendanceByIdQuery(baseOptions: Apollo.QueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables> & ({ variables: GetAttendanceByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
+      }
+export function useGetAttendanceByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
         }
+export function useGetAttendanceByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
+        }
+export type GetAttendanceByIdQueryHookResult = ReturnType<typeof useGetAttendanceByIdQuery>;
+export type GetAttendanceByIdLazyQueryHookResult = ReturnType<typeof useGetAttendanceByIdLazyQuery>;
+export type GetAttendanceByIdSuspenseQueryHookResult = ReturnType<typeof useGetAttendanceByIdSuspenseQuery>;
+export type GetAttendanceByIdQueryResult = Apollo.QueryResult<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>;
+export const GetUserByIdDocument = gql`
+    query getUserById($id: Int!) {
+  userById(id: $id) {
+    id
+    employeeName
+    email
+    staffId
+    phoneNumber
+    status
+    employeeType
+    userName
+    isPasswordReset
+    userRoles {
+      role {
+        name
       }
     }
   }
-`;
+}
+    `;
 
 /**
  * __useGetUserByIdQuery__
@@ -760,70 +766,30 @@ export const GetUserByIdDocument = gql`
  *   },
  * });
  */
-export function useGetUserByIdQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetUserByIdQuery,
-    GetUserByIdQueryVariables
-  > &
-    (
-      | { variables: GetUserByIdQueryVariables; skip?: boolean }
-      | { skip: boolean }
-    )
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(
-    GetUserByIdDocument,
-    options
-  );
-}
-export function useGetUserByIdLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetUserByIdQuery,
-    GetUserByIdQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(
-    GetUserByIdDocument,
-    options
-  );
-}
-export function useGetUserByIdSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetUserByIdQuery,
-        GetUserByIdQueryVariables
-      >
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(
-    GetUserByIdDocument,
-    options
-  );
-}
+export function useGetUserByIdQuery(baseOptions: Apollo.QueryHookOptions<GetUserByIdQuery, GetUserByIdQueryVariables> & ({ variables: GetUserByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(GetUserByIdDocument, options);
+      }
+export function useGetUserByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserByIdQuery, GetUserByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(GetUserByIdDocument, options);
+        }
+export function useGetUserByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetUserByIdQuery, GetUserByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetUserByIdQuery, GetUserByIdQueryVariables>(GetUserByIdDocument, options);
+        }
 export type GetUserByIdQueryHookResult = ReturnType<typeof useGetUserByIdQuery>;
-export type GetUserByIdLazyQueryHookResult = ReturnType<
-  typeof useGetUserByIdLazyQuery
->;
-export type GetUserByIdSuspenseQueryHookResult = ReturnType<
-  typeof useGetUserByIdSuspenseQuery
->;
-export type GetUserByIdQueryResult = Apollo.QueryResult<
-  GetUserByIdQuery,
-  GetUserByIdQueryVariables
->;
+export type GetUserByIdLazyQueryHookResult = ReturnType<typeof useGetUserByIdLazyQuery>;
+export type GetUserByIdSuspenseQueryHookResult = ReturnType<typeof useGetUserByIdSuspenseQuery>;
+export type GetUserByIdQueryResult = Apollo.QueryResult<GetUserByIdQuery, GetUserByIdQueryVariables>;
 export const GetAllUsersDocument = gql`
-  query getAllUsers {
-    users {
-      userName
-      status
-    }
+    query getAllUsers {
+  users {
+    userName
+    status
   }
-`;
+}
+    `;
 
 /**
  * __useGetAllUsersQuery__
@@ -840,55 +806,19 @@ export const GetAllUsersDocument = gql`
  *   },
  * });
  */
-export function useGetAllUsersQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetAllUsersQuery,
-    GetAllUsersQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(
-    GetAllUsersDocument,
-    options
-  );
-}
-export function useGetAllUsersLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetAllUsersQuery,
-    GetAllUsersQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(
-    GetAllUsersDocument,
-    options
-  );
-}
-export function useGetAllUsersSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetAllUsersQuery,
-        GetAllUsersQueryVariables
-      >
-) {
-  const options =
-    baseOptions === Apollo.skipToken
-      ? baseOptions
-      : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(
-    GetAllUsersDocument,
-    options
-  );
-}
+export function useGetAllUsersQuery(baseOptions?: Apollo.QueryHookOptions<GetAllUsersQuery, GetAllUsersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(GetAllUsersDocument, options);
+      }
+export function useGetAllUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAllUsersQuery, GetAllUsersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(GetAllUsersDocument, options);
+        }
+export function useGetAllUsersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAllUsersQuery, GetAllUsersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAllUsersQuery, GetAllUsersQueryVariables>(GetAllUsersDocument, options);
+        }
 export type GetAllUsersQueryHookResult = ReturnType<typeof useGetAllUsersQuery>;
-export type GetAllUsersLazyQueryHookResult = ReturnType<
-  typeof useGetAllUsersLazyQuery
->;
-export type GetAllUsersSuspenseQueryHookResult = ReturnType<
-  typeof useGetAllUsersSuspenseQuery
->;
-export type GetAllUsersQueryResult = Apollo.QueryResult<
-  GetAllUsersQuery,
-  GetAllUsersQueryVariables
->;
+export type GetAllUsersLazyQueryHookResult = ReturnType<typeof useGetAllUsersLazyQuery>;
+export type GetAllUsersSuspenseQueryHookResult = ReturnType<typeof useGetAllUsersSuspenseQuery>;
+export type GetAllUsersQueryResult = Apollo.QueryResult<GetAllUsersQuery, GetAllUsersQueryVariables>;
