@@ -47,7 +47,7 @@ export default function DashboardHeader() {
       >
         <Image
           source={require("../assets/images/profile.png")}
-          style={{ width: profileSize * 0.5, height: profileSize * 0.5 }}
+          style={{ width: 12, height: 12 }}
           resizeMode="cover"
         />
       </TouchableOpacity>

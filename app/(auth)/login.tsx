@@ -1,11 +1,11 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import LogoRow from "../../components/LogoRow";
 import PrimaryButton from "../../components/PrimaryButton";
-
+import { useGetAllUsersQuery } from "@/src/generated/graphql";
 const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
@@ -27,6 +27,18 @@ export default function LoginScreen() {
     }
   };
 
+  const { data, loading, error } = useGetAllUsersQuery();
+  useEffect(() => {
+    if (data) {
+      console.log("Fetched users:", data);
+    }
+    if (error) {
+      console.error("Error fetching users:", error.message);
+    }
+    if (loading) {
+      console.log("Loading users...");
+    }
+  }, [data, error, loading]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.inner}>
@@ -84,5 +96,3 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-
-

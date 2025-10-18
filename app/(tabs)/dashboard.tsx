@@ -1,13 +1,20 @@
-import { AntDesign, Octicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { startGeofencing,isUserInsideRegion } from '../../components/geoFencing';
-import regions from '../../components/regions';
+import { AntDesign } from "@expo/vector-icons";
+import { useEffect, useRef, useState } from "react";
+import {
+  isUserInsideRegion,
+  startGeofencing,
+} from "../../components/geoFencing";
+import { regions } from "../../components/regions";
 
+import * as Notifications from "expo-notifications";
 import {
   Alert,
+  Animated,
   Dimensions,
+  Easing,
   FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -22,7 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import * as Notifications from 'expo-notifications';
+import { useGetAttendanceByIdQuery } from "@/src/generated/graphql";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -34,6 +41,7 @@ Notifications.setNotificationHandler({
 });
 
 const { width } = Dimensions.get("window");
+
 export default function DashboardScreen() {
   const [selectedDate] = useState("21/10/2025");
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
@@ -44,20 +52,92 @@ export default function DashboardScreen() {
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
   >([]);
-  const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [showAllRequests, setShowAllRequests] = useState(false);
-  const [expandedAllRequest, setExpandedAllRequest] = useState<number | null>(
-    null
-  );
+
+  // Animated value used to move bottom modals above the keyboard
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+
+  const { data, loading, error } = useGetAttendanceByIdQuery({
+    variables: { username: "DHG1030" },
+  });
+
+  // UI state for metric cards (updated when query result changes)
+  const [clockInText, setClockInText] = useState<string>("-");
+  const [clockOutText, setClockOutText] = useState<string>("-");
+  const [hoursWorkedText, setHoursWorkedText] = useState<string>("-");
+  const [timeOffText, setTimeOffText] = useState<string>("-");
+
+  const formatTime = (dt: any) => {
+    if (!dt) return "-";
+    try {
+      const d = new Date(dt);
+      if (isNaN(d.getTime())) return "-";
+      let hours = d.getHours();
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      const period = hours >= 12 ? "Pm" : "Am";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${period}`;
+    } catch {
+      return "-";
+    }
+  };
+
+  const formatHours = (val: number) => {
+    // Display integer as '1' and decimals up to 2 places trimmed (eg 1.5)
+    if (Number.isInteger(val)) return `${val}`;
+    return `${parseFloat(val.toFixed(2))}`;
+  };
+
+  useEffect(() => {
+    if (loading) {
+      setClockInText("...");
+      setClockOutText("...");
+      setHoursWorkedText("...");
+      setTimeOffText("-");
+      return;
+    }
+
+    if (error || !data || !data.attendanceByUserId) {
+      setClockInText("-");
+      setClockOutText("-");
+      setHoursWorkedText("-");
+      setTimeOffText("-");
+      return;
+    }
+
+    // pick the first attendance entry (assumed to be the most relevant)
+    const latestAttendance =
+      data.attendanceByUserId && data.attendanceByUserId.length
+        ? data.attendanceByUserId[0]
+        : null;
+
+    setClockInText(formatTime(latestAttendance?.clockIn));
+    setClockOutText(formatTime(latestAttendance?.clockOut));
+    // parse totalHoursWorked (may be string or number)
+    let hoursNum: number | null = null;
+    if (latestAttendance?.totalHoursWorked != null) {
+      const parsed = Number(latestAttendance.totalHoursWorked as any);
+      if (!isNaN(parsed)) hoursNum = parsed;
+    }
+
+    if (hoursNum != null) {
+      setHoursWorkedText(`${formatHours(hoursNum)}hrs`);
+      const timeOff = Math.max(0, 8 - hoursNum);
+      setTimeOffText(`${formatHours(timeOff)}hrs`);
+    } else {
+      setHoursWorkedText("-");
+      setTimeOffText("-");
+    }
+  }, [data, loading, error]);
 
   // useEffect(() => {
   //   startGeofencing(regions);
   //   console.log("Geofencing started with regions:", regions);
   // }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     const init = async () => {
       await startGeofencing(regions);
 
@@ -67,7 +147,7 @@ export default function DashboardScreen() {
         console.log(`✅ You are currently inside ${regions[0].identifier}`);
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: 'You are already inside 🏢',
+            title: "You are already inside 🏢",
             body: `Currently inside ${regions[0].identifier}`,
           },
           trigger: null,
@@ -80,10 +160,45 @@ export default function DashboardScreen() {
     init();
   }, []);
 
+  // Listen for keyboard events and animate bottom modals
+  useEffect(() => {
+    const onShow = (e: any) => {
+      const height = e.endCoordinates?.height ?? 300;
+      Animated.timing(keyboardOffset, {
+        toValue: -height + (Platform.OS === "ios" ? 0 : 0),
+        duration: e.duration ?? 250,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const onHide = (e: any) => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: e?.duration ?? 200,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [keyboardOffset]);
+
   const handleManualCheck = async () => {
     const inside = await isUserInsideRegion(regions[0]);
     Alert.alert(
-      'Geofence Check',
+      "Geofence Check",
       inside
         ? `✅ You are currently inside ${regions[0].identifier}`
         : `🚶‍♂️ You are outside ${regions[0].identifier}`
@@ -113,6 +228,55 @@ export default function DashboardScreen() {
     }
   };
 
+  const ReadMoreText = ({
+    text,
+    numberOfLines = 4,
+    style,
+  }: {
+    text: string;
+    numberOfLines?: number;
+    style?: any;
+  }) => {
+    const [expanded, setExpanded] = useState(false);
+
+    const approxCharsPerLine = 40;
+    const maxChars = numberOfLines * approxCharsPerLine;
+
+    const needsTrim = text.length > maxChars;
+
+    let displayText = text;
+    if (!expanded && needsTrim) {
+      // Trim to nearest word boundary before maxChars - leave room for ellipses + link
+      const reserve = 12; // space for '... Read more'
+      const cutAt = Math.max(0, maxChars - reserve);
+      const head = text.slice(0, cutAt);
+      // remove trailing partial word
+      const trimmed = head.replace(/\s?\S+$/, "").trim();
+      displayText = trimmed + "...";
+    }
+
+    return (
+      <View style={{ overflow: expanded ? "visible" : "hidden" }}>
+        <Text style={style}>
+          {displayText}
+          {!expanded && needsTrim ? (
+            <Text style={styles.readMoreText} onPress={() => setExpanded(true)}>
+              Read more
+            </Text>
+          ) : null}
+          {expanded ? (
+            <Text
+              style={styles.readMoreText}
+              onPress={() => setExpanded(false)}
+            >
+              {"\n"}Read less
+            </Text>
+          ) : null}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <DashboardHeader />
@@ -138,25 +302,37 @@ export default function DashboardScreen() {
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
-            <Text style={styles.metricValue}>8:00 AM</Text>
+            <Text style={styles.metricValue}>
+              <Text style={styles.metricTime}>{clockInText.split(" ")[0]}</Text>
+              <Text style={styles.metricPeriod}>
+                {" " + (clockInText.split(" ")[1] ?? "")}
+              </Text>
+            </Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.orangeAccent]} />
             <Text style={styles.metricTitle}>Clock Out Time</Text>
-            <Text style={styles.metricValue}>5:00 PM</Text>
+            <Text style={styles.metricValue}>
+              <Text style={styles.metricTime}>
+                {clockOutText.split(" ")[0]}
+              </Text>
+              <Text style={styles.metricPeriod}>
+                {" " + (clockOutText.split(" ")[1] ?? "")}
+              </Text>
+            </Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.greenAccent]} />
             <Text style={styles.metricTitle}>Hours Worked</Text>
-            <Text style={styles.metricValue}>7hrs</Text>
+            <Text style={styles.metricValue}>{hoursWorkedText}</Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.redAccent]} />
             <Text style={styles.metricTitle}>Time Off</Text>
-            <Text style={styles.metricValue}>1hrs</Text>
+            <Text style={styles.metricValue}>{timeOffText}</Text>
           </View>
         </View>
 
@@ -206,7 +382,7 @@ export default function DashboardScreen() {
                       <Text style={styles.historyDate}>{item.date}</Text>
                       <AntDesign
                         name={expandedHistory === index ? "up" : "down"}
-                        size={14}
+                        size={12}
                         color="#666"
                       />
                     </View>
@@ -217,6 +393,7 @@ export default function DashboardScreen() {
                           <Text style={styles.historyLabel}>Clock In</Text>
                           <Text style={styles.historyValue}>{item.in}</Text>
                         </View>
+
                         <View style={styles.historyRow}>
                           <Text style={styles.historyLabel}>Clock Out</Text>
                           <Text style={styles.historyValue}>{item.out}</Text>
@@ -250,29 +427,11 @@ export default function DashboardScreen() {
                     <Text style={styles.requestDate}>{requests[0].date}</Text>
                     <StatusLabel status={requests[0].status as any} />
                   </View>
-                  <Text
+                  <ReadMoreText
+                    text={requests[0].text}
+                    numberOfLines={3}
                     style={styles.requestDescription}
-                    numberOfLines={expandedRequest === 0 ? undefined : 3}
-                  >
-                    {requests[0].text}
-                  </Text>
-                  {requests[0].text.length > 80 && (
-                    <TouchableOpacity
-                      onPress={() =>
-                        setExpandedRequest(expandedRequest === 0 ? null : 0)
-                      }
-                    >
-                      <Text
-                        style={{
-                          color: "#004E2B",
-                          fontWeight: "500",
-                          marginTop: 4,
-                        }}
-                      >
-                        {expandedRequest === 0 ? "Read less" : "Read more"}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                  />
                 </View>
               ) : (
                 <View style={styles.emptyRequestsCard}>
@@ -308,7 +467,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setModalVisible(false)}
@@ -333,7 +497,7 @@ export default function DashboardScreen() {
               >
                 <Text style={styles.modalButtonText}>Submit Request</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -348,7 +512,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowSuccess(false)}
@@ -363,7 +532,7 @@ export default function DashboardScreen() {
               <Text style={styles.successText}>
                 Your request has been submitted successfully.
               </Text>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -378,7 +547,12 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.bottomModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowFailure(false)}
@@ -402,7 +576,7 @@ export default function DashboardScreen() {
               >
                 <Text style={styles.modalButtonText}>Try Again</Text>
               </TouchableOpacity>
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
 
@@ -417,19 +591,29 @@ export default function DashboardScreen() {
             behavior={Platform.OS === "ios" ? "padding" : undefined}
             style={styles.bottomModalOverlay}
           >
-            <View style={styles.bottomModalContent}>
+            <Animated.View
+              style={[
+                styles.allRequestsModalContent,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
               <TouchableOpacity
                 style={styles.modalClose}
                 onPress={() => setShowAllRequests(false)}
               >
-                <AntDesign name="close" size={22} color="#ccc" />
+                <AntDesign name="close" size={15} color="#797979" />
               </TouchableOpacity>
               <Text style={styles.allRequestsTitle}>All Requests</Text>
               <FlatList
                 data={requests}
                 keyExtractor={(_, idx) => idx.toString()}
                 renderItem={({ item, index }) => (
-                  <View style={styles.allRequestItem}>
+                  <View
+                    style={[
+                      styles.allRequestItem,
+                      styles.allRequestItemWithButton,
+                    ]}
+                  >
                     <View style={styles.allRequestHeader}>
                       <Text style={styles.allRequestDate}>{item.date}</Text>
                       <View style={{ position: "absolute", top: 0, right: 0 }}>
@@ -459,30 +643,13 @@ export default function DashboardScreen() {
                         </View>
                       </View>
                     </View>
-                    {expandedAllRequest === index ? (
-                      <Text style={styles.allRequestText}>
-                        {item.text}{" "}
-                        <Text
-                          style={styles.readMoreText}
-                          onPress={() => setExpandedAllRequest(null)}
-                        >
-                          Read less
-                        </Text>
-                      </Text>
-                    ) : item.text.length > 99 ? (
-                      <Text
-                        style={styles.allRequestText}
+
+                    {item.text.length > 99 ? (
+                      <ReadMoreText
+                        text={item.text}
                         numberOfLines={4}
-                        ellipsizeMode="tail"
-                      >
-                        {item.text.slice(0, item.text.length - 10) + "... "}
-                        <Text
-                          style={styles.readMoreText}
-                          onPress={() => setExpandedAllRequest(index)}
-                        >
-                          Read more
-                        </Text>
-                      </Text>
+                        style={styles.allRequestText}
+                      />
                     ) : (
                       <Text style={styles.allRequestText}>{item.text}</Text>
                     )}
@@ -492,7 +659,7 @@ export default function DashboardScreen() {
                 style={{ width: "100%" }}
                 contentContainerStyle={{ paddingBottom: 16 }}
               />
-            </View>
+            </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
       </ScrollView>
@@ -567,7 +734,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 15,
   },
   metricCard: {
     width: (width - 52) / 2,
@@ -578,7 +745,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 8,
   },
   cardAccent: {
     position: "absolute",
@@ -613,14 +780,24 @@ const styles = StyleSheet.create({
   metricTitle: {
     fontSize: 16,
     color: "#758DA3",
-    lineHeight: 34,
+    lineHeight: 25,
     letterSpacing: 0,
     fontWeight: 500,
     fontFamily: "Inter",
   },
   metricValue: {
-    fontSize: 20,
+    fontSize: 30,
     fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricTime: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricPeriod: {
+    fontSize: 14,
+    fontWeight: "600",
     color: "#1A1A1A",
   },
   section: {
@@ -628,9 +805,9 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 10,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   cardHeader: {
     flexDirection: "row",
@@ -645,9 +822,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: "300",
-    color: "#D1D9E0",
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#758DA3",
     margin: 8,
   },
   filterButton: {
@@ -667,10 +844,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    margin: 10,
   },
   makeRequestButtonText: {
-    fontSize: 18,
+    fontSize: 14,
     color: "#fff",
     fontWeight: "500",
   },
@@ -678,7 +854,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   historyItem: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FCFCFC",
     borderRadius: 4,
     padding: 13,
     borderColor: "#D1D9E0",
@@ -733,6 +909,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     lineHeight: 20,
+  },
+  requestDescriptionWrapper: {
+    position: "relative",
+    paddingBottom: 28,
+  },
+  readMoreButton: {
+    position: "absolute",
+    right: 8,
+    bottom: 6,
+    backgroundColor: "transparent",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   viewAllButton: {
     alignItems: "center",
@@ -799,8 +987,8 @@ const styles = StyleSheet.create({
   },
   modalClose: {
     position: "absolute",
-    right: 15,
-    top: 15,
+    right: 10,
+    top: 10,
     zIndex: 2,
     width: 33.13,
     height: 33.13,
@@ -853,8 +1041,8 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   successImage: {
-    width: 120,
-    height: 120,
+    width: 182,
+    height: 185,
     marginBottom: 18,
   },
   successText: {
@@ -863,10 +1051,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 50,
     fontWeight: "500",
+    width: 335,
+    height: 24,
   },
   failureImage: {
-    width: 120,
-    height: 120,
+    width: 197,
+    height: 147,
     marginBottom: 18,
   },
   failureText: {
@@ -876,6 +1066,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontWeight: "500",
     marginBottom: 18,
+    width: 313,
+    height: 24,
   },
   allRequestsModalContent: {
     width: "95%",
@@ -899,13 +1091,21 @@ const styles = StyleSheet.create({
     color: "#00274D",
     textAlign: "center",
     marginBottom: 16,
-    marginTop: 8,
+    marginTop: 25,
   },
   allRequestItem: {
     marginBottom: 18,
     borderBottomWidth: 1,
     borderBottomColor: "#F0F0F0",
     paddingBottom: 12,
+  },
+  allRequestItemWithButton: {
+    position: "relative",
+    paddingBottom: 36,
+  },
+  allRequestTextWrapper: {
+    position: "relative",
+    paddingBottom: 28,
   },
   allRequestHeader: {
     flexDirection: "row",
@@ -925,26 +1125,32 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   statusBadge_approved: {
-    backgroundColor: "#E8F5E8",
+    backgroundColor: "#F2FBF6",
+    borderWidth: 1,
+    borderColor: "#D9F2E5",
   },
   statusBadge_pending: {
-    backgroundColor: "#FFF3E0",
+    backgroundColor: "#FFF6ED",
+    borderWidth: 1,
+    borderColor: "#FFE9D6",
   },
   statusBadge_rejected: {
-    backgroundColor: "#FFEBEE",
+    backgroundColor: "#FFEDED",
+    borderWidth: 1,
+    borderColor: "#FFD0D1",
   },
   statusBadgeText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "600",
   },
   statusBadgeText_approved: {
-    color: "#2E7D32",
+    color: "#00AB50",
   },
   statusBadgeText_pending: {
-    color: "#E65100",
+    color: "#FF8D28",
   },
   statusBadgeText_rejected: {
-    color: "#C62828",
+    color: "#FF383C",
   },
   allRequestText: {
     fontSize: 15,
@@ -955,6 +1161,10 @@ const styles = StyleSheet.create({
     color: "#758DA3",
     fontSize: 14,
     fontWeight: "500",
+  },
+  readMoreRow: {
+    alignItems: "flex-end",
+    marginTop: 6,
   },
   emptyRequestsCard: {
     backgroundColor: "#fff",
@@ -974,5 +1184,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     width: 144,
     marginTop: 12,
+    marginLeft: 25,
   },
 });
