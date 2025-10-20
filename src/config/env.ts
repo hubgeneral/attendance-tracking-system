@@ -46,7 +46,7 @@ const getConfig = (): AppConfig => {
     graphqlEndpoint.includes("localhost") &&
     Platform.OS === "android"
   ) {
-    graphqlEndpoint = graphqlEndpoint.replace("localhost", "10.0.2.2");
+    graphqlEndpoint = graphqlEndpoint.replace("localhost", "192.168.31.193");
   }
 
   return {
@@ -63,15 +63,5 @@ export const getGraphQLEndpoint = (): string => config.GRAPHQL_ENDPOINT;
 export const getApiBaseUrl = (): string => config.API_BASE_URL;
 export const getEnvironment = (): Environment => config.APP_ENV;
 export const isDevelopment = (): boolean => config.IS_DEV;
-
-// Log current configuration (only in development)
-if (config.IS_DEV) {
-  console.log("📱 App Configuration:", {
-    environment: config.APP_ENV,
-    graphqlEndpoint: config.GRAPHQL_ENDPOINT,
-    apiBaseUrl: config.API_BASE_URL,
-    platform: Platform.OS,
-  });
-}
 
 export default config;
