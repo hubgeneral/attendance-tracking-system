@@ -1,22 +1,22 @@
+import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Dimensions,
-  StyleSheet,
-  Text,
-  View,
+  Easing,
   Keyboard,
   Platform,
+  StyleSheet,
+  Text,
   TouchableWithoutFeedback,
-  Animated,
-  Easing,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import LogoRow from "../../components/LogoRow";
 import PrimaryButton from "../../components/PrimaryButton";
-import { useGetAllUsersQuery } from "@/src/generated/graphql";
 const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
@@ -24,34 +24,33 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const translateY = useRef(new Animated.Value(0)).current;
   const innerRef = useRef<any>(null);
+  const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
-  const handleLogin = () => {
-    // Use thiis to test the login
-    if (employeeId === "DHG0001" && password === "dhgpass") {
-      // Navigate to dashboard on successful login
+  const handleLogin = async () => {
+    console.log("Attempting login with:", { employeeId, password });
+    try {
+      setLoading(true);
+      await login({ employeeId: employeeId.trim(), password: password.trim() });
+
       router.replace("/(tabs)/dashboard");
-    } else {
-      // Show error alert for invalid credentials
+      console.log("Login successful");
+    } catch (error) {
+      console.error("Login failed:", error);
       Alert.alert(
         "Login Failed",
         "Invalid employee ID or password. Please try again.",
         [{ text: "OK" }]
       );
     }
+    // Use thiis to test the login
+    // if (employeeId === "DHG0001" && password === "dhgpass") {
+    //   // Navigate to dashboard on successful login
+    //   router.replace("/(tabs)/dashboard");
+    // } else {
+    //   // Show error alert for invalid credentials
+    // }
   };
-
-  const { data, loading, error } = useGetAllUsersQuery();
-  useEffect(() => {
-    if (data) {
-      console.log("Fetched users:", data);
-    }
-    if (error) {
-      console.error("Error fetching users:", error.message);
-    }
-    if (loading) {
-      console.log("Loading users...");
-    }
-  }, [data, error, loading]);
 
   useEffect(() => {
     const showEvent =
@@ -134,7 +133,7 @@ export default function LoginScreen() {
               showPasswordToggle={true}
             />
 
-            <PrimaryButton title="Login" onPress={handleLogin} />
+            <PrimaryButton title="login" onPress={handleLogin} />
           </View>
         </Animated.View>
       </SafeAreaView>
