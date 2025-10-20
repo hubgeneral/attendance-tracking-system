@@ -21,7 +21,7 @@ interface ProfileCardProps {
   initials?: string;
   onChangePassword?: () => void;
   onLogout?: () => void;
- setIsProfileVisible?: React.Dispatch<React.SetStateAction<boolean>>;
+
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -30,7 +30,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   initials,
   onChangePassword,
   onLogout,
-  setIsProfileVisible,
+
 }) => {
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
@@ -63,6 +63,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     hideSub.remove();
   };
 }, []);
+
+
 
 
   return (
@@ -108,7 +110,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             <TouchableOpacity
               style={styles.modalClose}
-              onPress={() => setIsChangePasswordVisible(false)}
+              onPress={() => setIsChangePasswordVisible(false)} 
             >
               <AntDesign name="close" size={18} color="#ccc" />
             </TouchableOpacity>
@@ -139,6 +141,24 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 80,
   },
+  
+//   container: {
+//   backgroundColor: "#fff",
+//   borderRadius: 12,
+//   paddingVertical: 24,
+//   paddingHorizontal: 25,
+//   alignItems: "center",
+//   shadowColor: "#000",
+//   shadowOffset: { width: 0, height: 2 },
+//   shadowOpacity: 0.1,
+//   shadowRadius: 6,
+//   elevation: 4,
+//   width: "100%",
+//   alignSelf: "stretch",
+//   marginTop: 40, 
+// },
+
+ 
   avatar: {
     backgroundColor: "#CCEBE9",
     width: 60,
@@ -207,27 +227,20 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
-  bottomModalContent: {
-    backgroundColor: "#fff",
-    width: "100%",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 16,
-    maxHeight: "50%",
-    // minHeight: "50%",
-    height: 600,
-  },
+    bottomModalContent: {
+      backgroundColor: "#fff",
+      width: "100%",
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 16,
+      maxHeight: "90%",
+    },
+
   modalClose: {
-    alignSelf: "flex-end",
-    padding: 8,
-  },
-  modalContentContainer: {
-     width: "100%",
-    alignSelf: "stretch",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-  },
+  alignSelf: "flex-end",
+  padding: 4,
+  marginBottom: 8, 
+},
 
 
 });
