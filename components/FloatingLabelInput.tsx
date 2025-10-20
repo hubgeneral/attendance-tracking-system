@@ -1,6 +1,12 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type FloatingLabelInputProps = {
   value: string;
@@ -22,7 +28,9 @@ export default function FloatingLabelInput({
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const isFloating = isFocused || value.length > 0;
-  const isPasswordVisible = showPasswordToggle ? showPassword : !secureTextEntry;
+  const isPasswordVisible = showPasswordToggle
+    ? showPassword
+    : !secureTextEntry;
 
   return (
     <View style={styles.container}>
@@ -67,7 +75,7 @@ export default function FloatingLabelInput({
 const styles = StyleSheet.create({
   container: {
     position: "relative",
-    width: 390,
+    width: "100%",
     height: 56,
     marginBottom: 20,
   },

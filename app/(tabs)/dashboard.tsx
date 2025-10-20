@@ -29,7 +29,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import { useGetAttendanceByIdQuery } from "@/src/generated/graphql";
+import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -56,10 +56,9 @@ export default function DashboardScreen() {
   const [showFailure, setShowFailure] = useState(false);
   const [showAllRequests, setShowAllRequests] = useState(false);
 
-  // Animated value used to move bottom modals above the keyboard
   const keyboardOffset = useRef(new Animated.Value(0)).current;
 
-  const { data, loading, error } = useGetAttendanceByIdQuery({
+  const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: { username: "DHG1030" },
   });
 
