@@ -4,11 +4,20 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 type PrimaryButtonProps = {
   title: string;
   onPress?: () => void;
+  disabled?: boolean;
 };
 
-export default function PrimaryButton({ title, onPress }: PrimaryButtonProps) {
+export default function PrimaryButton({
+  title,
+  onPress,
+  disabled,
+}: PrimaryButtonProps) {
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.button}
+      onPress={onPress}
+      disabled={disabled}
+    >
       <View style={styles.buttonContent}>
         <MaterialIcons name="login" size={20} color="#fff" />
         <Text style={styles.buttonText}>{title}</Text>
