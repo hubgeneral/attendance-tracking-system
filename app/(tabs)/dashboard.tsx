@@ -83,10 +83,15 @@ export default function DashboardScreen() {
     }
   };
 
-  const formatHours = (val: number) => {
-    // Display integer as '1' and decimals up to 2 places trimmed (eg 1.5)
-    if (Number.isInteger(val)) return `${val}`;
-    return `${parseFloat(val.toFixed(2))}`;
+  /**
+   * Format hours as whole numbers for display.
+   * - mode: 'floor' will round down (used for Hours Worked)
+   * - mode: 'ceil' will round up (used for Time Off)
+   */
+  const formatHours = (val: number, mode: "floor" | "ceil" = "floor") => {
+    if (!isFinite(val) || isNaN(val)) return "-";
+    if (mode === "floor") return `${Math.floor(val)}`;
+    return `${Math.ceil(val)}`;
   };
 
   useEffect(() => {
@@ -122,9 +127,11 @@ export default function DashboardScreen() {
     }
 
     if (hoursNum != null) {
-      setHoursWorkedText(`${formatHours(hoursNum)}hrs`);
+      // Show whole numbers: floor for hours worked (don't overstate),
+      // and ceil for time off (to show remaining hours conservatively)
+      setHoursWorkedText(`${formatHours(hoursNum, "floor")}hrs`);
       const timeOff = Math.max(0, 8 - hoursNum);
-      setTimeOffText(`${formatHours(timeOff)}hrs`);
+      setTimeOffText(`${formatHours(timeOff, "ceil")}hrs`);
     } else {
       setHoursWorkedText("-");
       setTimeOffText("-");
