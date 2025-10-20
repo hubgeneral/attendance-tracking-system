@@ -3,8 +3,7 @@ import { Platform } from "react-native";
 // Environment types
 export enum Environment {
   DEVELOPMENT = "development",
-  STAGING = "staging",
-  PRODUCTION = "production",
+  LOCAL = "local"
 }
 
 // Configuration interface
