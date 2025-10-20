@@ -54,25 +54,29 @@ export default function LoginScreen() {
   }, [data, error, loading]);
 
   useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
     const onKeyboardShow = (e: any) => {
       const keyboardHeight = e.endCoordinates?.height ?? 0;
       // measure inner view and compute overlap
       if (innerRef.current && (innerRef.current as any).measureInWindow) {
-        (innerRef.current as any).measureInWindow((x: number, y: number, w: number, h: number) => {
-          const windowHeight = Dimensions.get("window").height;
-          const innerBottom = y + h;
-          const overlap = innerBottom - (windowHeight - keyboardHeight);
-          const moveUp = overlap > 0 ? overlap + 20 : 0;
-          Animated.timing(translateY, {
-            toValue: -moveUp,
-            duration: 250,
-            easing: Easing.out(Easing.ease),
-            useNativeDriver: true,
-          }).start();
-        });
+        (innerRef.current as any).measureInWindow(
+          (x: number, y: number, w: number, h: number) => {
+            const windowHeight = Dimensions.get("window").height;
+            const innerBottom = y + h;
+            const overlap = innerBottom - (windowHeight - keyboardHeight);
+            const moveUp = overlap > 0 ? overlap + 20 : 0;
+            Animated.timing(translateY, {
+              toValue: -moveUp,
+              duration: 250,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }).start();
+          }
+        );
       } else {
         // fallback: move up by half the keyboard height
         Animated.timing(translateY, {
@@ -102,7 +106,10 @@ export default function LoginScreen() {
     };
   }, [translateY]);
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()} accessible={false}>
+    <TouchableWithoutFeedback
+      onPress={() => Keyboard.dismiss()}
+      accessible={false}
+    >
       <SafeAreaView style={styles.container}>
         <Animated.View
           ref={innerRef}
