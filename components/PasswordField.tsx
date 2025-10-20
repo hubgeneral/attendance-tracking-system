@@ -1,6 +1,12 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type PasswordFieldProps = {
   value: string;
@@ -8,7 +14,11 @@ type PasswordFieldProps = {
   placeholder?: string;
 };
 
-export default function PasswordField({ value, onChangeText, placeholder }: PasswordFieldProps) {
+export default function PasswordField({
+  value,
+  onChangeText,
+  placeholder,
+}: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -41,7 +51,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 4.13,
     marginBottom: 20,
-    width: 390,
+    width: "100%",
     height: 56,
     paddingRight: 10,
   },
@@ -57,5 +67,3 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
-

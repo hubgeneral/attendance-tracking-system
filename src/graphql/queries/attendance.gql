@@ -1,4 +1,4 @@
-query getAttendanceById($username:String!){
+query getAttendanceByUsername($username:String!){
     attendanceByUserId(username:$username){
         clockIn
         clockOut

@@ -41,7 +41,7 @@ export default function DashboardHeader() {
           {
             width: profileSize,
             height: profileSize,
-            borderRadius: profileSize / 2,
+            borderRadius: profileSize / 0.5,
           },
         ]}
       >

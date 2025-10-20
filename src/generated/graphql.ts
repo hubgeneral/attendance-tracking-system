@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-import * as Apollo from '@apollo/client';
+import * as Apollo from '@apollo/client/react';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -628,12 +628,12 @@ export type LoginMutationVariables = Exact<{
 
 export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserLoginResponse', id?: string | null, accessToken?: string | null, refreshToken?: string | null, isPasswordReset: boolean, userName?: string | null, role?: string | null } };
 
-export type GetAttendanceByIdQueryVariables = Exact<{
+export type GetAttendanceByUsernameQueryVariables = Exact<{
   username: Scalars['String']['input'];
 }>;
 
 
-export type GetAttendanceByIdQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
+export type GetAttendanceByUsernameQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
 
 export type GetUserByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -687,8 +687,8 @@ export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginM
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
-export const GetAttendanceByIdDocument = gql`
-    query getAttendanceById($username: String!) {
+export const GetAttendanceByUsernameDocument = gql`
+    query getAttendanceByUsername($username: String!) {
   attendanceByUserId(username: $username) {
     clockIn
     clockOut
@@ -698,37 +698,37 @@ export const GetAttendanceByIdDocument = gql`
     `;
 
 /**
- * __useGetAttendanceByIdQuery__
+ * __useGetAttendanceByUsernameQuery__
  *
- * To run a query within a React component, call `useGetAttendanceByIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAttendanceByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetAttendanceByUsernameQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAttendanceByUsernameQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetAttendanceByIdQuery({
+ * const { data, loading, error } = useGetAttendanceByUsernameQuery({
  *   variables: {
  *      username: // value for 'username'
  *   },
  * });
  */
-export function useGetAttendanceByIdQuery(baseOptions: Apollo.QueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables> & ({ variables: GetAttendanceByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useGetAttendanceByUsernameQuery(baseOptions: Apollo.QueryHookOptions<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables> & ({ variables: GetAttendanceByUsernameQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
+        return Apollo.useQuery<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>(GetAttendanceByUsernameDocument, options);
       }
-export function useGetAttendanceByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>) {
+export function useGetAttendanceByUsernameLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
+          return Apollo.useLazyQuery<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>(GetAttendanceByUsernameDocument, options);
         }
-export function useGetAttendanceByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>) {
+export function useGetAttendanceByUsernameSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>(GetAttendanceByIdDocument, options);
+          return Apollo.useSuspenseQuery<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>(GetAttendanceByUsernameDocument, options);
         }
-export type GetAttendanceByIdQueryHookResult = ReturnType<typeof useGetAttendanceByIdQuery>;
-export type GetAttendanceByIdLazyQueryHookResult = ReturnType<typeof useGetAttendanceByIdLazyQuery>;
-export type GetAttendanceByIdSuspenseQueryHookResult = ReturnType<typeof useGetAttendanceByIdSuspenseQuery>;
-export type GetAttendanceByIdQueryResult = Apollo.QueryResult<GetAttendanceByIdQuery, GetAttendanceByIdQueryVariables>;
+export type GetAttendanceByUsernameQueryHookResult = ReturnType<typeof useGetAttendanceByUsernameQuery>;
+export type GetAttendanceByUsernameLazyQueryHookResult = ReturnType<typeof useGetAttendanceByUsernameLazyQuery>;
+export type GetAttendanceByUsernameSuspenseQueryHookResult = ReturnType<typeof useGetAttendanceByUsernameSuspenseQuery>;
+export type GetAttendanceByUsernameQueryResult = Apollo.QueryResult<GetAttendanceByUsernameQuery, GetAttendanceByUsernameQueryVariables>;
 export const GetUserByIdDocument = gql`
     query getUserById($id: Int!) {
   userById(id: $id) {

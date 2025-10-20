@@ -20,7 +20,7 @@ export default function PrimaryButton({ title, onPress }: PrimaryButtonProps) {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: "#004E2B",
-    width: 390,
+    width: "100%",
     height: 56,
     paddingHorizontal: 8.98,
     paddingVertical: 11.02,
@@ -41,5 +41,3 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
-
-
