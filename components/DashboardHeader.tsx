@@ -72,7 +72,6 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
             style={styles.modalContentContainer}
           >
             <ProfileCard
-             setIsProfileVisible={setIsProfileVisible}
               onChangePassword={() => {
                 setIsProfileVisible(false);
                 console.log("Change Password pressed");
