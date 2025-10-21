@@ -28,7 +28,6 @@ export default function LoginScreen() {
   const translateY = useRef(new Animated.Value(0)).current;
   const innerRef = useRef<any>(null);
   const modalY = useRef(new Animated.Value(0)).current;
-  // not using loading in this screen
   const [showReset, setShowReset] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetEmployeeId, setResetEmployeeId] = useState("");
