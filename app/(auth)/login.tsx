@@ -1,15 +1,18 @@
 import { useAuth } from "@/hooks/useAuth";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
+import { AntDesign } from "@expo/vector-icons";
 import {
   Alert,
   Animated,
   Dimensions,
   Easing,
   Keyboard,
+  Modal,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -24,13 +27,17 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const translateY = useRef(new Animated.Value(0)).current;
   const innerRef = useRef<any>(null);
-  const [loading, setLoading] = useState(false);
+  const modalY = useRef(new Animated.Value(0)).current;
+  // not using loading in this screen
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetEmployeeId, setResetEmployeeId] = useState("");
+  const [resetContact, setResetContact] = useState("");
   const { login } = useAuth();
 
   const handleLogin = async () => {
     console.log("Attempting login with:", { employeeId, password });
     try {
-      setLoading(true);
       await login({ employeeId: employeeId.trim(), password: password.trim() });
 
       router.replace("/(tabs)/dashboard");
@@ -74,6 +81,16 @@ export default function LoginScreen() {
               easing: Easing.out(Easing.ease),
               useNativeDriver: true,
             }).start();
+            // if reset modal is open animate it up as well (move above keyboard)
+            if (showReset) {
+              const modalOffset = Math.max(keyboardHeight - 20, 40);
+              Animated.timing(modalY, {
+                toValue: -modalOffset,
+                duration: 250,
+                easing: Easing.out(Easing.ease),
+                useNativeDriver: true,
+              }).start();
+            }
           }
         );
       } else {
@@ -84,6 +101,15 @@ export default function LoginScreen() {
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }).start();
+        if (showReset) {
+          const modalOffset = Math.max(keyboardHeight - 20, 40);
+          Animated.timing(modalY, {
+            toValue: -modalOffset,
+            duration: 250,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }).start();
+        }
       }
     };
 
@@ -94,6 +120,14 @@ export default function LoginScreen() {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
+      if (showReset) {
+        Animated.timing(modalY, {
+          toValue: 0,
+          duration: 200,
+          easing: Easing.out(Easing.ease),
+          useNativeDriver: true,
+        }).start();
+      }
     };
 
     const showSub = Keyboard.addListener(showEvent, onKeyboardShow);
@@ -103,7 +137,14 @@ export default function LoginScreen() {
       showSub.remove();
       hideSub.remove();
     };
-  }, [translateY]);
+  }, [translateY, modalY, showReset]);
+
+  // Watch showReset to reset modal position when opening/closing
+  useEffect(() => {
+    if (!showReset) {
+      modalY.setValue(0);
+    }
+  }, [showReset, modalY]);
   return (
     <TouchableWithoutFeedback
       onPress={() => Keyboard.dismiss()}
@@ -133,8 +174,90 @@ export default function LoginScreen() {
               showPasswordToggle={true}
             />
 
+            <TouchableOpacity
+              onPress={() => setShowReset(true)}
+              style={styles.resetLinkContainer}
+            >
+              <Text style={styles.resetLink}>Reset password?</Text>
+            </TouchableOpacity>
+
             <PrimaryButton title="login" onPress={handleLogin} />
           </View>
+
+          <Modal visible={showReset} transparent animationType="fade">
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <View style={styles.modalOverlay}>
+                <Animated.View
+                  style={[
+                    styles.modal,
+                    { transform: [{ translateY: modalY }] },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setShowReset(false)}
+                  >
+                    <AntDesign name="close" size={20} color="#797979" />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitle}>Forgot Password?</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Enter your account details to reset your password.
+                  </Text>
+
+                  <FloatingLabelInput
+                    value={resetEmail}
+                    onChangeText={setResetEmail}
+                    placeholder="Email"
+                    keyboardType="email-address"
+                  />
+
+                  <FloatingLabelInput
+                    value={resetEmployeeId}
+                    onChangeText={setResetEmployeeId}
+                    placeholder="Employee Id"
+                    autoCapitalize="characters"
+                  />
+
+                  <FloatingLabelInput
+                    value={resetContact}
+                    onChangeText={setResetContact}
+                    placeholder="Contact"
+                    keyboardType="phone-pad"
+                  />
+
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => {
+                      // Placeholder behavior: validate and close
+                      if (!resetEmail && !resetEmployeeId && !resetContact) {
+                        Alert.alert(
+                          "Please provide at least one detail to reset your password."
+                        );
+                        return;
+                      }
+                      // TODO: call reset API
+                      Alert.alert(
+                        "Reset Password",
+                        "If an account matches the details provided, you will receive reset instructions.",
+                        [{ text: "OK", onPress: () => setShowReset(false) }]
+                      );
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Reset Password</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setShowReset(false)}
+                    style={styles.modalClose}
+                  ></TouchableOpacity>
+                </Animated.View>
+              </View>
+            </TouchableWithoutFeedback>
+          </Modal>
         </Animated.View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -167,5 +290,73 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  resetLinkContainer: {
+    width: "100%",
+    alignItems: "flex-end",
+    marginBottom: 18,
+  },
+  resetLink: {
+    color: "#019150",
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modal: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    padding: 20,
+    paddingBottom: 34,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#00274D",
+    textAlign: "center",
+    marginBottom: 6,
+  },
+  modalSubtitle: {
+    textAlign: "center",
+    color: "#6B7280",
+    marginBottom: 12,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    borderRadius: 6,
+    height: 48,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  modalButton: {
+    backgroundColor: "#004E2B",
+    height: 52,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  modalClose: {
+    position: "absolute",
+    right: 10,
+    top: 10,
+    zIndex: 2,
+    width: 33.13,
+    height: 33.13,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FAFAFA",
+    color: "#797979",
   },
 });

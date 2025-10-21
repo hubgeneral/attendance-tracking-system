@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardTypeOptions,
 } from "react-native";
 
 type FloatingLabelInputProps = {
@@ -15,6 +16,7 @@ type FloatingLabelInputProps = {
   secureTextEntry?: boolean;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   showPasswordToggle?: boolean;
+  keyboardType?: KeyboardTypeOptions;
 };
 
 export default function FloatingLabelInput({
@@ -24,9 +26,11 @@ export default function FloatingLabelInput({
   secureTextEntry = false,
   autoCapitalize = "none",
   showPasswordToggle = false,
+  keyboardType,
 }: FloatingLabelInputProps) {
   const [isFocused, setIsFocused] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  // Initialize visibility: if secureTextEntry is true we start hidden (showPassword=false), otherwise visible
+  const [showPassword, setShowPassword] = useState(!secureTextEntry);
   const isFloating = isFocused || value.length > 0;
   const isPasswordVisible = showPasswordToggle
     ? showPassword
@@ -49,17 +53,19 @@ export default function FloatingLabelInput({
           isFocused && styles.inputFocused,
           showPasswordToggle && styles.inputWithIcon,
         ]}
+        key={String(isPasswordVisible)}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!isPasswordVisible}
         autoCapitalize={autoCapitalize}
+        keyboardType={keyboardType}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
       {showPasswordToggle && (
         <TouchableOpacity
           style={styles.eyeIcon}
-          onPress={() => setShowPassword(!showPassword)}
+          onPress={() => setShowPassword((s) => !s)}
         >
           <AntDesign
             name={showPassword ? "eye" : "eye-invisible"}
@@ -77,7 +83,7 @@ const styles = StyleSheet.create({
     position: "relative",
     width: "100%",
     height: 56,
-    marginBottom: 20,
+    marginBottom: 15,
   },
   label: {
     position: "absolute",
