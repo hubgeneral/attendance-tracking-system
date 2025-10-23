@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
@@ -32,6 +33,8 @@ export default function LoginScreen() {
   const [resetEmail, setResetEmail] = useState("");
   const [resetEmployeeId, setResetEmployeeId] = useState("");
   const [resetContact, setResetContact] = useState("");
+  const [showResetSuccess, setShowResetSuccess] = useState(false);
+  const [showResetFailure, setShowResetFailure] = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -50,12 +53,12 @@ export default function LoginScreen() {
       );
     }
     // Use thiis to test the login
-    // if (employeeId === "DHG0001" && password === "dhgpass") {
-    //   // Navigate to dashboard on successful login
-    //   router.replace("/(tabs)/dashboard");
-    // } else {
-    //   // Show error alert for invalid credentials
-    // }
+    if (employeeId === "DHG0001" && password === "dhgpass") {
+      // Navigate to dashboard on successful login
+      router.replace("/(tabs)/dashboard");
+    } else {
+      // Show error alert for invalid credentials
+    }
   };
 
   useEffect(() => {
@@ -231,19 +234,33 @@ export default function LoginScreen() {
                   <TouchableOpacity
                     style={styles.modalButton}
                     onPress={() => {
-                      // Placeholder behavior: validate and close
-                      if (!resetEmail && !resetEmployeeId && !resetContact) {
+                      // Validation: require ALL fields to be provided
+                      if (!resetEmail || !resetEmployeeId || !resetContact) {
                         Alert.alert(
-                          "Please provide at least one detail to reset your password."
+                          "Missing details",
+                          "Please fill Email, Employee Id and Contact to reset your password."
                         );
                         return;
                       }
-                      // TODO: call reset API
-                      Alert.alert(
-                        "Reset Password",
-                        "If an account matches the details provided, you will receive reset instructions.",
-                        [{ text: "OK", onPress: () => setShowReset(false) }]
-                      );
+
+                      const isValidEmail = (s: string) =>
+                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+                      const isValidEmployeeId = (s: string) =>
+                        /^[A-Za-z0-9\-]{3,}$/.test(s);
+                      const isValidContact = (s: string) =>
+                        /^\+?\d{7,15}$/.test(s.replace(/\s+/g, ""));
+
+                      const allValid =
+                        isValidEmail(resetEmail) &&
+                        isValidEmployeeId(resetEmployeeId) &&
+                        isValidContact(resetContact);
+
+                      setShowReset(false);
+                      if (allValid) {
+                        setShowResetSuccess(true);
+                      } else {
+                        setShowResetFailure(true);
+                      }
                     }}
                   >
                     <Text style={styles.modalButtonText}>Reset Password</Text>
@@ -252,10 +269,66 @@ export default function LoginScreen() {
                   <TouchableOpacity
                     onPress={() => setShowReset(false)}
                     style={styles.modalClose}
-                  ></TouchableOpacity>
+                  >
+                    <AntDesign name="close" size={20} color="#797979" />
+                  </TouchableOpacity>
                 </Animated.View>
               </View>
             </TouchableWithoutFeedback>
+          </Modal>
+
+          {/* Success modal for password reset */}
+          <Modal
+            visible={showResetSuccess}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowResetSuccess(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modal}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowResetSuccess(false)}
+                >
+                  <AntDesign name="close" size={20} color="#797979" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_success.png")}
+                  style={styles.successImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.successText}>
+                  Your password has been reset successfully
+                </Text>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Failure modal for password reset */}
+          <Modal
+            visible={showResetFailure}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowResetFailure(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={[styles.modal, styles.compactModal]}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowResetFailure(false)}
+                >
+                  <AntDesign name="close" size={20} color="#797979" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_warning.png")}
+                  style={styles.failureImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.failureText}>
+                  Sorry, we could not reset your password
+                </Text>
+              </View>
+            </View>
           </Modal>
         </Animated.View>
       </SafeAreaView>
@@ -305,25 +378,72 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modal: {
+    width: "100%",
     backgroundColor: "#fff",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    padding: 20,
-    paddingBottom: 40,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    minHeight: "40%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
-    height: 24,
     margin: 10,
+  },
+  successImage: {
+    width: 182,
+    height: 185,
+    marginBottom: 18,
+    alignSelf: "center",
+  },
+  successText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginBottom: 50,
+    fontWeight: "500",
+    width: 335,
+    height: 24,
+  },
+  failureImage: {
+    width: 197,
+    height: 147,
+    marginBottom: 18,
+  },
+  failureText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    fontWeight: "500",
+    marginBottom: 18,
+    width: 313,
+    height: 24,
+  },
+  compactModal: {
+    paddingTop: 100,
+    paddingBottom: 18,
+    justifyContent: "flex-start",
   },
   modalSubtitle: {
     fontFamily: "Inter",
+    fontSize: 16,
+    color: "#1A1A1A",
     textAlign: "center",
-    color: "#667085",
-    marginBottom: 20,
+    marginBottom: 50,
+    fontWeight: "500",
+    width: 335,
+    height: 24,
   },
   input: {
     borderWidth: 1,
@@ -335,11 +455,11 @@ const styles = StyleSheet.create({
   },
   modalButton: {
     backgroundColor: "#004E2B",
-    height: 52,
-    borderRadius: 6,
+    borderRadius: 4,
+    paddingVertical: 12,
     alignItems: "center",
-    justifyContent: "center",
     marginTop: 8,
+    width: "100%",
   },
   modalButtonText: {
     color: "#fff",
