@@ -269,7 +269,7 @@ export const startGeofencing = async (
   }
 };
 
-// ✅ Manual check if user is inside a region
+
 export const isUserInsideRegion = async (
   region: GeofenceRegion
 ): Promise<boolean> => {
@@ -284,14 +284,14 @@ export const isUserInsideRegion = async (
   return distance <= region.radius;
 };
 
-// ✅ Haversine formula to measure distance
+
 const getDistanceFromLatLonInMeters = (
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number => {
-  const R = 6371e3; // Earth radius in meters
+  const R = 6371e3; 
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;

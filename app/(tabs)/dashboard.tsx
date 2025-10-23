@@ -1,11 +1,14 @@
 import { AntDesign } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
-import {
-  isUserInsideRegion,
-  startGeofencing,
-} from "../../components/geoFencing";
-import { regions } from "../../components/regions";
+// import {
+//   isUserInsideRegion,
+//   startGeofencing,
+// } from "../../components/geoFencing";
+// import { regions } from "../../components/regions";
+import { isUserInsidePolygon, startPolygonGeofencing } from "@/components/PolyFence";
+import { PolyRegion } from "@/components/PolyRegion";
 
+import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 import * as Notifications from "expo-notifications";
 import {
   Alert,
@@ -29,7 +32,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import StatusLabel from "../../components/StatusLabel";
-import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -139,32 +141,68 @@ export default function DashboardScreen() {
   }, [data, loading, error]);
 
   // useEffect(() => {
-  //   startGeofencing(regions);
+  //   startGeofencing(regions);./(tabs)/dashboard
   //   console.log("Geofencing started with regions:", regions);
   // }, []);
 
-  useEffect(() => {
-    const init = async () => {
-      await startGeofencing(regions);
+  // useEffect(() => {
+  //   const init = async () => {
+  //     await startGeofencing(regions);
 
-      // ✅ Auto-check on launch
-      const inside = await isUserInsideRegion(regions[0]);
-      if (inside) {
-        console.log(`✅ You are currently inside ${regions[0].identifier}`);
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "You are already inside 🏢",
-            body: `Currently inside ${regions[0].identifier}`,
-          },
-          trigger: null,
-        });
-      } else {
-        console.log(`🚶‍♂️ You are outside ${regions[0].identifier}`);
-      }
-    };
-    handleManualCheck();
-    init();
-  }, []);
+  //     // ✅ Auto-check on launch
+  //     const inside = await isUserInsideRegion(regions[0]);
+  //     if (inside) {
+  //       console.log(`✅ You are currently inside ${regions[0].identifier}`);
+  //       await Notifications.scheduleNotificationAsync({
+  //         content: {
+  //           title: "You are already inside 🏢",
+  //           body: `Currently inside ${regions[0].identifier}`,
+  //         },
+  //         trigger: null,
+  //       });
+  //     } else {
+  //       console.log(`🚶‍♂️ You are outside ${regions[0].identifier}`);
+  //     }
+  //   };
+  //   handleManualCheck();
+  //   init();
+  // }, []);
+
+ 
+  const handleManualCheck = async () => {
+  const inside = await isUserInsidePolygon(PolyRegion);
+  Alert.alert(
+    "Geofence Check",
+    inside
+      ? `✅ You are currently inside ${PolyRegion.identifier}`
+      : `🚶‍♂️ You are outside ${PolyRegion.identifier}`
+  );
+};
+
+
+useEffect(() => {
+  const init = async () => {
+    await startPolygonGeofencing(PolyRegion);
+
+    const inside = await isUserInsidePolygon(PolyRegion);
+    if (inside) {
+      console.log(`✅ You are currently inside ${PolyRegion.identifier}`);
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "You are already inside 🏢",
+          body: `Currently inside ${PolyRegion.identifier}`,
+        },
+        trigger: null,
+      });
+    } else {
+      console.log(`🚶‍♂️ You are outside ${PolyRegion.identifier}`);
+    }
+  };
+
+  init();
+}, []);
+
+
 
   // Listen for keyboard events and animate bottom modals
   useEffect(() => {
@@ -201,15 +239,9 @@ export default function DashboardScreen() {
     };
   }, [keyboardOffset]);
 
-  const handleManualCheck = async () => {
-    const inside = await isUserInsideRegion(regions[0]);
-    Alert.alert(
-      "Geofence Check",
-      inside
-        ? `✅ You are currently inside ${regions[0].identifier}`
-        : `🚶‍♂️ You are outside ${regions[0].identifier}`
-    );
-  };
+
+
+
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -1193,3 +1225,4 @@ const styles = StyleSheet.create({
     marginLeft: 25,
   },
 });
+  
