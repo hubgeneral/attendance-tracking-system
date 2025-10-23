@@ -21,6 +21,7 @@ interface ProfileCardProps {
   initials?: string;
   onChangePassword?: () => void;
   onLogout?: () => void;
+
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -29,6 +30,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   initials,
   onChangePassword,
   onLogout,
+
 }) => {
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
@@ -137,6 +139,24 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 80,
   },
+  
+//   container: {
+//   backgroundColor: "#fff",
+//   borderRadius: 12,
+//   paddingVertical: 24,
+//   paddingHorizontal: 25,
+//   alignItems: "center",
+//   shadowColor: "#000",
+//   shadowOffset: { width: 0, height: 2 },
+//   shadowOpacity: 0.1,
+//   shadowRadius: 6,
+//   elevation: 4,
+//   width: "100%",
+//   alignSelf: "stretch",
+//   marginTop: 40, 
+// },
+
+ 
   avatar: {
     backgroundColor: "#CCEBE9",
     width: 60,
@@ -192,5 +212,34 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 8,
   },
+    modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+
+  },
+
+  bottomModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+    bottomModalContent: {
+      backgroundColor: "#fff",
+      width: "100%",
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 16,
+      maxHeight: "90%",
+    },
+
+  modalClose: {
+  alignSelf: "flex-end",
+  padding: 4,
+  marginBottom: 8, 
+},
+
+
 });
 
