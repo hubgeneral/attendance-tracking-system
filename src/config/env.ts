@@ -54,6 +54,12 @@ const getConfig = (): AppConfig => {
   };
 };
 
+console.log("api base url", getConfig().API_BASE_URL);
+console.log("graphql endpoint", getConfig().GRAPHQL_ENDPOINT);
+console.log("environment", getConfig().APP_ENV);
+
+
+
 // Get the current configuration
 export const config = getConfig();
 
