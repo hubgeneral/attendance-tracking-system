@@ -45,7 +45,7 @@ const getConfig = (): AppConfig => {
     graphqlEndpoint.includes("localhost") &&
     Platform.OS === "android"
   ) {
-    graphqlEndpoint = graphqlEndpoint.replace("localhost", "192.168.31.193");
+    graphqlEndpoint = graphqlEndpoint.replace("localhost", "192.168.31.194");
   }
 
   return {
