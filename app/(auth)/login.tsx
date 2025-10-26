@@ -35,6 +35,9 @@ export default function LoginScreen() {
   const [resetContact, setResetContact] = useState("");
   const [showResetSuccess, setShowResetSuccess] = useState(false);
   const [showResetFailure, setShowResetFailure] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -257,9 +260,14 @@ export default function LoginScreen() {
 
                       setShowReset(false);
                       if (allValid) {
-                        setShowResetSuccess(true);
+                        // Credentials look valid -> open Create Password modal
+                        setShowCreatePassword(true);
                       } else {
-                        setShowResetFailure(true);
+                        // Show a popup alert for incorrect credentials
+                        Alert.alert(
+                          "Invalid details",
+                          "The credentials entered are incorrect."
+                        );
                       }
                     }}
                   >
@@ -278,6 +286,66 @@ export default function LoginScreen() {
           </Modal>
 
           {/* Success modal for password reset */}
+          {/* Create New Password modal */}
+          <Modal
+            visible={showCreatePassword}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setShowCreatePassword(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modal}>
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowCreatePassword(false)}
+                >
+                  <AntDesign name="close" size={20} color="#797979" />
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Create New Password</Text>
+
+                <FloatingLabelInput
+                  value={newPassword}
+                  onChangeText={setNewPassword}
+                  placeholder="New Password"
+                  secureTextEntry={true}
+                  showPasswordToggle={true}
+                />
+
+                <FloatingLabelInput
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  placeholder="Confirm Password"
+                  secureTextEntry={true}
+                  showPasswordToggle={true}
+                />
+
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    if (!newPassword || !confirmPassword) {
+                      Alert.alert(
+                        "Missing details",
+                        "Please enter both New Password and Confirm Password."
+                      );
+                      return;
+                    }
+
+                    setShowCreatePassword(false);
+                    if (newPassword === confirmPassword) {
+                      setShowResetSuccess(true);
+                      // clear fields
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    } else {
+                      setShowResetFailure(true);
+                    }
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Create Password</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
           <Modal
             visible={showResetSuccess}
             transparent
@@ -313,12 +381,6 @@ export default function LoginScreen() {
           >
             <View style={styles.modalOverlay}>
               <View style={[styles.modal, styles.compactModal]}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowResetFailure(false)}
-                >
-                  <AntDesign name="close" size={20} color="#797979" />
-                </TouchableOpacity>
                 <Image
                   source={require("../../assets/images/form_warning.png")}
                   style={styles.failureImage}
@@ -327,6 +389,15 @@ export default function LoginScreen() {
                 <Text style={styles.failureText}>
                   Sorry, we could not reset your password
                 </Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setShowResetFailure(false);
+                    setShowCreatePassword(true);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Try Again</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </Modal>
@@ -399,7 +470,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
-    margin: 10,
+    marginBottom: 10,
   },
   successImage: {
     width: 182,
@@ -440,7 +511,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1A1A1A",
     textAlign: "center",
-    marginBottom: 50,
+    marginBottom: 30,
     fontWeight: "500",
     width: 335,
     height: 24,
@@ -456,7 +527,7 @@ const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#004E2B",
     borderRadius: 4,
-    paddingVertical: 12,
+    paddingVertical: 20,
     alignItems: "center",
     marginTop: 8,
     width: "100%",
