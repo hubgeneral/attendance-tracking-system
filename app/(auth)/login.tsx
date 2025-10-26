@@ -8,6 +8,7 @@ import {
   Dimensions,
   Easing,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   StyleSheet,
@@ -86,8 +87,8 @@ export default function LoginScreen() {
               easing: Easing.out(Easing.ease),
               useNativeDriver: true,
             }).start();
-            // if reset modal is open animate it up as well (move above keyboard)
-            if (showReset) {
+            // if reset or create-password modal is open animate it up as well (move above keyboard)
+            if (showReset || showCreatePassword) {
               const modalOffset = Math.max(keyboardHeight - 20, 40);
               Animated.timing(modalY, {
                 toValue: -modalOffset,
@@ -106,7 +107,7 @@ export default function LoginScreen() {
           easing: Easing.out(Easing.ease),
           useNativeDriver: true,
         }).start();
-        if (showReset) {
+        if (showReset || showCreatePassword) {
           const modalOffset = Math.max(keyboardHeight - 20, 40);
           Animated.timing(modalY, {
             toValue: -modalOffset,
@@ -125,7 +126,7 @@ export default function LoginScreen() {
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }).start();
-      if (showReset) {
+      if (showReset || showCreatePassword) {
         Animated.timing(modalY, {
           toValue: 0,
           duration: 200,
@@ -142,7 +143,7 @@ export default function LoginScreen() {
       showSub.remove();
       hideSub.remove();
     };
-  }, [translateY, modalY, showReset]);
+  }, [translateY, modalY, showReset, showCreatePassword]);
 
   // Watch showReset to reset modal position when opening/closing
   useEffect(() => {
@@ -293,15 +294,26 @@ export default function LoginScreen() {
             animationType="fade"
             onRequestClose={() => setShowCreatePassword(false)}
           >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modal}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.modalOverlay}
+            >
+              <Animated.View
+                style={[
+                  styles.modal,
+                  styles.createModal,
+                  { transform: [{ translateY: modalY }] },
+                ]}
+              >
                 <TouchableOpacity
                   style={styles.modalClose}
                   onPress={() => setShowCreatePassword(false)}
                 >
                   <AntDesign name="close" size={20} color="#797979" />
                 </TouchableOpacity>
-                <Text style={styles.modalTitle}>Create New Password</Text>
+                <Text style={[styles.modalTitle]}>
+                  Create New Password
+                </Text>
 
                 <FloatingLabelInput
                   value={newPassword}
@@ -343,8 +355,8 @@ export default function LoginScreen() {
                 >
                   <Text style={styles.modalButtonText}>Create Password</Text>
                 </TouchableOpacity>
-              </View>
-            </View>
+              </Animated.View>
+            </KeyboardAvoidingView>
           </Modal>
           <Modal
             visible={showResetSuccess}
@@ -455,7 +467,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 16,
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 24,
+    paddingBottom: 50,
     minHeight: "40%",
     alignItems: "center",
     justifyContent: "flex-end",
@@ -470,7 +482,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 40,
   },
   successImage: {
     width: 182,
@@ -482,7 +494,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1A1A1A",
     textAlign: "center",
-    marginBottom: 50,
+    marginBottom: 20,
     fontWeight: "500",
     width: 335,
     height: 24,
@@ -504,6 +516,12 @@ const styles = StyleSheet.create({
   compactModal: {
     paddingTop: 100,
     paddingBottom: 18,
+    justifyContent: "flex-start",
+  },
+  createModal: {
+    paddingTop: 50,
+    paddingBottom: 24,
+    minHeight: "auto",
     justifyContent: "flex-start",
   },
   modalSubtitle: {
