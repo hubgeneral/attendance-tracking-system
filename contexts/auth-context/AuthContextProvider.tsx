@@ -7,12 +7,11 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     currentUser: undefined,
   });
 
-  const value = {
-    authContextData,
-    setAuthContextData,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ authContextData, setAuthContextData }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;

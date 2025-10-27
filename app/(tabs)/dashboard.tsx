@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 // import { regions } from "../../components/regions";
 import { isUserInsidePolygon, startPolygonGeofencing } from "@/components/PolyFence";
 import { PolyRegion } from "@/components/PolyRegion";
-
+import AuthContext from "@/contexts/auth-context/AuthContext";
 import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 import * as Notifications from "expo-notifications";
 import {
@@ -69,7 +69,9 @@ export default function DashboardScreen() {
   const [clockOutText, setClockOutText] = useState<string>("-");
   const [hoursWorkedText, setHoursWorkedText] = useState<string>("-");
   const [timeOffText, setTimeOffText] = useState<string>("-");
-
+  const auth_context = useContext(AuthContext);
+  const currentUser = auth_context?.authContextData?.currentUser;
+  console.log("Current User in Dashboard:", currentUser);
   const formatTime = (dt: any) => {
     if (!dt) return "-";
     try {
@@ -324,7 +326,7 @@ useEffect(() => {
       >
         {/* Greeting and Date Selector */}
         <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Hi Eric</Text>
++          <Text style={styles.greeting}>Hi Eric</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <DateRangePicker
               onApply={(s, e) => {
