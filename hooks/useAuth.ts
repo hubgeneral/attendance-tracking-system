@@ -3,7 +3,7 @@ import {
   useLoginMutation,
   type UserLoginResponse,
 } from "@/src/generated/graphql";
-import { useCallback, useContext } from "react";
+import { useCallback, useContext, useEffect } from "react";
 
 interface LoginCredentials {
   employeeId: string;
@@ -21,11 +21,11 @@ interface UseAuthProps {
 }
 
 // local storage keys
-// const STORAGE_KEYS = {
-//   ACCESS_TOKEN: "accessToken",
-//   REFRESH_TOKEN: "refreshToken",
-//   CURRENT_USER: "currentUser",
-// };
+const STORAGE_KEYS = {
+  ACCESS_TOKEN: "accessToken",
+  REFRESH_TOKEN: "refreshToken",
+  CURRENT_USER: "currentUser",
+};
 
 export const useAuth = (): UseAuthProps => {
   const context = useContext(AuthContext);
@@ -37,76 +37,76 @@ export const useAuth = (): UseAuthProps => {
   const isAuthenticated = Boolean(authContextData?.currentUser);
   const [loginMutation] = useLoginMutation();
 
-  //   useEffect(() => {
-  //     const loadAuthFromStorage = () => {
-  //       try {
-  //         const storedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-  //         const storedAccessToken = localStorage.getItem(
-  //           STORAGE_KEYS.ACCESS_TOKEN
-  //         );
-  //         const storedRefreshToken = localStorage.getItem(
-  //           STORAGE_KEYS.REFRESH_TOKEN
-  //         );
+    useEffect(() => {
+      const loadAuthFromStorage = () => {
+        try {
+          const storedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+          const storedAccessToken = localStorage.getItem(
+            STORAGE_KEYS.ACCESS_TOKEN
+          );
+          const storedRefreshToken = localStorage.getItem(
+            STORAGE_KEYS.REFRESH_TOKEN
+          );
 
-  //         if (storedUser && storedAccessToken && storedRefreshToken) {
-  //           const user: UserLoginResponse = JSON.parse(storedUser);
+          if (storedUser && storedAccessToken && storedRefreshToken) {
+            const user: UserLoginResponse = JSON.parse(storedUser);
 
-  //           if (setAuthContextData) {
-  //             setAuthContextData({
-  //               currentUser: {
-  //                 ...user,
-  //                 accessToken: storedAccessToken,
-  //                 refreshToken: storedRefreshToken,
-  //               },
-  //             });
-  //           }
-  //         }
-  //       } catch (error) {
-  //         console.error("Failed to load auth data from localStorage:", error);
-  //         // Clear corrupted data
-  //         localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-  //         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  //         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-  //       }
-  //     };
+            if (setAuthContextData) {
+              setAuthContextData({
+                currentUser: {
+                  ...user,
+                  accessToken: storedAccessToken,
+                  refreshToken: storedRefreshToken,
+                },
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load auth data from localStorage:", error);
+          // Clear corrupted data
+          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+          localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        }
+      };
 
-  //     loadAuthFromStorage();
-  //   }, [setAuthContextData]);
+      loadAuthFromStorage();
+    }, [setAuthContextData]);
 
   // Save to localStorage helper
 
-  //
+  
 
-  //
+  
 
-  //   const saveToLocalStorage = useCallback((user: UserLoginResponse) => {
-  //     try {
-  //       if (user.accessToken && user.refreshToken) {
-  //         localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, user.accessToken);
-  //         localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, user.refreshToken);
+    const saveToLocalStorage = useCallback((user: UserLoginResponse) => {
+      try {
+        if (user.accessToken && user.refreshToken) {
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, user.accessToken);
+          localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, user.refreshToken);
 
-  //         // Store user data without tokens (tokens stored separately)
-  //         const { accessToken, refreshToken, ...userWithoutTokens } = user;
-  //         localStorage.setItem(
-  //           STORAGE_KEYS.CURRENT_USER,
-  //           JSON.stringify(userWithoutTokens)
-  //         );
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to save auth data to localStorage:", error);
-  //     }
-  //   }, []);
+          // Store user data without tokens (tokens stored separately)
+          const { accessToken, refreshToken, ...userWithoutTokens } = user;
+          localStorage.setItem(
+            STORAGE_KEYS.CURRENT_USER,
+            JSON.stringify(userWithoutTokens)
+          );
+        }
+      } catch (error) {
+        console.error("Failed to save auth data to localStorage:", error);
+      }
+    }, []);
 
-  // Clear localStorage helper
-  //   const clearLocalStorage = useCallback(() => {
-  //     try {
-  //       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-  //       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-  //       localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-  //     } catch (error) {
-  //       console.error("Failed to clear auth data from localStorage:", error);
-  //     }
-  //   }, []);
+  //Clear localStorage helper
+    const clearLocalStorage = useCallback(() => {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+      } catch (error) {
+        console.error("Failed to clear auth data from localStorage:", error);
+      }
+    }, []);
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {

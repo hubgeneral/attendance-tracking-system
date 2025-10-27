@@ -3,7 +3,9 @@ import { Platform } from "react-native";
 // Environment types
 export enum Environment {
   DEVELOPMENT = "development",
-  LOCAL = "local"
+  LOCAL = "local",
+  STAGING = "staging",
+  PRODUCTION = "production",
 }
 
 // Configuration interface
@@ -19,7 +21,7 @@ const getCurrentEnvironment = (): Environment => {
   const env = process.env.EXPO_PUBLIC_APP_ENV as Environment;
   return env && Object.values(Environment).includes(env)
     ? env
-    : Environment.DEVELOPMENT;
+    : Environment.LOCAL; // Default to LOCAL instead of DEVELOPMENT
 };
 
 // Environment-specific configurations
@@ -40,13 +42,13 @@ const getConfig = (): AppConfig => {
     `${baseConfig.API_BASE_URL}/graphql/`;
 
   // Handle Android emulator localhost mapping
-  if (
-    currentEnv === Environment.DEVELOPMENT &&
-    graphqlEndpoint.includes("localhost") &&
-    Platform.OS === "android"
-  ) {
-    graphqlEndpoint = graphqlEndpoint.replace("localhost", "192.168.31.194");
-  }
+  // if (
+  //   currentEnv === Environment.DEVELOPMENT &&
+  //   graphqlEndpoint.includes("localhost") &&
+  //   Platform.OS === "android"
+  // ) {
+  //   graphqlEndpoint = graphqlEndpoint.replace("localhost", "10.0.2.2");
+  // }
 
   return {
     ...baseConfig,
@@ -68,5 +70,15 @@ export const getGraphQLEndpoint = (): string => config.GRAPHQL_ENDPOINT;
 export const getApiBaseUrl = (): string => config.API_BASE_URL;
 export const getEnvironment = (): Environment => config.APP_ENV;
 export const isDevelopment = (): boolean => config.IS_DEV;
+
+// Log current configuration (only in development)
+if (config.IS_DEV) {
+  console.log("📱 App Configuration:", {
+    environment: config.APP_ENV,
+    graphqlEndpoint: config.GRAPHQL_ENDPOINT,
+    apiBaseUrl: config.API_BASE_URL,
+    platform: Platform.OS,
+  });
+}
 
 export default config;
