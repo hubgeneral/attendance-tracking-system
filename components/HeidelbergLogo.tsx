@@ -26,7 +26,7 @@ export default function HeidelbergLogo({ size = "medium", showText = true }: Hei
       <View style={[styles.logoContainer, { width: sizeConfig.logoSize, height: sizeConfig.logoSize }]}>
         <Image
           source={require("../assets/images/heidelberg.png")}
-          style={[styles.logo, { width: sizeConfig.logoSize, height: sizeConfig.logoSize }]}
+          style={[{ width: sizeConfig.logoSize, height: sizeConfig.logoSize }]}
           resizeMode="contain"
         />
       </View>
@@ -48,9 +48,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-  },
-  logo: {
-    // Size will be set dynamically
   },
   text: {
     fontWeight: "600",
