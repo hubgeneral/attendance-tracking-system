@@ -1,12 +1,13 @@
 import { useAuth } from "@/hooks/useAuth";
+import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { AntDesign } from "@expo/vector-icons";
 import {
   Alert,
   Animated,
   Dimensions,
   Easing,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -16,7 +17,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
@@ -42,7 +42,6 @@ export default function LoginScreen() {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    console.log("Attempting login with:", { employeeId, password });
     try {
       await login({ employeeId: employeeId.trim(), password: password.trim() });
 
@@ -311,9 +310,7 @@ export default function LoginScreen() {
                 >
                   <AntDesign name="close" size={20} color="#797979" />
                 </TouchableOpacity>
-                <Text style={[styles.modalTitle]}>
-                  Create New Password
-                </Text>
+                <Text style={[styles.modalTitle]}>Create New Password</Text>
 
                 <FloatingLabelInput
                   value={newPassword}

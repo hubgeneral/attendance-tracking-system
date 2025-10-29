@@ -3,7 +3,8 @@ import {
   useLoginMutation,
   type UserLoginResponse,
 } from "@/src/generated/graphql";
-import { useCallback, useContext, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useCallback, useContext, useEffect, useState } from "react";
 
 interface LoginCredentials {
   employeeId: string;
@@ -13,6 +14,7 @@ interface LoginCredentials {
 interface UseAuthProps {
   currentUser: UserLoginResponse | undefined;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
   setAuthData: (user: UserLoginResponse, accessToken: string) => void;
@@ -20,7 +22,7 @@ interface UseAuthProps {
   updateAccessToken: (accessToken: string) => void;
 }
 
-// local storage keys
+// AsyncStorage keys
 const STORAGE_KEYS = {
   ACCESS_TOKEN: "accessToken",
   REFRESH_TOKEN: "refreshToken",
@@ -35,78 +37,87 @@ export const useAuth = (): UseAuthProps => {
 
   const { authContextData, setAuthContextData } = context;
   const isAuthenticated = Boolean(authContextData?.currentUser);
+  const [isLoading, setIsLoading] = useState(true);
   const [loginMutation] = useLoginMutation();
 
-    useEffect(() => {
-      const loadAuthFromStorage = () => {
-        try {
-          const storedUser = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-          const storedAccessToken = localStorage.getItem(
-            STORAGE_KEYS.ACCESS_TOKEN
-          );
-          const storedRefreshToken = localStorage.getItem(
-            STORAGE_KEYS.REFRESH_TOKEN
-          );
+  // Load auth data from AsyncStorage on mount
+  useEffect(() => {
+    const loadAuthFromStorage = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem(
+          STORAGE_KEYS.CURRENT_USER
+        );
+        const storedAccessToken = await AsyncStorage.getItem(
+          STORAGE_KEYS.ACCESS_TOKEN
+        );
+        const storedRefreshToken = await AsyncStorage.getItem(
+          STORAGE_KEYS.REFRESH_TOKEN
+        );
 
-          if (storedUser && storedAccessToken && storedRefreshToken) {
-            const user: UserLoginResponse = JSON.parse(storedUser);
+        console.log("Storage check:", {
+          hasUser: !!storedUser,
+          hasAccessToken: !!storedAccessToken,
+          hasRefreshToken: !!storedRefreshToken,
+        });
 
-            if (setAuthContextData) {
-              setAuthContextData({
-                currentUser: {
-                  ...user,
-                  accessToken: storedAccessToken,
-                  refreshToken: storedRefreshToken,
-                },
-              });
-            }
+        if (storedUser && storedAccessToken && storedRefreshToken) {
+          const user: UserLoginResponse = JSON.parse(storedUser);
+
+          if (setAuthContextData) {
+            setAuthContextData({
+              currentUser: {
+                ...user,
+                accessToken: storedAccessToken,
+                refreshToken: storedRefreshToken,
+              },
+            });
           }
-        } catch (error) {
-          console.error("Failed to load auth data from localStorage:", error);
-          // Clear corrupted data
-          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-          localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-          localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        }
-      };
-
-      loadAuthFromStorage();
-    }, [setAuthContextData]);
-
-  // Save to localStorage helper
-
-  
-
-  
-
-    const saveToLocalStorage = useCallback((user: UserLoginResponse) => {
-      try {
-        if (user.accessToken && user.refreshToken) {
-          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, user.accessToken);
-          localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, user.refreshToken);
-
-          // Store user data without tokens (tokens stored separately)
-          const { accessToken, refreshToken, ...userWithoutTokens } = user;
-          localStorage.setItem(
-            STORAGE_KEYS.CURRENT_USER,
-            JSON.stringify(userWithoutTokens)
-          );
         }
       } catch (error) {
-        console.error("Failed to save auth data to localStorage:", error);
+        console.error("Failed to load auth data from AsyncStorage:", error);
+        // Clear corrupted data
+        await AsyncStorage.multiRemove([
+          STORAGE_KEYS.CURRENT_USER,
+          STORAGE_KEYS.ACCESS_TOKEN,
+          STORAGE_KEYS.REFRESH_TOKEN,
+        ]);
+      } finally {
+        setIsLoading(false);
       }
-    }, []);
+    };
 
-  //Clear localStorage helper
-    const clearLocalStorage = useCallback(() => {
-      try {
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
-      } catch (error) {
-        console.error("Failed to clear auth data from localStorage:", error);
+    loadAuthFromStorage();
+  }, []);
+
+  // Save to AsyncStorage helper
+  const saveToAsyncStorage = useCallback(async (user: UserLoginResponse) => {
+    try {
+      if (user.accessToken && user.refreshToken) {
+        // Store user data without tokens (tokens stored separately)
+        const { accessToken, refreshToken, ...userWithoutTokens } = user;
+        await AsyncStorage.multiSet([
+          [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+          [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutTokens)],
+        ]);
       }
-    }, []);
+    } catch (error) {
+      console.error("Failed to save auth data to AsyncStorage:", error);
+    }
+  }, []);
+
+  // Clear AsyncStorage helper
+  const clearAsyncStorage = useCallback(async () => {
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.ACCESS_TOKEN,
+        STORAGE_KEYS.REFRESH_TOKEN,
+        STORAGE_KEYS.CURRENT_USER,
+      ]);
+    } catch (error) {
+      console.error("Failed to clear auth data from AsyncStorage:", error);
+    }
+  }, []);
 
   const login = useCallback(
     async (credentials: LoginCredentials) => {
@@ -151,16 +162,16 @@ export const useAuth = (): UseAuthProps => {
           currentUser: userData,
         });
 
-        // saveToLocalStorage(userData);
+        await saveToAsyncStorage(userData);
       } catch (error) {
         console.error("Login error:", error);
         throw error;
       }
     },
-    [setAuthContextData, loginMutation]
+    [setAuthContextData, loginMutation, saveToAsyncStorage]
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     if (!setAuthContextData) {
       throw new Error("setAuthContextData is not defined");
     }
@@ -168,11 +179,11 @@ export const useAuth = (): UseAuthProps => {
       currentUser: undefined,
     });
 
-    // clearLocalStorage();
-  }, [setAuthContextData]);
+    await clearAsyncStorage();
+  }, [setAuthContextData, clearAsyncStorage]);
 
   const setAuthData = useCallback(
-    (user: UserLoginResponse) => {
+    async (user: UserLoginResponse) => {
       if (!setAuthContextData) {
         throw new Error("setAuthContextData is not defined");
       }
@@ -180,9 +191,9 @@ export const useAuth = (): UseAuthProps => {
         currentUser: user,
       });
 
-      //   saveToLocalStorage(user);
+      await saveToAsyncStorage(user);
     },
-    [setAuthContextData /* saveToLocalStorage */]
+    [setAuthContextData, saveToAsyncStorage]
   );
 
   const updateUser = useCallback(
@@ -216,6 +227,7 @@ export const useAuth = (): UseAuthProps => {
   return {
     currentUser: authContextData?.currentUser,
     isAuthenticated,
+    isLoading,
     login,
     logout,
     setAuthData,
