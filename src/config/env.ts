@@ -28,27 +28,31 @@ const getCurrentEnvironment = (): Environment => {
 const getConfig = (): AppConfig => {
   const currentEnv = getCurrentEnvironment();
 
-  // Base configurations
+  // Base configurations - pick from env or default to localhost
+  const initialApiBase =
+    process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:5015";
+
+  // If running on Android emulator, requests to 'localhost' should go to 10.0.2.2
+  // (Android emulator maps host machine localhost to 10.0.2.2)
+  const resolvedApiBase =
+    Platform.OS === "android" && initialApiBase.includes("localhost")
+      ? initialApiBase.replace("localhost", "10.0.2.2")
+      : initialApiBase;
+
   const baseConfig = {
-    API_BASE_URL:
-      process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:5015",
+    API_BASE_URL: resolvedApiBase,
     APP_ENV: currentEnv,
     IS_DEV: currentEnv === Environment.DEVELOPMENT,
   };
 
   // Platform-specific GraphQL endpoint handling
   let graphqlEndpoint =
-    process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT ||
-    `${baseConfig.API_BASE_URL}/graphql/`;
+    process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT || `${baseConfig.API_BASE_URL}/graphql/`;
 
-  // Handle Android emulator localhost mapping
-  // if (
-  //   currentEnv === Environment.DEVELOPMENT &&
-  //   graphqlEndpoint.includes("localhost") &&
-  //   Platform.OS === "android"
-  // ) {
-  //   graphqlEndpoint = graphqlEndpoint.replace("localhost", "10.0.2.2");
-  // }
+  // Also rewrite graphqlEndpoint if it contains localhost and we're on Android
+  if (Platform.OS === "android" && graphqlEndpoint.includes("localhost")) {
+    graphqlEndpoint = graphqlEndpoint.replace("localhost", "10.0.2.2");
+  }
 
   return {
     ...baseConfig,

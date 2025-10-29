@@ -1,7 +1,9 @@
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 
-
+import { useAuth } from "@/hooks/useAuth";
+import { useGetUserByIdQuery } from "@/src/generated/graphql";
+import { router } from "expo-router";
 import {
   Animated,
   Keyboard,
@@ -20,8 +22,7 @@ interface ProfileCardProps {
   email?: string;
   initials?: string;
   onChangePassword?: () => void;
-  onLogout?: () => void;
-
+  // onLogout?: () => void;
 }
 
 const ProfileCard: React.FC<ProfileCardProps> = ({
@@ -29,43 +30,55 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   email,
   initials,
   onChangePassword,
-  onLogout,
-
+  // onLogout,
 }) => {
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
-   
-
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-
- useEffect(() => {
-  const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-  const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
-
-  const showSub = Keyboard.addListener(showEvent, (e) => {
-    Animated.timing(keyboardOffset, {
-      toValue: -e.endCoordinates.height + 40,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
+  const { currentUser, logout } = useAuth();
+  const { data: userData } = useGetUserByIdQuery({
+    variables: { id: Number(currentUser?.id) ?? 0 },
+    skip: !currentUser?.id,
   });
 
-  const hideSub = Keyboard.addListener(hideEvent, () => {
-    Animated.timing(keyboardOffset, {
-      toValue: 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  });
+  const user = userData?.userById;
 
-  return () => {
-    showSub.remove();
-    hideSub.remove();
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.replace("/login");
+    } catch (error) {
+      console.log("logout failed", error);
+    }
   };
-}, []);
 
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      Animated.timing(keyboardOffset, {
+        toValue: -e.endCoordinates.height + 40,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    });
 
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      Animated.timing(keyboardOffset, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -73,8 +86,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <Text style={styles.avatarText}>{initials}</Text>
       </View>
 
-      <Text style={styles.name}>{name}</Text>
-      <Text style={styles.email}>{email}</Text>
+      <Text style={styles.name}>{user?.employeeName}</Text>
+      <Text style={styles.email}>{user?.email}</Text>
 
       <View style={styles.divider} />
 
@@ -86,12 +99,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <Text style={styles.optionText}>Change Password</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.option, styles.logout]} onPress={onLogout}>
+      <TouchableOpacity
+        style={[styles.option, styles.logout]}
+        onPress={handleLogout}
+      >
         <Ionicons name="log-out-outline" size={20} color="#DA0901" />
         <Text style={[styles.optionText, styles.logoutText]}>Log out</Text>
       </TouchableOpacity>
 
-    
       <Modal
         visible={isChangePasswordVisible}
         animationType="slide"
@@ -110,7 +125,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           >
             <TouchableOpacity
               style={styles.modalClose}
-              onPress={() => setIsChangePasswordVisible(false)} 
+              onPress={() => setIsChangePasswordVisible(false)}
             >
               <AntDesign name="close" size={18} color="#ccc" />
             </TouchableOpacity>
@@ -141,24 +156,23 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     marginTop: 80,
   },
-  
-//   container: {
-//   backgroundColor: "#fff",
-//   borderRadius: 12,
-//   paddingVertical: 24,
-//   paddingHorizontal: 25,
-//   alignItems: "center",
-//   shadowColor: "#000",
-//   shadowOffset: { width: 0, height: 2 },
-//   shadowOpacity: 0.1,
-//   shadowRadius: 6,
-//   elevation: 4,
-//   width: "100%",
-//   alignSelf: "stretch",
-//   marginTop: 40, 
-// },
 
- 
+  //   container: {
+  //   backgroundColor: "#fff",
+  //   borderRadius: 12,
+  //   paddingVertical: 24,
+  //   paddingHorizontal: 25,
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 6,
+  //   elevation: 4,
+  //   width: "100%",
+  //   alignSelf: "stretch",
+  //   marginTop: 40,
+  // },
+
   avatar: {
     backgroundColor: "#CCEBE9",
     width: 60,
@@ -192,14 +206,12 @@ const styles = StyleSheet.create({
   },
   logoutText: { color: "#00274D" },
 
-  
   bottomModalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 
-  
   bottomModalContent: {
     backgroundColor: "#fff",
     width: "100%",
@@ -214,34 +226,10 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 8,
   },
-    modalBackground: {
+  modalBackground: {
     flex: 1,
     backgroundColor: "transparent",
     justifyContent: "flex-end",
     alignItems: "flex-end",
-
   },
-
-  bottomModalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-    bottomModalContent: {
-      backgroundColor: "#fff",
-      width: "100%",
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      padding: 16,
-      maxHeight: "90%",
-    },
-
-  modalClose: {
-  alignSelf: "flex-end",
-  padding: 4,
-  marginBottom: 8, 
-},
-
-
 });
-

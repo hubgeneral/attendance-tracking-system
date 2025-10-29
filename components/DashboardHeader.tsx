@@ -1,11 +1,17 @@
 import React, { useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileCard from "../components/Profile";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 
 export default function DashboardHeader() {
-const [isProfileVisible, setIsProfileVisible] = useState(false);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
   const bp = useBreakpoint();
   const headerPadding =
     bp === "xs" ? 4 : bp === "s" ? 8 : bp === "m" ? 16 : bp === "l" ? 24 : 32;
@@ -23,14 +29,13 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
     bp === "xs" ? 20 : bp === "s" ? 28 : bp === "m" ? 36 : bp === "l" ? 44 : 56;
   const profileSize =
     bp === "xs" ? 20 : bp === "s" ? 28 : bp === "m" ? 36 : bp === "l" ? 44 : 56;
-    
-// const currentUser = useAuth;
+
+  // const currentUser = useAuth;
   // const initials = currentUser.UserName
   //   ?.split(" ")
   //   .map((n: string) => n[0])
   //   .join("")
   //   .toUpperCase();
-
 
   return (
     <SafeAreaView
@@ -54,7 +59,7 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
             borderRadius: profileSize / 0.5,
           },
         ]}
-         onPress={() => setIsProfileVisible(true)} 
+        onPress={() => setIsProfileVisible(true)}
       >
         <Image
           source={require("../assets/images/profile.png")}
@@ -62,7 +67,7 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
           resizeMode="cover"
         />
       </TouchableOpacity>
-        {/* Modal for ProfileCard */}
+      {/* Modal for ProfileCard */}
       <Modal
         transparent
         animationType="fade"
@@ -74,7 +79,6 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
           style={styles.modalBackground}
           onPress={() => setIsProfileVisible(false)}
         >
-         
           <Pressable
             onPress={(e) => e.stopPropagation()}
             style={styles.modalContentContainer}
@@ -84,11 +88,6 @@ const [isProfileVisible, setIsProfileVisible] = useState(false);
                 setIsProfileVisible(false);
                 console.log("Change Password pressed");
               }}
-              onLogout={() => {
-                setIsProfileVisible(false);
-                console.log("Logout pressed");
-              }}
-             
             />
           </Pressable>
         </Pressable>
@@ -122,28 +121,25 @@ const styles = StyleSheet.create({
   //   marginRight: -40,
   // },
 
-//   modalBackground: {
-//   flex: 1,
-//   backgroundColor: "rgba(0,0,0,0.5)",
-//   justifyContent: "flex-start",
-//   alignItems: "flex-end",
-//   paddingTop: 0, 
-//   paddingRight: 0,
-// },
+  //   modalBackground: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0,0,0,0.5)",
+  //   justifyContent: "flex-start",
+  //   alignItems: "flex-end",
+  //   paddingTop: 0,
+  //   paddingRight: 0,
+  // },
   modalBackground: {
     flex: 1,
     backgroundColor: "transparent",
     justifyContent: "flex-start",
     alignItems: "flex-end",
-
   },
   modalContentContainer: {
-     width: "100%",
+    width: "100%",
     alignSelf: "stretch",
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
   },
-
 });
-
