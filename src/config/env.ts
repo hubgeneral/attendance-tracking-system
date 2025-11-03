@@ -30,7 +30,8 @@ const getConfig = (): AppConfig => {
 
   // Base configurations - pick from env or default to localhost
   const initialApiBase =
-    process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:5015";
+    process.env.EXPO_PUBLIC_API_BASE_URL ||
+    "https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/";
 
   // If running on Android emulator, requests to 'localhost' should go to 10.0.2.2
   // (Android emulator maps host machine localhost to 10.0.2.2)
@@ -63,8 +64,6 @@ const getConfig = (): AppConfig => {
 console.log("api base url", getConfig().API_BASE_URL);
 console.log("graphql endpoint", getConfig().GRAPHQL_ENDPOINT);
 console.log("environment", getConfig().APP_ENV);
-
-
 
 // Get the current configuration
 export const config = getConfig();
