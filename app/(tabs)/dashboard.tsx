@@ -67,16 +67,17 @@ export default function DashboardScreen() {
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
 
-  const { data, loading, error } = useGetAttendanceByUsernameQuery({
-    variables: { username: "DHG1030" },
-  });
-
   const { data: userData } = useGetUserByIdQuery({
     variables: { id: Number(currentUser?.id) ?? 0 },
     skip: !currentUser?.id,
   });
 
   const user = userData?.userById;
+
+  const { data, loading, error } = useGetAttendanceByUsernameQuery({
+    variables: { username: user?.userName ?? "" },
+  });
+
   const firstName = user?.employeeName?.split(" ")[0];
 
   // UI state for metric cards (updated when query result changes)
@@ -252,6 +253,13 @@ export default function DashboardScreen() {
       hideSub.remove();
     };
   }, [keyboardOffset]);
+  useEffect(() => {
+    if (data) console.log("data", data);
+  }, [data]);
+
+  useEffect(() => {
+    if (user) console.log("user", user);
+  }, [user]);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -334,12 +342,12 @@ export default function DashboardScreen() {
       >
         {/* Greeting and Date Selector */}
         <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Hi {firstName}</Text>
+          <Text style={styles.greeting}>Hi, {firstName}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <DateRangePicker
-              onApply={(s, e) => {
-                setRangeStart(s);
-                setRangeEnd(e);
+              onApply={(startDate, endDate) => {
+                setRangeStart(startDate);
+                setRangeEnd(endDate);
               }}
             />
           </View>
