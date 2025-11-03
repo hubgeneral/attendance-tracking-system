@@ -479,7 +479,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
-    marginBottom: 40,
+    marginTop: 30,
+    marginBottom: 10,
   },
   successImage: {
     width: 182,
@@ -551,6 +552,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    textAlign: "center",
   },
   modalClose: {
     position: "absolute",
