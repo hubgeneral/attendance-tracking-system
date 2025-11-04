@@ -20,60 +20,38 @@ export type Scalars = {
   LocalDate: { input: any; output: any; }
 };
 
-export type ActivityLogger = {
-  __typename?: 'ActivityLogger';
-  activityDescription?: Maybe<Scalars['String']['output']>;
-  activityLog?: Maybe<Scalars['String']['output']>;
-  appUserId: Scalars['Int']['output'];
-  id: Scalars['Int']['output'];
-  timeOfDay: Scalars['DateTime']['output'];
-  user?: Maybe<AppUser>;
-};
-
-export type ActivityLoggerFilterInput = {
-  activityDescription?: InputMaybe<StringOperationFilterInput>;
-  activityLog?: InputMaybe<StringOperationFilterInput>;
-  and?: InputMaybe<Array<ActivityLoggerFilterInput>>;
-  appUserId?: InputMaybe<IntOperationFilterInput>;
-  id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<Array<ActivityLoggerFilterInput>>;
-  timeOfDay?: InputMaybe<DateTimeOperationFilterInput>;
-  user?: InputMaybe<AppUserFilterInput>;
-};
-
 export type AppRole = {
   __typename?: 'AppRole';
   concurrencyStamp?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
   normalizedName?: Maybe<Scalars['String']['output']>;
-  userRoles: Array<AppUserRole>;
+  userRoles: AppUserRole[];
 };
 
 export type AppRoleFilterInput = {
-  and?: InputMaybe<Array<AppRoleFilterInput>>;
+  and?: InputMaybe<AppRoleFilterInput[]>;
   concurrencyStamp?: InputMaybe<StringOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
   name?: InputMaybe<StringOperationFilterInput>;
   normalizedName?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<Array<AppRoleFilterInput>>;
+  or?: InputMaybe<AppRoleFilterInput[]>;
   userRoles?: InputMaybe<ListFilterInputTypeOfAppUserRoleFilterInput>;
 };
 
 export type AppUser = {
   __typename?: 'AppUser';
   accessFailedCount: Scalars['Int']['output'];
-  activityLoggers?: Maybe<Array<ActivityLogger>>;
-  attendances?: Maybe<Array<Attendance>>;
+  attendances?: Maybe<Attendance[]>;
   concurrencyStamp?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   emailConfirmed: Scalars['Boolean']['output'];
   employeeName?: Maybe<Scalars['String']['output']>;
   employeeType?: Maybe<Scalars['String']['output']>;
-  exitLogs?: Maybe<Array<ExitLog>>;
+  entryExitLogs?: Maybe<EntryExitLog[]>;
   id: Scalars['Int']['output'];
   isPasswordReset: Scalars['Boolean']['output'];
-  leaves?: Maybe<Array<Leave>>;
+  leaves?: Maybe<Leave[]>;
   lockoutEnabled: Scalars['Boolean']['output'];
   lockoutEnd?: Maybe<Scalars['DateTime']['output']>;
   normalizedEmail?: Maybe<Scalars['String']['output']>;
@@ -82,27 +60,26 @@ export type AppUser = {
   passwordHash?: Maybe<Scalars['String']['output']>;
   phoneNumber?: Maybe<Scalars['String']['output']>;
   phoneNumberConfirmed: Scalars['Boolean']['output'];
-  refreshTokens: Array<RefreshToken>;
-  requests?: Maybe<Array<Request>>;
+  refreshTokens: RefreshToken[];
+  requestLogs?: Maybe<RequestLog[]>;
   securityStamp?: Maybe<Scalars['String']['output']>;
   staffId?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
   twoFactorEnabled: Scalars['Boolean']['output'];
   userName?: Maybe<Scalars['String']['output']>;
-  userRoles: Array<AppUserRole>;
+  userRoles: AppUserRole[];
 };
 
 export type AppUserFilterInput = {
   accessFailedCount?: InputMaybe<IntOperationFilterInput>;
-  activityLoggers?: InputMaybe<ListFilterInputTypeOfActivityLoggerFilterInput>;
-  and?: InputMaybe<Array<AppUserFilterInput>>;
+  and?: InputMaybe<AppUserFilterInput[]>;
   attendances?: InputMaybe<ListFilterInputTypeOfAttendanceFilterInput>;
   concurrencyStamp?: InputMaybe<StringOperationFilterInput>;
   email?: InputMaybe<StringOperationFilterInput>;
   emailConfirmed?: InputMaybe<BooleanOperationFilterInput>;
   employeeName?: InputMaybe<StringOperationFilterInput>;
   employeeType?: InputMaybe<StringOperationFilterInput>;
-  exitLogs?: InputMaybe<ListFilterInputTypeOfExitLogFilterInput>;
+  entryExitLogs?: InputMaybe<ListFilterInputTypeOfEntryExitLogFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
   isPasswordReset?: InputMaybe<BooleanOperationFilterInput>;
   leaves?: InputMaybe<ListFilterInputTypeOfLeaveFilterInput>;
@@ -110,13 +87,13 @@ export type AppUserFilterInput = {
   lockoutEnd?: InputMaybe<DateTimeOperationFilterInput>;
   normalizedEmail?: InputMaybe<StringOperationFilterInput>;
   normalizedUserName?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<Array<AppUserFilterInput>>;
+  or?: InputMaybe<AppUserFilterInput[]>;
   password?: InputMaybe<StringOperationFilterInput>;
   passwordHash?: InputMaybe<StringOperationFilterInput>;
   phoneNumber?: InputMaybe<StringOperationFilterInput>;
   phoneNumberConfirmed?: InputMaybe<BooleanOperationFilterInput>;
   refreshTokens?: InputMaybe<ListFilterInputTypeOfRefreshTokenFilterInput>;
-  requests?: InputMaybe<ListFilterInputTypeOfRequestFilterInput>;
+  requestLogs?: InputMaybe<ListFilterInputTypeOfRequestLogFilterInput>;
   securityStamp?: InputMaybe<StringOperationFilterInput>;
   staffId?: InputMaybe<StringOperationFilterInput>;
   status?: InputMaybe<StringOperationFilterInput>;
@@ -134,8 +111,8 @@ export type AppUserRole = {
 };
 
 export type AppUserRoleFilterInput = {
-  and?: InputMaybe<Array<AppUserRoleFilterInput>>;
-  or?: InputMaybe<Array<AppUserRoleFilterInput>>;
+  and?: InputMaybe<AppUserRoleFilterInput[]>;
+  or?: InputMaybe<AppUserRoleFilterInput[]>;
   role?: InputMaybe<AppRoleFilterInput>;
   roleId?: InputMaybe<IntOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
@@ -173,6 +150,7 @@ export type Attendance = {
   clockOut?: Maybe<Scalars['DateTime']['output']>;
   clockingType: Scalars['Boolean']['output'];
   currentDate?: Maybe<Scalars['LocalDate']['output']>;
+  entryExitLogs: EntryExitLog[];
   id: Scalars['Int']['output'];
   status?: Maybe<Scalars['String']['output']>;
   totalHoursWorked?: Maybe<Scalars['Decimal']['output']>;
@@ -180,14 +158,15 @@ export type Attendance = {
 };
 
 export type AttendanceFilterInput = {
-  and?: InputMaybe<Array<AttendanceFilterInput>>;
+  and?: InputMaybe<AttendanceFilterInput[]>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   clockIn?: InputMaybe<DateTimeOperationFilterInput>;
   clockOut?: InputMaybe<DateTimeOperationFilterInput>;
   clockingType?: InputMaybe<BooleanOperationFilterInput>;
   currentDate?: InputMaybe<LocalDateOperationFilterInput>;
+  entryExitLogs?: InputMaybe<ListFilterInputTypeOfEntryExitLogFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<Array<AttendanceFilterInput>>;
+  or?: InputMaybe<AttendanceFilterInput[]>;
   status?: InputMaybe<StringOperationFilterInput>;
   totalHoursWorked?: InputMaybe<DecimalOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
@@ -205,77 +184,120 @@ export type AttendanceSortInput = {
   user?: InputMaybe<AppUserSortInput>;
 };
 
+export type AverageClockTimeResult = {
+  __typename?: 'AverageClockTimeResult';
+  averageClockIn?: Maybe<Scalars['DateTime']['output']>;
+  averageClockOut?: Maybe<Scalars['DateTime']['output']>;
+};
+
 export type BooleanOperationFilterInput = {
   eq?: InputMaybe<Scalars['Boolean']['input']>;
   neq?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type DashboardTotalSummary = {
+  __typename?: 'DashboardTotalSummary';
+  employeesClockedIn: Scalars['Int']['output'];
+  employeesClockedOut: Scalars['Int']['output'];
+  totalAbsent: Scalars['Int']['output'];
+  totalEmployees: Scalars['Int']['output'];
+  totalLeaves: Scalars['Int']['output'];
 };
 
 export type DateTimeOperationFilterInput = {
   eq?: InputMaybe<Scalars['DateTime']['input']>;
   gt?: InputMaybe<Scalars['DateTime']['input']>;
   gte?: InputMaybe<Scalars['DateTime']['input']>;
-  in?: InputMaybe<Array<InputMaybe<Scalars['DateTime']['input']>>>;
+  in?: InputMaybe<InputMaybe<Scalars['DateTime']['input']>[]>;
   lt?: InputMaybe<Scalars['DateTime']['input']>;
   lte?: InputMaybe<Scalars['DateTime']['input']>;
   neq?: InputMaybe<Scalars['DateTime']['input']>;
   ngt?: InputMaybe<Scalars['DateTime']['input']>;
   ngte?: InputMaybe<Scalars['DateTime']['input']>;
-  nin?: InputMaybe<Array<InputMaybe<Scalars['DateTime']['input']>>>;
+  nin?: InputMaybe<InputMaybe<Scalars['DateTime']['input']>[]>;
   nlt?: InputMaybe<Scalars['DateTime']['input']>;
   nlte?: InputMaybe<Scalars['DateTime']['input']>;
 };
+
+export enum DayOfWeek {
+  Friday = 'FRIDAY',
+  Monday = 'MONDAY',
+  Saturday = 'SATURDAY',
+  Sunday = 'SUNDAY',
+  Thursday = 'THURSDAY',
+  Tuesday = 'TUESDAY',
+  Wednesday = 'WEDNESDAY'
+}
 
 export type DecimalOperationFilterInput = {
   eq?: InputMaybe<Scalars['Decimal']['input']>;
   gt?: InputMaybe<Scalars['Decimal']['input']>;
   gte?: InputMaybe<Scalars['Decimal']['input']>;
-  in?: InputMaybe<Array<InputMaybe<Scalars['Decimal']['input']>>>;
+  in?: InputMaybe<InputMaybe<Scalars['Decimal']['input']>[]>;
   lt?: InputMaybe<Scalars['Decimal']['input']>;
   lte?: InputMaybe<Scalars['Decimal']['input']>;
   neq?: InputMaybe<Scalars['Decimal']['input']>;
   ngt?: InputMaybe<Scalars['Decimal']['input']>;
   ngte?: InputMaybe<Scalars['Decimal']['input']>;
-  nin?: InputMaybe<Array<InputMaybe<Scalars['Decimal']['input']>>>;
+  nin?: InputMaybe<InputMaybe<Scalars['Decimal']['input']>[]>;
   nlt?: InputMaybe<Scalars['Decimal']['input']>;
   nlte?: InputMaybe<Scalars['Decimal']['input']>;
 };
 
-export type ExitLog = {
-  __typename?: 'ExitLog';
-  appUserId: Scalars['Int']['output'];
-  currentDate: Scalars['LocalDate']['output'];
-  entryTime: Scalars['DateTime']['output'];
-  exitTime: Scalars['DateTime']['output'];
+export type EntryExitLog = {
+  __typename?: 'EntryExitLog';
+  appUserId?: Maybe<Scalars['Int']['output']>;
+  attendance?: Maybe<Attendance>;
+  attendanceId: Scalars['Int']['output'];
+  currentDate?: Maybe<Scalars['LocalDate']['output']>;
+  entryTime?: Maybe<Scalars['DateTime']['output']>;
+  exitTime?: Maybe<Scalars['DateTime']['output']>;
   id: Scalars['Int']['output'];
-  totalExitTime: Scalars['Int']['output'];
+  totalExitTime?: Maybe<Scalars['Int']['output']>;
   user?: Maybe<AppUser>;
 };
 
-export type ExitLogFilterInput = {
-  and?: InputMaybe<Array<ExitLogFilterInput>>;
+export type EntryExitLogFilterInput = {
+  and?: InputMaybe<EntryExitLogFilterInput[]>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
+  attendance?: InputMaybe<AttendanceFilterInput>;
+  attendanceId?: InputMaybe<IntOperationFilterInput>;
   currentDate?: InputMaybe<LocalDateOperationFilterInput>;
   entryTime?: InputMaybe<DateTimeOperationFilterInput>;
   exitTime?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<Array<ExitLogFilterInput>>;
+  or?: InputMaybe<EntryExitLogFilterInput[]>;
   totalExitTime?: InputMaybe<IntOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
+};
+
+export type GraphDataResults = {
+  __typename?: 'GraphDataResults';
+  absent: Scalars['Int']['output'];
+  clockedInCount: Scalars['Int']['output'];
+  day: DayOfWeek;
+  onLeave: Scalars['Int']['output'];
 };
 
 export type IntOperationFilterInput = {
   eq?: InputMaybe<Scalars['Int']['input']>;
   gt?: InputMaybe<Scalars['Int']['input']>;
   gte?: InputMaybe<Scalars['Int']['input']>;
-  in?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  in?: InputMaybe<InputMaybe<Scalars['Int']['input']>[]>;
   lt?: InputMaybe<Scalars['Int']['input']>;
   lte?: InputMaybe<Scalars['Int']['input']>;
   neq?: InputMaybe<Scalars['Int']['input']>;
   ngt?: InputMaybe<Scalars['Int']['input']>;
   ngte?: InputMaybe<Scalars['Int']['input']>;
-  nin?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  nin?: InputMaybe<InputMaybe<Scalars['Int']['input']>[]>;
   nlt?: InputMaybe<Scalars['Int']['input']>;
   nlte?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type LateEmployees = {
+  __typename?: 'LateEmployees';
+  employeeName?: Maybe<Scalars['String']['output']>;
+  timeOfDay?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type Leave = {
@@ -292,7 +314,7 @@ export type Leave = {
 };
 
 export type LeaveFilterInput = {
-  and?: InputMaybe<Array<LeaveFilterInput>>;
+  and?: InputMaybe<LeaveFilterInput[]>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   approvalStatus?: InputMaybe<StringOperationFilterInput>;
   daysRequested?: InputMaybe<IntOperationFilterInput>;
@@ -300,16 +322,9 @@ export type LeaveFilterInput = {
   employeeName?: InputMaybe<StringOperationFilterInput>;
   endDate?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<Array<LeaveFilterInput>>;
+  or?: InputMaybe<LeaveFilterInput[]>;
   startDate?: InputMaybe<DateTimeOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
-};
-
-export type ListFilterInputTypeOfActivityLoggerFilterInput = {
-  all?: InputMaybe<ActivityLoggerFilterInput>;
-  any?: InputMaybe<Scalars['Boolean']['input']>;
-  none?: InputMaybe<ActivityLoggerFilterInput>;
-  some?: InputMaybe<ActivityLoggerFilterInput>;
 };
 
 export type ListFilterInputTypeOfAppUserRoleFilterInput = {
@@ -326,11 +341,11 @@ export type ListFilterInputTypeOfAttendanceFilterInput = {
   some?: InputMaybe<AttendanceFilterInput>;
 };
 
-export type ListFilterInputTypeOfExitLogFilterInput = {
-  all?: InputMaybe<ExitLogFilterInput>;
+export type ListFilterInputTypeOfEntryExitLogFilterInput = {
+  all?: InputMaybe<EntryExitLogFilterInput>;
   any?: InputMaybe<Scalars['Boolean']['input']>;
-  none?: InputMaybe<ExitLogFilterInput>;
-  some?: InputMaybe<ExitLogFilterInput>;
+  none?: InputMaybe<EntryExitLogFilterInput>;
+  some?: InputMaybe<EntryExitLogFilterInput>;
 };
 
 export type ListFilterInputTypeOfLeaveFilterInput = {
@@ -347,40 +362,56 @@ export type ListFilterInputTypeOfRefreshTokenFilterInput = {
   some?: InputMaybe<RefreshTokenFilterInput>;
 };
 
-export type ListFilterInputTypeOfRequestFilterInput = {
-  all?: InputMaybe<RequestFilterInput>;
+export type ListFilterInputTypeOfRequestLogFilterInput = {
+  all?: InputMaybe<RequestLogFilterInput>;
   any?: InputMaybe<Scalars['Boolean']['input']>;
-  none?: InputMaybe<RequestFilterInput>;
-  some?: InputMaybe<RequestFilterInput>;
+  none?: InputMaybe<RequestLogFilterInput>;
+  some?: InputMaybe<RequestLogFilterInput>;
 };
 
 export type LocalDateOperationFilterInput = {
   eq?: InputMaybe<Scalars['LocalDate']['input']>;
   gt?: InputMaybe<Scalars['LocalDate']['input']>;
   gte?: InputMaybe<Scalars['LocalDate']['input']>;
-  in?: InputMaybe<Array<InputMaybe<Scalars['LocalDate']['input']>>>;
+  in?: InputMaybe<InputMaybe<Scalars['LocalDate']['input']>[]>;
   lt?: InputMaybe<Scalars['LocalDate']['input']>;
   lte?: InputMaybe<Scalars['LocalDate']['input']>;
   neq?: InputMaybe<Scalars['LocalDate']['input']>;
   ngt?: InputMaybe<Scalars['LocalDate']['input']>;
   ngte?: InputMaybe<Scalars['LocalDate']['input']>;
-  nin?: InputMaybe<Array<InputMaybe<Scalars['LocalDate']['input']>>>;
+  nin?: InputMaybe<InputMaybe<Scalars['LocalDate']['input']>[]>;
   nlt?: InputMaybe<Scalars['LocalDate']['input']>;
   nlte?: InputMaybe<Scalars['LocalDate']['input']>;
+};
+
+export type MostHoursWastedByEmployee = {
+  __typename?: 'MostHoursWastedByEmployee';
+  employeeName?: Maybe<Scalars['String']['output']>;
+  totalWastedHours?: Maybe<Scalars['Decimal']['output']>;
+};
+
+export type MostHoursWorkedByEmployee = {
+  __typename?: 'MostHoursWorkedByEmployee';
+  employeeName?: Maybe<Scalars['String']['output']>;
+  totalWorkingHours?: Maybe<Scalars['Decimal']['output']>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
   createAttendance: Attendance;
+  createManualLog: RequestLog;
+  createRequest: Scalars['String']['output'];
   createUser: AppUser;
   deleteAttendance: Scalars['Boolean']['output'];
+  deleteRequest: Scalars['String']['output'];
   deleteUser: Scalars['Boolean']['output'];
-  geoFenceClockIn: Scalars['String']['output'];
+  geofenceClockIn: Scalars['String']['output'];
   geofenceClockOut: Scalars['String']['output'];
   login: UserLoginResponse;
   loginForForgottenPassword: UserLoginResponse;
   resetPassword: UserResetPasswordResponse;
   updateAttendance?: Maybe<Attendance>;
+  updateRequest: Scalars['String']['output'];
   updateUser?: Maybe<AppUser>;
 };
 
@@ -392,6 +423,24 @@ export type MutationCreateAttendanceArgs = {
   currentdate: Scalars['LocalDate']['input'];
   status: Scalars['String']['input'];
   totalhoursworked: Scalars['Int']['input'];
+};
+
+
+export type MutationCreateManualLogArgs = {
+  adminId: Scalars['Int']['input'];
+  adminName: Scalars['String']['input'];
+  approvalStatus: Scalars['String']['input'];
+  clockIn: Scalars['DateTime']['input'];
+  clockOut: Scalars['DateTime']['input'];
+  employeeId: Scalars['Int']['input'];
+  employeeName: Scalars['String']['input'];
+  reason: Scalars['String']['input'];
+};
+
+
+export type MutationCreateRequestArgs = {
+  reason: Scalars['String']['input'];
+  userid: Scalars['Int']['input'];
 };
 
 
@@ -410,19 +459,25 @@ export type MutationDeleteAttendanceArgs = {
 };
 
 
+export type MutationDeleteRequestArgs = {
+  requestId: Scalars['Int']['input'];
+};
+
+
 export type MutationDeleteUserArgs = {
   id: Scalars['Int']['input'];
 };
 
 
-export type MutationGeoFenceClockInArgs = {
-  clockin: Scalars['DateTime']['input'];
-  username: Scalars['String']['input'];
+export type MutationGeofenceClockInArgs = {
+  clockinUtc: Scalars['DateTime']['input'];
+  id: Scalars['Int']['input'];
 };
 
 
 export type MutationGeofenceClockOutArgs = {
-  username: Scalars['String']['input'];
+  clockoutUtc: Scalars['DateTime']['input'];
+  id: Scalars['Int']['input'];
 };
 
 
@@ -456,6 +511,12 @@ export type MutationUpdateAttendanceArgs = {
 };
 
 
+export type MutationUpdateRequestArgs = {
+  reason: Scalars['String']['input'];
+  requestId: Scalars['Int']['input'];
+};
+
+
 export type MutationUpdateUserArgs = {
   email: Scalars['String']['input'];
   employeeName: Scalars['String']['input'];
@@ -466,13 +527,32 @@ export type MutationUpdateUserArgs = {
   status: Scalars['String']['input'];
 };
 
+export type PunctualEmployees = {
+  __typename?: 'PunctualEmployees';
+  employeeName?: Maybe<Scalars['String']['output']>;
+  timeOfDay?: Maybe<Scalars['DateTime']['output']>;
+};
+
 export type Query = {
   __typename?: 'Query';
-  attendanceByUserId: Array<Attendance>;
-  attendances: Array<Attendance>;
+  attendanceByUserId: Attendance[];
+  attendances: Attendance[];
+  averageClockTime: AverageClockTimeResult;
+  dashboardTotalStats: DashboardTotalSummary;
+  graphData: GraphDataResults[];
+  lateEmployees: LateEmployees[];
+  manualLogs: RequestLog[];
+  mostHoursWorked: MostHoursWorkedByEmployee[];
+  mostWastedHours: MostHoursWastedByEmployee[];
+  punctualEmployees: PunctualEmployees[];
+  requestLogs: RequestLog[];
+  requestLogsByUserId: RequestLog[];
   userById?: Maybe<AppUser>;
-  users: Array<AppUser>;
-  usersWithRoles: Array<UserWithRoleResponse>;
+  users: AppUser[];
+  usersOnLeave: AppUser[];
+  usersOnLeaveToday: AppUser[];
+  usersWithRoles: UserWithRoleResponse[];
+  workHoursSummary: WorkingHours;
 };
 
 
@@ -482,8 +562,69 @@ export type QueryAttendanceByUserIdArgs = {
 
 
 export type QueryAttendancesArgs = {
-  order?: InputMaybe<Array<AttendanceSortInput>>;
+  order?: InputMaybe<AttendanceSortInput[]>;
   where?: InputMaybe<AttendanceFilterInput>;
+};
+
+
+export type QueryAverageClockTimeArgs = {
+  endDate?: InputMaybe<Scalars['LocalDate']['input']>;
+  startDate?: InputMaybe<Scalars['LocalDate']['input']>;
+};
+
+
+export type QueryDashboardTotalStatsArgs = {
+  endDate?: InputMaybe<Scalars['LocalDate']['input']>;
+  startDate?: InputMaybe<Scalars['LocalDate']['input']>;
+};
+
+
+export type QueryGraphDataArgs = {
+  endDate?: InputMaybe<Scalars['LocalDate']['input']>;
+  startDate?: InputMaybe<Scalars['LocalDate']['input']>;
+};
+
+
+export type QueryLateEmployeesArgs = {
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
+};
+
+
+export type QueryManualLogsArgs = {
+  order?: InputMaybe<RequestLogSortInput[]>;
+  where?: InputMaybe<RequestLogFilterInput>;
+};
+
+
+export type QueryMostHoursWorkedArgs = {
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
+};
+
+
+export type QueryMostWastedHoursArgs = {
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
+};
+
+
+export type QueryPunctualEmployeesArgs = {
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
+};
+
+
+export type QueryRequestLogsArgs = {
+  order?: InputMaybe<RequestLogSortInput[]>;
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
+  where?: InputMaybe<RequestLogFilterInput>;
+};
+
+
+export type QueryRequestLogsByUserIdArgs = {
+  id: Scalars['Int']['input'];
 };
 
 
@@ -493,14 +634,26 @@ export type QueryUserByIdArgs = {
 
 
 export type QueryUsersArgs = {
-  order?: InputMaybe<Array<AppUserSortInput>>;
+  order?: InputMaybe<AppUserSortInput[]>;
   where?: InputMaybe<AppUserFilterInput>;
 };
 
 
+export type QueryUsersOnLeaveArgs = {
+  endDate?: InputMaybe<Scalars['LocalDate']['input']>;
+  startDate?: InputMaybe<Scalars['LocalDate']['input']>;
+};
+
+
 export type QueryUsersWithRolesArgs = {
-  order?: InputMaybe<Array<UserWithRoleResponseSortInput>>;
+  order?: InputMaybe<UserWithRoleResponseSortInput[]>;
   where?: InputMaybe<UserWithRoleResponseFilterInput>;
+};
+
+
+export type QueryWorkHoursSummaryArgs = {
+  startday: Scalars['LocalDate']['input'];
+  stopdate: Scalars['LocalDate']['input'];
 };
 
 export type RefreshToken = {
@@ -515,34 +668,60 @@ export type RefreshToken = {
 };
 
 export type RefreshTokenFilterInput = {
-  and?: InputMaybe<Array<RefreshTokenFilterInput>>;
+  and?: InputMaybe<RefreshTokenFilterInput[]>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
   expires?: InputMaybe<DateTimeOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
   isRevoked?: InputMaybe<BooleanOperationFilterInput>;
   isUsed?: InputMaybe<BooleanOperationFilterInput>;
-  or?: InputMaybe<Array<RefreshTokenFilterInput>>;
+  or?: InputMaybe<RefreshTokenFilterInput[]>;
   token?: InputMaybe<StringOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
 };
 
-export type Request = {
-  __typename?: 'Request';
+export type RequestLog = {
+  __typename?: 'RequestLog';
+  actionBy?: Maybe<Scalars['String']['output']>;
   appUserId: Scalars['Int']['output'];
-  description?: Maybe<Scalars['String']['output']>;
+  approvalStatus?: Maybe<Scalars['String']['output']>;
+  clockIn?: Maybe<Scalars['DateTime']['output']>;
+  clockOut?: Maybe<Scalars['DateTime']['output']>;
+  currentDate?: Maybe<Scalars['LocalDate']['output']>;
+  employeeName?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
-  timeOfDay: Scalars['DateTime']['output'];
+  reason?: Maybe<Scalars['String']['output']>;
+  timeOfDay?: Maybe<Scalars['DateTime']['output']>;
   user?: Maybe<AppUser>;
 };
 
-export type RequestFilterInput = {
-  and?: InputMaybe<Array<RequestFilterInput>>;
+export type RequestLogFilterInput = {
+  actionBy?: InputMaybe<StringOperationFilterInput>;
+  and?: InputMaybe<RequestLogFilterInput[]>;
   appUserId?: InputMaybe<IntOperationFilterInput>;
-  description?: InputMaybe<StringOperationFilterInput>;
+  approvalStatus?: InputMaybe<StringOperationFilterInput>;
+  clockIn?: InputMaybe<DateTimeOperationFilterInput>;
+  clockOut?: InputMaybe<DateTimeOperationFilterInput>;
+  currentDate?: InputMaybe<LocalDateOperationFilterInput>;
+  employeeName?: InputMaybe<StringOperationFilterInput>;
   id?: InputMaybe<IntOperationFilterInput>;
-  or?: InputMaybe<Array<RequestFilterInput>>;
+  or?: InputMaybe<RequestLogFilterInput[]>;
+  reason?: InputMaybe<StringOperationFilterInput>;
   timeOfDay?: InputMaybe<DateTimeOperationFilterInput>;
   user?: InputMaybe<AppUserFilterInput>;
+};
+
+export type RequestLogSortInput = {
+  actionBy?: InputMaybe<SortEnumType>;
+  appUserId?: InputMaybe<SortEnumType>;
+  approvalStatus?: InputMaybe<SortEnumType>;
+  clockIn?: InputMaybe<SortEnumType>;
+  clockOut?: InputMaybe<SortEnumType>;
+  currentDate?: InputMaybe<SortEnumType>;
+  employeeName?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  reason?: InputMaybe<SortEnumType>;
+  timeOfDay?: InputMaybe<SortEnumType>;
+  user?: InputMaybe<AppUserSortInput>;
 };
 
 export enum SortEnumType {
@@ -551,17 +730,17 @@ export enum SortEnumType {
 }
 
 export type StringOperationFilterInput = {
-  and?: InputMaybe<Array<StringOperationFilterInput>>;
+  and?: InputMaybe<StringOperationFilterInput[]>;
   contains?: InputMaybe<Scalars['String']['input']>;
   endsWith?: InputMaybe<Scalars['String']['input']>;
   eq?: InputMaybe<Scalars['String']['input']>;
-  in?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  in?: InputMaybe<InputMaybe<Scalars['String']['input']>[]>;
   ncontains?: InputMaybe<Scalars['String']['input']>;
   nendsWith?: InputMaybe<Scalars['String']['input']>;
   neq?: InputMaybe<Scalars['String']['input']>;
-  nin?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  nin?: InputMaybe<InputMaybe<Scalars['String']['input']>[]>;
   nstartsWith?: InputMaybe<Scalars['String']['input']>;
-  or?: InputMaybe<Array<StringOperationFilterInput>>;
+  or?: InputMaybe<StringOperationFilterInput[]>;
   startsWith?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -571,6 +750,7 @@ export type UserLoginResponse = {
   id?: Maybe<Scalars['String']['output']>;
   isPasswordReset: Scalars['Boolean']['output'];
   refreshToken?: Maybe<Scalars['String']['output']>;
+  resetToken?: Maybe<Scalars['String']['output']>;
   role?: Maybe<Scalars['String']['output']>;
   userName?: Maybe<Scalars['String']['output']>;
 };
@@ -595,11 +775,11 @@ export type UserWithRoleResponse = {
 };
 
 export type UserWithRoleResponseFilterInput = {
-  and?: InputMaybe<Array<UserWithRoleResponseFilterInput>>;
+  and?: InputMaybe<UserWithRoleResponseFilterInput[]>;
   email?: InputMaybe<StringOperationFilterInput>;
   employeeName?: InputMaybe<StringOperationFilterInput>;
   employeeType?: InputMaybe<StringOperationFilterInput>;
-  or?: InputMaybe<Array<UserWithRoleResponseFilterInput>>;
+  or?: InputMaybe<UserWithRoleResponseFilterInput[]>;
   roleId?: InputMaybe<IntOperationFilterInput>;
   roleName?: InputMaybe<StringOperationFilterInput>;
   staffId?: InputMaybe<StringOperationFilterInput>;
@@ -620,6 +800,12 @@ export type UserWithRoleResponseSortInput = {
   userName?: InputMaybe<SortEnumType>;
 };
 
+export type WorkingHours = {
+  __typename?: 'WorkingHours';
+  totalOffHours: Scalars['Decimal']['output'];
+  totalWorkingHours: Scalars['Decimal']['output'];
+};
+
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
   password: Scalars['String']['input'];
@@ -628,24 +814,40 @@ export type LoginMutationVariables = Exact<{
 
 export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'UserLoginResponse', id?: string | null, accessToken?: string | null, refreshToken?: string | null, isPasswordReset: boolean, userName?: string | null, role?: string | null } };
 
+export type GeofenceClockInMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  clockinUtc: Scalars['DateTime']['input'];
+}>;
+
+
+export type GeofenceClockInMutation = { __typename?: 'Mutation', geofenceClockIn: string };
+
+export type GeofenceClockOutMutationVariables = Exact<{
+  id: Scalars['Int']['input'];
+  clockoutUtc: Scalars['DateTime']['input'];
+}>;
+
+
+export type GeofenceClockOutMutation = { __typename?: 'Mutation', geofenceClockOut: string };
+
 export type GetAttendanceByUsernameQueryVariables = Exact<{
   username: Scalars['String']['input'];
 }>;
 
 
-export type GetAttendanceByUsernameQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
+export type GetAttendanceByUsernameQuery = { __typename?: 'Query', attendanceByUserId: { __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }[] };
 
 export type GetUserByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
 
 
-export type GetUserByIdQuery = { __typename?: 'Query', userById?: { __typename?: 'AppUser', id: number, employeeName?: string | null, email?: string | null, staffId?: string | null, phoneNumber?: string | null, status?: string | null, employeeType?: string | null, userName?: string | null, isPasswordReset: boolean, userRoles: Array<{ __typename?: 'AppUserRole', role: { __typename?: 'AppRole', name?: string | null } }> } | null };
+export type GetUserByIdQuery = { __typename?: 'Query', userById?: { __typename?: 'AppUser', id: number, employeeName?: string | null, email?: string | null, staffId?: string | null, phoneNumber?: string | null, status?: string | null, employeeType?: string | null, userName?: string | null, isPasswordReset: boolean, userRoles: { __typename?: 'AppUserRole', role: { __typename?: 'AppRole', name?: string | null } }[] } | null };
 
 export type GetAllUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAllUsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'AppUser', userName?: string | null, status?: string | null }> };
+export type GetAllUsersQuery = { __typename?: 'Query', users: { __typename?: 'AppUser', userName?: string | null, status?: string | null }[] };
 
 
 export const LoginDocument = gql`
@@ -687,6 +889,70 @@ export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginM
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export const GeofenceClockInDocument = gql`
+    mutation GeofenceClockIn($id: Int!, $clockinUtc: DateTime!) {
+  geofenceClockIn(id: $id, clockinUtc: $clockinUtc)
+}
+    `;
+export type GeofenceClockInMutationFn = Apollo.MutationFunction<GeofenceClockInMutation, GeofenceClockInMutationVariables>;
+
+/**
+ * __useGeofenceClockInMutation__
+ *
+ * To run a mutation, you first call `useGeofenceClockInMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGeofenceClockInMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [geofenceClockInMutation, { data, loading, error }] = useGeofenceClockInMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      clockinUtc: // value for 'clockinUtc'
+ *   },
+ * });
+ */
+export function useGeofenceClockInMutation(baseOptions?: Apollo.MutationHookOptions<GeofenceClockInMutation, GeofenceClockInMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GeofenceClockInMutation, GeofenceClockInMutationVariables>(GeofenceClockInDocument, options);
+      }
+export type GeofenceClockInMutationHookResult = ReturnType<typeof useGeofenceClockInMutation>;
+export type GeofenceClockInMutationResult = Apollo.MutationResult<GeofenceClockInMutation>;
+export type GeofenceClockInMutationOptions = Apollo.BaseMutationOptions<GeofenceClockInMutation, GeofenceClockInMutationVariables>;
+export const GeofenceClockOutDocument = gql`
+    mutation GeofenceClockOut($id: Int!, $clockoutUtc: DateTime!) {
+  geofenceClockOut(id: $id, clockoutUtc: $clockoutUtc)
+}
+    `;
+export type GeofenceClockOutMutationFn = Apollo.MutationFunction<GeofenceClockOutMutation, GeofenceClockOutMutationVariables>;
+
+/**
+ * __useGeofenceClockOutMutation__
+ *
+ * To run a mutation, you first call `useGeofenceClockOutMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGeofenceClockOutMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [geofenceClockOutMutation, { data, loading, error }] = useGeofenceClockOutMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      clockoutUtc: // value for 'clockoutUtc'
+ *   },
+ * });
+ */
+export function useGeofenceClockOutMutation(baseOptions?: Apollo.MutationHookOptions<GeofenceClockOutMutation, GeofenceClockOutMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GeofenceClockOutMutation, GeofenceClockOutMutationVariables>(GeofenceClockOutDocument, options);
+      }
+export type GeofenceClockOutMutationHookResult = ReturnType<typeof useGeofenceClockOutMutation>;
+export type GeofenceClockOutMutationResult = Apollo.MutationResult<GeofenceClockOutMutation>;
+export type GeofenceClockOutMutationOptions = Apollo.BaseMutationOptions<GeofenceClockOutMutation, GeofenceClockOutMutationVariables>;
 export const GetAttendanceByUsernameDocument = gql`
     query getAttendanceByUsername($username: String!) {
   attendanceByUserId(username: $username) {

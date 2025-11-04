@@ -45,19 +45,19 @@
 // export default GerFencingRegion;
 
 
-import { GeofenceRegion } from './geoFencing';
+// import { GeofenceRegion } from './geoFencing';
 
-export const regions: GeofenceRegion[] = [
-  {
-    identifier: 'Office',
-    latitude: 5.620772,
-    longitude: -0.185382,
-    radius: 0.1,
-    notifyOnEnter: true,
-    notifyOnExit: true,
-  },
-];
-export default regions;
+// export const regions: GeofenceRegion[] = [
+//   {
+//     identifier: 'Office',
+//     latitude: 5.620772,
+//     longitude: -0.185382,
+//     radius: 0.1,
+//     notifyOnEnter: true,
+//     notifyOnExit: true,
+//   },
+// ];
+// export default regions;
 
 
 
