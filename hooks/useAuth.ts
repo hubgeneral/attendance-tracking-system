@@ -119,57 +119,184 @@ export const useAuth = (): UseAuthProps => {
     }
   }, []);
 
-  const login = useCallback(
-    async (credentials: LoginCredentials) => {
-      if (!setAuthContextData) {
-        throw new Error("setAuthContextData is not defined");
+  // const login = useCallback(
+  //   async (credentials: LoginCredentials) => {
+  //     if (!setAuthContextData) {
+  //       throw new Error("setAuthContextData is not defined");
+  //     }
+
+  //     try {
+  //       const { data: loginData } = await loginMutation({
+  //         variables: {
+  //           username: credentials.employeeId,
+  //           password: credentials.password,
+  //         },
+  //       });
+
+  //       if (!loginData?.login) {
+  //         throw new Error("Login failed: No data returned");
+  //       }
+
+  //       const {
+  //         id,
+  //         role,
+  //         userName,
+  //         accessToken,
+  //         refreshToken,
+  //         isPasswordReset,
+  //       } = loginData.login;
+  //       if (!role || !accessToken) {
+  //         throw new Error("Login failed: Incomplete data");
+  //       }
+
+  //       const userData: UserLoginResponse = {
+  //         id,
+  //         role,
+  //         userName,
+  //         accessToken,
+  //         refreshToken,
+  //         isPasswordReset,
+  //       };
+
+  //       setAuthContextData({
+  //         currentUser: userData,
+  //       });
+
+  //       await saveToAsyncStorage(userData);
+  //     } catch (error) {
+  //       console.error("Login error:", error);
+  //       throw error;
+  //     }
+  //   },
+  //   [setAuthContextData, loginMutation, saveToAsyncStorage]
+  // );
+
+
+  // In your useAuth hook, update the login function:
+// const login = useCallback(
+//   async (credentials: LoginCredentials) => {
+//     if (!setAuthContextData) {
+//       throw new Error("setAuthContextData is not defined");
+//     }
+
+//     try {
+//       const { data: loginData } = await loginMutation({
+//         variables: {
+//           username: credentials.employeeId,
+//           password: credentials.password,
+//         },
+//       });
+
+//       if (!loginData?.login) {
+//         throw new Error("Login failed: No data returned");
+//       }
+
+//       const {
+//         id, 
+//         role,
+//         userName,
+//         accessToken,
+//         refreshToken,
+//         isPasswordReset,
+//       } = loginData.login;
+      
+//       if (!role || !accessToken) {
+//         throw new Error("Login failed: Incomplete data");
+//       }
+
+//       const userData: UserLoginResponse = {
+//         id,
+//         role,
+//         userName,
+//         accessToken,
+//         refreshToken,
+//         isPasswordReset,
+//       };
+
+//       setAuthContextData({
+//         currentUser: userData,
+//       });
+
+//       await saveToAsyncStorage(userData);
+      
+    
+//       if (id !== null && id !== undefined) {
+//         await AsyncStorage.setItem("USER_ID", id.toString());
+//         console.log("✅ User ID stored for geofence:", id);
+//       } else {
+//         console.warn("User ID is null or undefined; not storing to AsyncStorage.");
+//       }
+      
+//     } catch (error) {
+//       console.error("Login error:", error);
+//       throw error;
+//     }
+//   },
+//   [setAuthContextData, loginMutation, saveToAsyncStorage]
+// );
+
+const login = useCallback(
+  async (credentials: LoginCredentials) => {
+    if (!setAuthContextData) {
+      throw new Error("setAuthContextData is not defined");
+    }
+
+    try {
+      const { data: loginData } = await loginMutation({
+        variables: {
+          username: credentials.employeeId,
+          password: credentials.password,
+        },
+      });
+
+      if (!loginData?.login) {
+        throw new Error("Login failed: No data returned");
       }
 
-      try {
-        const { data: loginData } = await loginMutation({
-          variables: {
-            username: credentials.employeeId,
-            password: credentials.password,
-          },
-        });
-
-        if (!loginData?.login) {
-          throw new Error("Login failed: No data returned");
-        }
-
-        const {
-          id,
-          role,
-          userName,
-          accessToken,
-          refreshToken,
-          isPasswordReset,
-        } = loginData.login;
-        if (!role || !accessToken) {
-          throw new Error("Login failed: Incomplete data");
-        }
-
-        const userData: UserLoginResponse = {
-          id,
-          role,
-          userName,
-          accessToken,
-          refreshToken,
-          isPasswordReset,
-        };
-
-        setAuthContextData({
-          currentUser: userData,
-        });
-
-        await saveToAsyncStorage(userData);
-      } catch (error) {
-        console.error("Login error:", error);
-        throw error;
+      const {
+        id, 
+        role,
+        userName,
+        accessToken,
+        refreshToken,
+        isPasswordReset,
+      } = loginData.login;
+      
+      if (!role || !accessToken) {
+        throw new Error("Login failed: Incomplete data");
       }
-    },
-    [setAuthContextData, loginMutation, saveToAsyncStorage]
-  );
+
+      
+      if (!id) {
+        throw new Error("Login failed: No user ID returned");
+      }
+
+      const userData: UserLoginResponse = {
+        id, 
+        role,
+        userName,
+        accessToken,
+        refreshToken,
+        isPasswordReset,
+      };
+
+      setAuthContextData({
+        currentUser: userData,
+      });
+
+      await saveToAsyncStorage(userData);
+      
+      // STORE THE CORRECT ID FOR GEOFENCE
+      await AsyncStorage.setItem("USER_ID", id.toString());
+      console.log(" User ID stored for geofence:", id);
+      
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
+  },
+  [setAuthContextData, loginMutation, saveToAsyncStorage]
+);
 
   const logout = useCallback(async () => {
     if (!setAuthContextData) {

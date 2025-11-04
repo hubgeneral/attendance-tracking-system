@@ -1,0 +1,3 @@
+mutation GeofenceClockOut($id: Int!, $clockoutUtc: DateTime!) {
+  geofenceClockOut(id: $id, clockoutUtc: $clockoutUtc)
+}

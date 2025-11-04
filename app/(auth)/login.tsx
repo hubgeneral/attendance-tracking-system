@@ -41,28 +41,43 @@ export default function LoginScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const { login } = useAuth();
 
-  const handleLogin = async () => {
-    try {
-      await login({ employeeId: employeeId.trim(), password: password.trim() });
+  // const handleLogin = async () => {
+  //   try {
+  //     await login({ employeeId: employeeId.trim(), password: password.trim() });
 
-      router.replace("/(tabs)/dashboard");
-      console.log("Login successful");
-    } catch (error) {
-      console.error("Login failed:", error);
-      Alert.alert(
-        "Login Failed",
-        "Invalid employee ID or password. Please try again.",
-        [{ text: "OK" }]
-      );
-    }
-    // Use thiis to test the login
-    if (employeeId === "DHG0001" && password === "dhgpass") {
-      // Navigate to dashboard on successful login
-      router.replace("/(tabs)/dashboard");
-    } else {
-      // Show error alert for invalid credentials
-    }
-  };
+  //     router.replace("/(tabs)/dashboard");
+  //     console.log("Login successful");
+  //   } catch (error) {
+  //     console.error("Login failed:", error);
+  //     Alert.alert(
+  //       "Login Failed",
+  //       "Invalid employee ID or password. Please try again.",
+  //       [{ text: "OK" }]
+  //     );
+  //   }
+  //   // Use thiis to test the login
+  //   if (employeeId === "DHG0001" && password === "dhgpass") {
+  //     // Navigate to dashboard on successful login
+  //     router.replace("/(tabs)/dashboard");
+  //   } else {
+  //     // Show error alert for invalid credentials
+  //   }
+  // };
+
+  const handleLogin = async () => {
+  try {
+    await login({ employeeId: employeeId.trim(), password: password.trim() });
+
+   
+    // await AsyncStorage.setItem("USER_ID", employeeId.trim());
+    // console.log("UserId stored for geofence:", employeeId.trim());
+
+    router.replace("/(tabs)/dashboard");
+  } catch (error) {
+    console.error("Login failed:", error);
+    Alert.alert("Login Failed", "Invalid credentials");
+  }
+};
 
   useEffect(() => {
     const showEvent =
