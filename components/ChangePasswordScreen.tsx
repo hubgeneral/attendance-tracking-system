@@ -144,4 +144,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+    modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#00274D",
+    textAlign: "center",
+    marginBottom: 40,
+  },
+    modalButton: {
+    backgroundColor: "#004E2B",
+    borderRadius: 4,
+    paddingVertical: 20,
+    alignItems: "center",
+    marginTop: 8,
+    width: "100%",
+  },
+    modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
 });
