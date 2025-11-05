@@ -1,102 +1,75 @@
-import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from "react";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 
 export default function CreatePasswordScreen() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
+  type ShowField = "current" | "new" | "confirm";
+
+  const toggleVisibility = (field: ShowField) => {
+    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
 
   return (
-    // <View style={styles.container}>
-    //   <Text style={styles.title}>Create Password</Text>
+    <View>
+      <Text style={[styles.modalTitle]}>Create Password</Text>
 
-      {/* Current Password */}
       <FloatingLabelInput
         value={currentPassword}
         onChangeText={setCurrentPassword}
         placeholder="Current Password"
-        secureTextEntry
-        showPasswordToggle
+        secureTextEntry={true}
+        showPasswordToggle={true}
       />
 
-      {/* New Password */}
       <FloatingLabelInput
         value={newPassword}
         onChangeText={setNewPassword}
         placeholder="New Password"
-        secureTextEntry
-        showPasswordToggle
+        secureTextEntry={true}
+        showPasswordToggle={true}
       />
 
-      {/* Confirm Password */}
       <FloatingLabelInput
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         placeholder="Confirm Password"
-        secureTextEntry
-        showPasswordToggle
+        secureTextEntry={true}
+        showPasswordToggle={true}
       />
 
-    //   {/* Save Button */}
-    //   <TouchableOpacity style={styles.saveButton}>
-    //     <Text style={styles.saveButtonText}>Save Password</Text>
-    //   </TouchableOpacity>
-    // </View>
+      <TouchableOpacity
+        style={styles.modalButton}
+        onPress={() => {
+          if (!newPassword || !confirmPassword) {
+            Alert.alert(
+              "Missing details",
+              "Please enter both New Password and Confirm Password."
+            );
+            return;
+          }
 
-    <View>
-                      <Text style={[styles.modalTitle]}>
-                        Create Password
-                      </Text>
-      
-                      <FloatingLabelInput
-                        value={currentPassword}
-                        onChangeText={setCurrentPassword}
-                        placeholder="Current Password"
-                        secureTextEntry={true}
-                        showPasswordToggle={true}
-                      />
-      
-                      <FloatingLabelInput
-                        value={newPassword}
-                        onChangeText={setNewPassword}
-                        placeholder="New Password"
-                        secureTextEntry={true}
-                        showPasswordToggle={true}
-                      />
-
-                       <FloatingLabelInput
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        placeholder="Confirm Password"
-                        secureTextEntry={true}
-                        showPasswordToggle={true}
-                      />
-      
-                      <TouchableOpacity
-                        style={styles.modalButton}
-                        onPress={() => {
-                          if (!newPassword || !confirmPassword) {
-                            Alert.alert(
-                              "Missing details",
-                              "Please enter both New Password and Confirm Password."
-                            );
-                            return;
-                          }
-      
-                          // setShowCreatePassword(false);
-                          // if (newPassword === confirmPassword) {
-                          //   setShowResetSuccess(true);
-                          //   // clear fields
-                          //   setNewPassword("");
-                          //   setConfirmPassword("");
-                          // } else {
-                          //   setShowResetFailure(true);
-                          // }
-                        }}
-                      >
-                        <Text style={styles.modalButtonText}>Create Password</Text>
-                      </TouchableOpacity>
+          // setShowCreatePassword(false);
+          // if (newPassword === confirmPassword) {
+          //   setShowResetSuccess(true);
+          //   // clear fields
+          //   setNewPassword("");
+          //   setConfirmPassword("");
+          // } else {
+          //   setShowResetFailure(true);
+          // }
+        }}
+      >
+        <Text style={styles.modalButtonText}>Create Password</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -107,22 +80,43 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 10,
     backgroundColor: "#fff",
-    paddingVertical: 30,
   },
   title: {
+    textAlign: "center",
     fontSize: 20,
     fontWeight: "600",
-    color: "#00274D",
-    textAlign: "center",
-    marginBottom: 40,
+    color: "#0d1b2a",
+    marginBottom: 24,
   },
-  saveButton: {
-    backgroundColor: "#004E2B",
-    borderRadius: 8,
-    paddingVertical: 20,
+
+  inputContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 0,
+    marginVertical: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+  },
+  icon: {
+    padding: 8,
+  },
+
+  saveButton: {
+    backgroundColor: "#004d40",
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 20,
   },
   saveButtonText: {
     color: "#fff",
@@ -130,14 +124,14 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-    modalTitle: {
+  modalTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#00274D",
     textAlign: "center",
     marginBottom: 40,
   },
-    modalButton: {
+  modalButton: {
     backgroundColor: "#004E2B",
     borderRadius: 4,
     paddingVertical: 20,
@@ -145,10 +139,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     width: "100%",
   },
-    modalButtonText: {
+  modalButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-
 });
