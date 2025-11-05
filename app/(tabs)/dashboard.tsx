@@ -33,6 +33,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
+import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -51,6 +52,12 @@ export default function DashboardScreen() {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { currentUser } = useAuth();
+
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
+    currentUser?.isPasswordReset
+  );
+
   const [requestText, setRequestText] = useState("");
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
@@ -448,6 +455,36 @@ const geofenceStartedRef = useRef(false);
             )}
           </View>
         </View>
+        {/*Modal for creating a new password*/}
+        <Modal
+          visible={isChangePasswordVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIsChangePasswordVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay2}
+          >
+            <Animated.View
+              style={[
+                styles.bottomModalContent2,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.modalClose2}
+                onPress={() =>
+                  setIsChangePasswordVisible(!user?.isPasswordReset)
+                }
+              >
+                <AntDesign name="close" size={18} color="#ccc" />
+              </TouchableOpacity>
+
+              <CreatePasswordScreen />
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </Modal>
 
         {/* Modal for making a request */}
         <Modal
@@ -1183,6 +1220,33 @@ const styles = StyleSheet.create({
     width: 144,
     marginTop: 12,
     marginLeft: 25,
+  },
+
+  bottomModalOverlay2: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
+  bottomModalContent2: {
+    backgroundColor: "#fff",
+    width: "100%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    maxHeight: "90%",
+  },
+
+  modalClose2: {
+    alignSelf: "flex-end",
+    padding: 4,
+    marginBottom: 8,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
   },
 });
   
