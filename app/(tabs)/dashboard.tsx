@@ -34,6 +34,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
+import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -52,6 +53,12 @@ export default function DashboardScreen() {
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const { currentUser } = useAuth();
+
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
+    currentUser?.isPasswordReset
+  );
+
   const [requestText, setRequestText] = useState("");
   const [requests, setRequests] = useState<
     { date: string; status: string; text: string }[]
@@ -448,6 +455,36 @@ export default function DashboardScreen() {
             )}
           </View>
         </View>
+        {/*Modal for creating a new password*/}
+        <Modal
+          visible={isChangePasswordVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIsChangePasswordVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay2}
+          >
+            <Animated.View
+              style={[
+                styles.bottomModalContent2,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.modalClose2}
+                onPress={() =>
+                  setIsChangePasswordVisible(!user?.isPasswordReset)
+                }
+              >
+                <AntDesign name="close" size={18} color="#ccc" />
+              </TouchableOpacity>
+
+              <CreatePasswordScreen />
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </Modal>
 
         {/*Modal for creating a new password*/}
         <Modal

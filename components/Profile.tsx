@@ -32,7 +32,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onChangePassword,
   // onLogout,
 }) => {
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(user?.isPasswordReset);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const { currentUser, logout } = useAuth();
@@ -66,6 +66,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       }).start();
     });
 
+   
     const hideSub = Keyboard.addListener(hideEvent, () => {
       Animated.timing(keyboardOffset, {
         toValue: 0,
@@ -79,6 +80,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       hideSub.remove();
     };
   }, []);
+
+   useEffect(()=>{
+    setIsChangePasswordVisible(false);
+    },[]);
+
 
   return (
     <View style={styles.container}>
