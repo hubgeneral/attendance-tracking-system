@@ -325,17 +325,28 @@ TaskManager.defineTask(POLYGON_TASK_NAME, async ({ data, error }) => {
       }
 
       // Send notification
-      if ((eventType === "enter" && config.notifyOnEnter) || 
-          (eventType === "exit" && config.notifyOnExit)) {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `${eventType.toUpperCase()} ${config.identifier}`,
-            body: `Automatically clocked ${eventType === 'enter' ? 'in' : 'out'} at ${new Date().toLocaleTimeString()}`,
-          },
-          trigger: null,
-        });
-        console.log(`[Geofence]  ${eventType} notification sent`);
-      }
+  if ((eventType === "enter" && config.notifyOnEnter) || 
+      (eventType === "exit" && config.notifyOnExit)) {
+    
+    try {
+      console.log(`[Geofence] 🔔 Preparing ${eventType} notification...`);
+      
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `${eventType === 'enter' ? 'Entered' : 'Exited'} ${config.identifier}`,
+          body: `You ${eventType}ed at ${new Date(timestamp).toLocaleTimeString()}`,
+          sound: true, 
+          priority: 'high',
+        },
+        trigger: null, 
+      });
+      
+      console.log(`[Geofence] 🔔 ${eventType} notification scheduled`);
+      
+  } catch (notifError) {
+    console.error(`[Geofence] notification error:`, notifError);
+  }
+}
 
       // Call callback
       if (polygonEventCallback) {
@@ -467,13 +478,129 @@ export const triggerManualGeofenceCheck = async () => {
 // };
 
 // Start Geofence
+// export const startGeofence = async (
+//   polygonConfig: PolygonGeofence
+// ): Promise<{ ok: boolean; message?: string }> => {
+//   try {
+//     console.log("[Geofence]  Starting geofence...");
+
+//     // 1. permissions
+//     let { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
+//     if (foregroundStatus !== "granted") {
+//       const { status } = await Location.requestForegroundPermissionsAsync();
+//       foregroundStatus = status;
+//     }
+
+//     if (foregroundStatus !== "granted") {
+//       Alert.alert("Permission Required", "Please enable location access in settings.");
+//       return { ok: false, message: "Foreground location permission denied" };
+//     }
+
+//     let { status: backgroundStatus } = await Location.getBackgroundPermissionsAsync();
+//     if (backgroundStatus !== "granted") {
+//       const { status } = await Location.requestBackgroundPermissionsAsync();
+//       backgroundStatus = status;
+//     }
+
+//     if (backgroundStatus !== "granted") {
+//       Alert.alert("Background Permission Required", "Please enable background location access for geofence monitoring.");
+//       return { ok: false, message: "Background location permission denied" };
+//     }
+
+//     // Request notification permissions
+//     const { status: notificationStatus } = await Notifications.requestPermissionsAsync();
+//     console.log(`[Geofence]  Notification permission: ${notificationStatus}`);
+
+//     // 2. Store configuration
+//     await AsyncStorage.setItem(`${ASYNC_KEY_PREFIX}config`, JSON.stringify(polygonConfig));
+//     console.log(`[Geofence] Config stored: ${polygonConfig.identifier}`);
+
+//     // 3. Get current location and initialize state
+//     const location = await Location.getCurrentPositionAsync({
+//       accuracy: Location.Accuracy.Balanced,
+//     });
+    
+//     const currentPoint = {
+//       latitude: location.coords.latitude,
+//       longitude: location.coords.longitude,
+//     };
+    
+//     const isInside = GeoLib.isPointInPolygon(currentPoint, polygonConfig.coordinates);
+//     const stateKey = `${ASYNC_KEY_PREFIX}${polygonConfig.identifier}-lastInside`;
+//     const lastRaw = await AsyncStorage.getItem(stateKey);
+    
+//     console.log(`[Geofence]  Initial location: ${currentPoint.latitude.toFixed(6)}, ${currentPoint.longitude.toFixed(6)}`);
+//     console.log(`[Geofence]  Initial inside: ${isInside}`);
+//     console.log(`[Geofence]  Previous state: ${lastRaw}`);
+
+//     //   Handle first run or state mismatch
+//     if (lastRaw === null) {
+
+//       // initialize state and trigger event if inside
+//       await AsyncStorage.setItem(stateKey, isInside ? "true" : "false");
+      
+//       if (isInside) {
+//         console.log(`[Geofence]  First run INSIDE geofence - triggering initial clock-in`);
+//         const rawUserId = await AsyncStorage.getItem("USER_ID");
+//         if (rawUserId) {
+//           const timestamp = new Date().toISOString();
+//           const success = await sendClockInMutation(rawUserId, timestamp);
+//           console.log(`[Geofence]  Initial clock-in ${success ? 'SUCCESS' : 'FAILED'}`);
+//         } else {
+//           console.warn(`[Geofence]  No user ID found for initial clock-in`);
+//         }
+//       }
+//       console.log(`[Geofence]  First run - initialized: ${isInside}`);
+//     } else {
+      
+//       await AsyncStorage.setItem(stateKey, isInside ? "true" : "false");
+//       console.log(`[Geofence]  State updated: ${isInside}`);
+//     }
+
+//     // Start location updates
+//     const hasStarted = await Location.hasStartedLocationUpdatesAsync(POLYGON_TASK_NAME);
+//     if (hasStarted) {
+//       console.log("[Geofence]  Restarting location updates...");
+//       await Location.stopLocationUpdatesAsync(POLYGON_TASK_NAME);
+     
+//       await new Promise(resolve => setTimeout(resolve, 1000));
+//     }
+
+//     await Location.startLocationUpdatesAsync(POLYGON_TASK_NAME, {
+//       accuracy: Location.Accuracy.Balanced,
+//       distanceInterval: 25, 
+//       timeInterval: 30000, 
+//       foregroundService: {
+//         notificationTitle: "Geofence Active",
+//         notificationBody: "Monitoring your location for automatic clock in/out",
+//         notificationColor: "#1c1cecff",
+//       },
+//       pausesUpdatesAutomatically: false,
+//       showsBackgroundLocationIndicator: true,
+//       deferredUpdatesInterval: 0, 
+//       deferredUpdatesDistance: 0, 
+//     });
+
+//     console.log("[Geofence] Geofence monitoring started");
+    
+//     //  Verify everything is working
+//     // await debugGeofenceStatus();
+    
+//     return { ok: true };
+
+//   } catch (err) {
+//     console.error("[Geofence]  Start error:", err);
+//     return { ok: false, message: String(err) };
+//   }
+// };
 export const startGeofence = async (
   polygonConfig: PolygonGeofence
 ): Promise<{ ok: boolean; message?: string }> => {
   try {
-    console.log("[Geofence]  Starting geofence...");
+    console.log("[Geofence] 🚀 Starting geofence...");
+  
 
-    // 1. permissions
+    // 2. Request location permissions
     let { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
     if (foregroundStatus !== "granted") {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -496,15 +623,11 @@ export const startGeofence = async (
       return { ok: false, message: "Background location permission denied" };
     }
 
-    // Request notification permissions
-    const { status: notificationStatus } = await Notifications.requestPermissionsAsync();
-    console.log(`[Geofence]  Notification permission: ${notificationStatus}`);
-
-    // 2. Store configuration
+    // Store configuration
     await AsyncStorage.setItem(`${ASYNC_KEY_PREFIX}config`, JSON.stringify(polygonConfig));
     console.log(`[Geofence] Config stored: ${polygonConfig.identifier}`);
 
-    // 3. Get current location and initialize state
+    // Get current location and initialize state
     const location = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Balanced,
     });
@@ -518,14 +641,13 @@ export const startGeofence = async (
     const stateKey = `${ASYNC_KEY_PREFIX}${polygonConfig.identifier}-lastInside`;
     const lastRaw = await AsyncStorage.getItem(stateKey);
     
-    console.log(`[Geofence]  Initial location: ${currentPoint.latitude.toFixed(6)}, ${currentPoint.longitude.toFixed(6)}`);
-    console.log(`[Geofence]  Initial inside: ${isInside}`);
+    console.log(`[Geofence] Initial location: ${currentPoint.latitude.toFixed(6)}, ${currentPoint.longitude.toFixed(6)}`);
+    console.log(`[Geofence] Initial inside: ${isInside}`);
     console.log(`[Geofence]  Previous state: ${lastRaw}`);
 
-    //   Handle first run or state mismatch
+    
     if (lastRaw === null) {
-
-      // initialize state and trigger event if inside
+      // Initialize state and trigger event if inside
       await AsyncStorage.setItem(stateKey, isInside ? "true" : "false");
       
       if (isInside) {
@@ -539,19 +661,17 @@ export const startGeofence = async (
           console.warn(`[Geofence]  No user ID found for initial clock-in`);
         }
       }
-      console.log(`[Geofence]  First run - initialized: ${isInside}`);
+      console.log(`[Geofence] First run - initialized: ${isInside}`);
     } else {
-      
       await AsyncStorage.setItem(stateKey, isInside ? "true" : "false");
-      console.log(`[Geofence]  State updated: ${isInside}`);
+      console.log(`[Geofence] State updated: ${isInside}`);
     }
 
-    // Start location updates
+    // 5. Start location updates
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(POLYGON_TASK_NAME);
     if (hasStarted) {
-      console.log("[Geofence]  Restarting location updates...");
+      console.log("[Geofence] Restarting location updates...");
       await Location.stopLocationUpdatesAsync(POLYGON_TASK_NAME);
-     
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
@@ -562,7 +682,7 @@ export const startGeofence = async (
       foregroundService: {
         notificationTitle: "Geofence Active",
         notificationBody: "Monitoring your location for automatic clock in/out",
-        notificationColor: "#aaaaf7ff",
+        notificationColor: "#1c1cecff",
       },
       pausesUpdatesAutomatically: false,
       showsBackgroundLocationIndicator: true,
@@ -571,9 +691,6 @@ export const startGeofence = async (
     });
 
     console.log("[Geofence] Geofence monitoring started");
-    
-    //  Verify everything is working
-    // await debugGeofenceStatus();
     
     return { ok: true };
 
@@ -649,7 +766,7 @@ const GeolibFence: React.FC<GeolibFenceProps> = ({ polygon, onEvent }: GeolibFen
         
         if (!mounted) return;
 
-        console.log("[Geofence] Initializing geofence with polygon:", polygon.identifier);
+        console.log("[Geofence]  Initializing geofence with polygon:", polygon.identifier);
         const result = await startGeofence(polygon);
         if (result.ok) {
           console.log("[Geofence]  Monitoring started successfully");
@@ -666,7 +783,7 @@ const GeolibFence: React.FC<GeolibFenceProps> = ({ polygon, onEvent }: GeolibFen
     initialize();
 
     return () => {
-      console.log("[Geofence] Component unmounted");
+      console.log("[Geofence]  Component unmounted");
       mounted = false;
       polygonEventCallback = undefined;
     };
