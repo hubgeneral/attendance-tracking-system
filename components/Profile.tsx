@@ -32,7 +32,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   onChangePassword,
   // onLogout,
 }) => {
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(user?.isPasswordReset);
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const { currentUser, logout } = useAuth();

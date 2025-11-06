@@ -56,7 +56,7 @@ export default function DashboardScreen() {
   const { currentUser } = useAuth();
 
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
-    currentUser?.isPasswordReset
+    false
   );
 
   const [requestText, setRequestText] = useState("");
@@ -475,7 +475,7 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={styles.modalClose2}
                 onPress={() =>
-                  setIsChangePasswordVisible(!user?.isPasswordReset)
+                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
                 }
               >
                 <AntDesign name="close" size={18} color="#ccc" />
