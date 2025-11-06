@@ -53,7 +53,6 @@ export default function FloatingLabelInput({
           isFocused && styles.inputFocused,
           showPasswordToggle && styles.inputWithIcon,
         ]}
-        key={String(isPasswordVisible)}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!isPasswordVisible}
@@ -94,6 +93,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 4,
     zIndex: 1,
+    pointerEvents: "none",
   },
   labelFloating: {
     top: 8,

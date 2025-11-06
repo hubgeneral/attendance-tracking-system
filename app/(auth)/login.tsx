@@ -201,7 +201,7 @@ export default function LoginScreen() {
               <Text style={styles.resetLink}>Reset password?</Text>
             </TouchableOpacity>
 
-            <PrimaryButton title="login" onPress={handleLogin} />
+            <PrimaryButton title="Login" onPress={handleLogin} />
           </View>
 
           <Modal visible={showReset} transparent animationType="fade">
