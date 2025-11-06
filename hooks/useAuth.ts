@@ -27,6 +27,7 @@ const STORAGE_KEYS = {
   ACCESS_TOKEN: "accessToken",
   REFRESH_TOKEN: "refreshToken",
   CURRENT_USER: "currentUser",
+  RESET_TOKEN: "resetToken",
 };
 
 export const useAuth = (): UseAuthProps => {
@@ -54,13 +55,23 @@ export const useAuth = (): UseAuthProps => {
           STORAGE_KEYS.REFRESH_TOKEN
         );
 
+        const storedResetToken = await AsyncStorage.getItem(
+          STORAGE_KEYS.RESET_TOKEN
+        );
+
         console.log("Storage check:", {
           hasUser: !!storedUser,
           hasAccessToken: !!storedAccessToken,
           hasRefreshToken: !!storedRefreshToken,
+          hasResetToken: !!storedResetToken,
         });
 
-        if (storedUser && storedAccessToken && storedRefreshToken) {
+        if (
+          storedUser &&
+          storedAccessToken &&
+          storedRefreshToken &&
+          storedResetToken
+        ) {
           const user: UserLoginResponse = JSON.parse(storedUser);
 
           if (setAuthContextData) {
@@ -69,6 +80,7 @@ export const useAuth = (): UseAuthProps => {
                 ...user,
                 accessToken: storedAccessToken,
                 refreshToken: storedRefreshToken,
+                resetToken: storedResetToken,
               },
             });
           }
@@ -80,6 +92,7 @@ export const useAuth = (): UseAuthProps => {
           STORAGE_KEYS.CURRENT_USER,
           STORAGE_KEYS.ACCESS_TOKEN,
           STORAGE_KEYS.REFRESH_TOKEN,
+          STORAGE_KEYS.RESET_TOKEN,
         ]);
       } finally {
         setIsLoading(false);
@@ -94,10 +107,12 @@ export const useAuth = (): UseAuthProps => {
     try {
       if (user.accessToken && user.refreshToken) {
         // Store user data without tokens (tokens stored separately)
-        const { accessToken, refreshToken, ...userWithoutTokens } = user;
+        const { accessToken, refreshToken, resetToken, ...userWithoutTokens } =
+          user;
         await AsyncStorage.multiSet([
           [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
           [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+          [STORAGE_KEYS.RESET_TOKEN, resetToken || ""],
           [STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutTokens)],
         ]);
       }
@@ -171,132 +186,130 @@ export const useAuth = (): UseAuthProps => {
   //   [setAuthContextData, loginMutation, saveToAsyncStorage]
   // );
 
-
   // In your useAuth hook, update the login function:
-// const login = useCallback(
-//   async (credentials: LoginCredentials) => {
-//     if (!setAuthContextData) {
-//       throw new Error("setAuthContextData is not defined");
-//     }
+  // const login = useCallback(
+  //   async (credentials: LoginCredentials) => {
+  //     if (!setAuthContextData) {
+  //       throw new Error("setAuthContextData is not defined");
+  //     }
 
-//     try {
-//       const { data: loginData } = await loginMutation({
-//         variables: {
-//           username: credentials.employeeId,
-//           password: credentials.password,
-//         },
-//       });
+  //     try {
+  //       const { data: loginData } = await loginMutation({
+  //         variables: {
+  //           username: credentials.employeeId,
+  //           password: credentials.password,
+  //         },
+  //       });
 
-//       if (!loginData?.login) {
-//         throw new Error("Login failed: No data returned");
-//       }
+  //       if (!loginData?.login) {
+  //         throw new Error("Login failed: No data returned");
+  //       }
 
-//       const {
-//         id, 
-//         role,
-//         userName,
-//         accessToken,
-//         refreshToken,
-//         isPasswordReset,
-//       } = loginData.login;
-      
-//       if (!role || !accessToken) {
-//         throw new Error("Login failed: Incomplete data");
-//       }
+  //       const {
+  //         id,
+  //         role,
+  //         userName,
+  //         accessToken,
+  //         refreshToken,
+  //         isPasswordReset,
+  //       } = loginData.login;
 
-//       const userData: UserLoginResponse = {
-//         id,
-//         role,
-//         userName,
-//         accessToken,
-//         refreshToken,
-//         isPasswordReset,
-//       };
+  //       if (!role || !accessToken) {
+  //         throw new Error("Login failed: Incomplete data");
+  //       }
 
-//       setAuthContextData({
-//         currentUser: userData,
-//       });
+  //       const userData: UserLoginResponse = {
+  //         id,
+  //         role,
+  //         userName,
+  //         accessToken,
+  //         refreshToken,
+  //         isPasswordReset,
+  //       };
 
-//       await saveToAsyncStorage(userData);
-      
-    
-//       if (id !== null && id !== undefined) {
-//         await AsyncStorage.setItem("USER_ID", id.toString());
-//         console.log("✅ User ID stored for geofence:", id);
-//       } else {
-//         console.warn("User ID is null or undefined; not storing to AsyncStorage.");
-//       }
-      
-//     } catch (error) {
-//       console.error("Login error:", error);
-//       throw error;
-//     }
-//   },
-//   [setAuthContextData, loginMutation, saveToAsyncStorage]
-// );
+  //       setAuthContextData({
+  //         currentUser: userData,
+  //       });
 
-const login = useCallback(
-  async (credentials: LoginCredentials) => {
-    if (!setAuthContextData) {
-      throw new Error("setAuthContextData is not defined");
-    }
+  //       await saveToAsyncStorage(userData);
 
-    try {
-      const { data: loginData } = await loginMutation({
-        variables: {
-          username: credentials.employeeId,
-          password: credentials.password,
-        },
-      });
+  //       if (id !== null && id !== undefined) {
+  //         await AsyncStorage.setItem("USER_ID", id.toString());
+  //         console.log("✅ User ID stored for geofence:", id);
+  //       } else {
+  //         console.warn("User ID is null or undefined; not storing to AsyncStorage.");
+  //       }
 
-      if (!loginData?.login) {
-        throw new Error("Login failed: No data returned");
+  //     } catch (error) {
+  //       console.error("Login error:", error);
+  //       throw error;
+  //     }
+  //   },
+  //   [setAuthContextData, loginMutation, saveToAsyncStorage]
+  // );
+
+  const login = useCallback(
+    async (credentials: LoginCredentials) => {
+      if (!setAuthContextData) {
+        throw new Error("setAuthContextData is not defined");
       }
 
-      const {
-        id, 
-        role,
-        userName,
-        accessToken,
-        refreshToken,
-        isPasswordReset,
-      } = loginData.login;
-      
-      if (!role || !accessToken) {
-        throw new Error("Login failed: Incomplete data");
+      try {
+        const { data: loginData } = await loginMutation({
+          variables: {
+            username: credentials.employeeId,
+            password: credentials.password,
+          },
+        });
+
+        if (!loginData?.login) {
+          throw new Error("Login failed: No data returned");
+        }
+
+        const {
+          id,
+          role,
+          userName,
+          accessToken,
+          refreshToken,
+          resetToken,
+          isPasswordReset,
+        } = loginData.login;
+
+        if (!role || !accessToken) {
+          throw new Error("Login failed: Incomplete data");
+        }
+
+        if (!id) {
+          throw new Error("Login failed: No user ID returned");
+        }
+
+        const userData: UserLoginResponse = {
+          id,
+          role,
+          userName,
+          accessToken,
+          refreshToken,
+          resetToken,
+          isPasswordReset,
+        };
+
+        setAuthContextData({
+          currentUser: userData,
+        });
+
+        await saveToAsyncStorage(userData);
+
+        // STORE THE CORRECT ID FOR GEOFENCE
+        await AsyncStorage.setItem("USER_ID", id.toString());
+        console.log(" User ID stored for geofence:", id);
+      } catch (error) {
+        console.error("Login error:", error);
+        throw error;
       }
-
-      
-      if (!id) {
-        throw new Error("Login failed: No user ID returned");
-      }
-
-      const userData: UserLoginResponse = {
-        id, 
-        role,
-        userName,
-        accessToken,
-        refreshToken,
-        isPasswordReset,
-      };
-
-      setAuthContextData({
-        currentUser: userData,
-      });
-
-      await saveToAsyncStorage(userData);
-      
-      // STORE THE CORRECT ID FOR GEOFENCE
-      await AsyncStorage.setItem("USER_ID", id.toString());
-      console.log(" User ID stored for geofence:", id);
-      
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  },
-  [setAuthContextData, loginMutation, saveToAsyncStorage]
-);
+    },
+    [setAuthContextData, loginMutation, saveToAsyncStorage]
+  );
 
   const logout = useCallback(async () => {
     if (!setAuthContextData) {

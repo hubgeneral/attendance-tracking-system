@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 // import { regions } from "../../components/regions";
 // import { isUserInsidePolygon, startPolygonGeofencing } from "@/components/PolyFence";
 // import { PolyRegion } from "@/components/PolyRegion";
+import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
@@ -26,7 +27,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DashboardHeader from "../../components/DashboardHeader";
@@ -61,8 +62,9 @@ export default function DashboardScreen() {
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const { currentUser } = useAuth();
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
-    variables: { username: currentUser?.userName??"" },
+    variables: { username: currentUser?.userName ?? "" },
   });
 
   // UI state for metric cards (updated when query result changes)
@@ -142,18 +144,14 @@ export default function DashboardScreen() {
     }
   }, [data, loading, error]);
 
-
-
-const geofenceStartedRef = useRef(false);
- // this ensures geofencing is only started once
+  const geofenceStartedRef = useRef(false);
+  // this ensures geofencing is only started once
   useEffect(() => {
     if (!geofenceStartedRef.current) {
       geofenceStartedRef.current = true;
       setGeofenceStarted(true);
     }
   }, []);
-
-
 
   const handlePolygonEvent = (event: PolygonEvent) => {
     console.log("Polygon event detected:", event);
@@ -194,9 +192,11 @@ const geofenceStartedRef = useRef(false);
     };
   }, [keyboardOffset]);
 
-
-
-
+  useEffect(() => {
+    if (currentUser?.isPasswordReset === false) {
+      setIsChangePasswordVisible(true);
+    }
+  }, [currentUser]);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -449,6 +449,43 @@ const geofenceStartedRef = useRef(false);
           </View>
         </View>
 
+        {/*Modal for creating a new password*/}
+        <Modal
+          visible={isChangePasswordVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIsChangePasswordVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.bottomModalOverlay2}
+          >
+            <Animated.View
+              style={[
+                styles.bottomModalContent2,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
+              <TouchableOpacity
+                style={styles.modalClose2}
+                onPress={() =>
+                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
+                }
+              >
+                {currentUser?.isPasswordReset ? (
+                  <AntDesign name="close" size={18} color="#ccc" />
+                ) : (
+                  <></>
+                )}
+              </TouchableOpacity>
+
+              <CreatePasswordScreen
+                isPasswordReset={currentUser?.isPasswordReset}
+              />
+            </Animated.View>
+          </KeyboardAvoidingView>
+        </Modal>
+
         {/* Modal for making a request */}
         <Modal
           visible={modalVisible}
@@ -656,11 +693,10 @@ const geofenceStartedRef = useRef(false);
           </KeyboardAvoidingView>
         </Modal>
       </ScrollView>
-       {/* //  this will only render after geofencing has started to avoid multiple initializations */}
-        {geofenceStarted && (
-      <GeolibFence polygon={OfficeRegion} onEvent={handlePolygonEvent} />
-    )}    
-
+      {/* //  this will only render after geofencing has started to avoid multiple initializations */}
+      {geofenceStarted && (
+        <GeolibFence polygon={OfficeRegion} onEvent={handlePolygonEvent} />
+      )}
     </SafeAreaView>
   );
 }
@@ -1184,5 +1220,31 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginLeft: 25,
   },
+
+  bottomModalOverlay2: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+
+  bottomModalContent2: {
+    backgroundColor: "#fff",
+    width: "100%",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 16,
+    maxHeight: "90%",
+  },
+
+  modalClose2: {
+    alignSelf: "flex-end",
+    padding: 4,
+    marginBottom: 8,
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "transparent",
+    justifyContent: "flex-end",
+    alignItems: "flex-end",
+  },
 });
-  
