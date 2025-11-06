@@ -55,7 +55,7 @@ export default function DashboardScreen() {
   const { currentUser } = useAuth();
 
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
-    currentUser?.isPasswordReset
+    false
   );
 
   const [requestText, setRequestText] = useState("");
@@ -67,7 +67,6 @@ export default function DashboardScreen() {
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-  const { currentUser } = useAuth();
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: { username: currentUser?.userName??"" },
   });
@@ -162,7 +161,8 @@ const geofenceStartedRef = useRef(false);
 
 
 
-  const handlePolygonEvent = (event: PolygonEvent) => {
+
+const handlePolygonEvent = (event: PolygonEvent) => {
     console.log("Polygon event detected:", event);
   };
 
@@ -201,7 +201,12 @@ const geofenceStartedRef = useRef(false);
     };
   }, [keyboardOffset]);
 
-
+useEffect(()=>{
+  if(currentUser?.isPasswordReset){
+    console.log("gg","truel")
+    setIsChangePasswordVisible(true);
+  }
+},[currentUser?.isPasswordReset])
 
 
 
@@ -475,7 +480,7 @@ const geofenceStartedRef = useRef(false);
               <TouchableOpacity
                 style={styles.modalClose2}
                 onPress={() =>
-                  setIsChangePasswordVisible(!user?.isPasswordReset)
+                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
                 }
               >
                 <AntDesign name="close" size={18} color="#ccc" />

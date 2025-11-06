@@ -1,8 +1,9 @@
-mutation Login($username:String!,$password:String!){
-  login(username:$username,password:$password ) {
+mutation Login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
     id
     accessToken
     refreshToken
+    resetToken
     isPasswordReset
     userName
     role
