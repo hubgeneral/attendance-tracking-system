@@ -1,10 +1,22 @@
-mutation Login($username:String!,$password:String!){
-  login(username:$username,password:$password ) {
+mutation Login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
     id
     accessToken
     refreshToken
+    resetToken
     isPasswordReset
     userName
     role
+  }
+}
+
+mutation ResetPassword(
+  $userName: String!
+  $newPassword: String!
+  $token: String!
+) {
+  resetPassword(username: $userName, token: $token, password: $newPassword) {
+    isPasswordReset
+    message
   }
 }

@@ -1,8 +1,10 @@
+import { useAuth } from "@/hooks/useAuth";
+import { useResetPasswordMutation } from "@/src/generated/graphql";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";
 
-export default function CreatePasswordScreen() {
+export default function CreatePasswordScreen({ isPasswordReset }: any) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,15 +14,77 @@ export default function CreatePasswordScreen() {
     confirm: false,
   });
 
+  const { currentUser, updateUser } = useAuth();
+  const [resetPassword, { loading }] = useResetPasswordMutation();
+
   type ShowField = "current" | "new" | "confirm";
 
   const toggleVisibility = (field: ShowField) => {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const handleCreatePassword = async () => {
+    if (!newPassword || !confirmPassword) {
+      Alert.alert(
+        "Missing details",
+        "Please enter both new password and confirm password. "
+      );
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      Alert.alert(
+        "Password mismatch",
+        "New password and confirm password must match."
+      );
+    }
+
+    const token = currentUser?.resetToken;
+
+    if (!token) {
+      Alert.alert(
+        "No reset token",
+        "Reset token not found. Please request a password reset again"
+      );
+      return;
+    }
+
+    try {
+      const { data } = await resetPassword({
+        variables: { token, newPassword },
+      });
+
+      const success = (data as any)?.resetPassword ?? false;
+      if (success) {
+        Alert.alert(
+          "Success",
+          "Password has been reset. Please log in with your new password."
+        );
+
+        //clear reset flag locally
+        if (currentUser) {
+          updateUser({ ...currentUser, isPasswordReset: false });
+        }
+
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        Alert.alert(
+          "Failed",
+          "Could not reset password. Try again or contact support."
+        );
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      Alert.alert("Error", "An error occured while resetting password");
+    }
+  };
   return (
     <View>
-      <Text style={[styles.modalTitle]}>Create Password</Text>
+      {isPasswordReset ? (
+        <Text style={[styles.modalTitle]}>Create Password</Text>
+      ) : (
+        <Text style={[styles.modalTitle]}>Change Password</Text>
+      )}
 
       <FloatingLabelInput
         value={currentPassword}
@@ -48,14 +112,15 @@ export default function CreatePasswordScreen() {
 
       <TouchableOpacity
         style={styles.modalButton}
-        onPress={() => {
-          if (!newPassword || !confirmPassword) {
-            Alert.alert(
-              "Missing details",
-              "Please enter both New Password and Confirm Password."
-            );
-            return;
-          }
+        onPress={
+          handleCreatePassword
+          // if (!newPassword || !confirmPassword) {
+          //   Alert.alert(
+          //     "Missing details",
+          //     "Please enter both New Password and Confirm Password."
+          //   );
+          //   return;
+          // }
 
           // setShowCreatePassword(false);
           // if (newPassword === confirmPassword) {
@@ -66,9 +131,14 @@ export default function CreatePasswordScreen() {
           // } else {
           //   setShowResetFailure(true);
           // }
-        }}
+        }
+        disabled={loading}
       >
-        <Text style={styles.modalButtonText}>Create Password</Text>
+        {isPasswordReset ? (
+          <Text style={styles.modalButtonText}>Create Password</Text>
+        ) : (
+          <Text style={styles.modalButtonText}>Change Password</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
