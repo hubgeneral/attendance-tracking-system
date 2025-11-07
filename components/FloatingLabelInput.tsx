@@ -37,7 +37,7 @@ export default function FloatingLabelInput({
     : !secureTextEntry;
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.container}
       activeOpacity={1}
       onPress={() => {
