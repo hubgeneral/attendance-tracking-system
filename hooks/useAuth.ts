@@ -1,6 +1,7 @@
 import AuthContext from "@/contexts/auth-context/AuthContext";
 import {
   useLoginMutation,
+  useResetPasswordMutation,
   type UserLoginResponse,
 } from "@/src/generated/graphql";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,15 +12,22 @@ interface LoginCredentials {
   password: string;
 }
 
+interface CreatePasswordCredentials {
+  username: string;
+  token: string;
+  password: string;
+}
+
 interface UseAuthProps {
   currentUser: UserLoginResponse | undefined;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  setAuthData: (user: UserLoginResponse, accessToken: string,token:string) => void;
+  setAuthData: (user: UserLoginResponse) => void;
   updateUser: (user: UserLoginResponse) => void;
   updateAccessToken: (accessToken: string) => void;
+  createPassword: (credentials: CreatePasswordCredentials) => Promise<void>
 }
 
 // AsyncStorage keys
@@ -27,7 +35,7 @@ const STORAGE_KEYS = {
   ACCESS_TOKEN: "accessToken",
   REFRESH_TOKEN: "refreshToken",
   CURRENT_USER: "currentUser",
-  TOKEN:"token"
+  RESET_TOKEN:"resetToken"
 };
 
 export const useAuth = (): UseAuthProps => {
@@ -40,6 +48,7 @@ export const useAuth = (): UseAuthProps => {
   const isAuthenticated = Boolean(authContextData?.currentUser);
   const [isLoading, setIsLoading] = useState(true);
   const [loginMutation] = useLoginMutation();
+  const [resetPasswordMutation] = useResetPasswordMutation();
 
   // Load auth data from AsyncStorage on mount
   useEffect(() => {
@@ -54,11 +63,15 @@ export const useAuth = (): UseAuthProps => {
         const storedRefreshToken = await AsyncStorage.getItem(
           STORAGE_KEYS.REFRESH_TOKEN
         );
+        const storedResetToken = await AsyncStorage.getItem(
+          STORAGE_KEYS.RESET_TOKEN
+        );
 
         console.log("Storage check:", {
           hasUser: !!storedUser,
           hasAccessToken: !!storedAccessToken,
           hasRefreshToken: !!storedRefreshToken,
+          hasResetToken: !!storedResetToken
         });
 
         if (storedUser && storedAccessToken && storedRefreshToken) {
@@ -70,6 +83,7 @@ export const useAuth = (): UseAuthProps => {
                 ...user,
                 accessToken: storedAccessToken,
                 refreshToken: storedRefreshToken,
+                resetToken: storedResetToken
               },
             });
           }
@@ -81,6 +95,7 @@ export const useAuth = (): UseAuthProps => {
           STORAGE_KEYS.CURRENT_USER,
           STORAGE_KEYS.ACCESS_TOKEN,
           STORAGE_KEYS.REFRESH_TOKEN,
+          STORAGE_KEYS.RESET_TOKEN
         ]);
       } finally {
         setIsLoading(false);
@@ -95,12 +110,13 @@ export const useAuth = (): UseAuthProps => {
     try {
       if (user.accessToken && user.refreshToken) {
         // Store user data without tokens (tokens stored separately)
-        const { accessToken, refreshToken, ...userWithoutTokens } = user;
+        const { accessToken, resetToken, refreshToken, ...userWithoutTokens } = user;
         await AsyncStorage.multiSet([
           [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
           [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
           [STORAGE_KEYS.CURRENT_USER, JSON.stringify(userWithoutTokens)],
-        ]);
+        ]
+      );
       }
     } catch (error) {
       console.error("Failed to save auth data to AsyncStorage:", error);
@@ -114,6 +130,7 @@ export const useAuth = (): UseAuthProps => {
         STORAGE_KEYS.ACCESS_TOKEN,
         STORAGE_KEYS.REFRESH_TOKEN,
         STORAGE_KEYS.CURRENT_USER,
+        STORAGE_KEYS.RESET_TOKEN,
       ]);
     } catch (error) {
       console.error("Failed to clear auth data from AsyncStorage:", error);
@@ -260,6 +277,7 @@ const login = useCallback(
         userName,
         accessToken,
         refreshToken,
+        resetToken,
         isPasswordReset,
       } = loginData.login;
       
@@ -278,6 +296,7 @@ const login = useCallback(
         userName,
         accessToken,
         refreshToken,
+        resetToken,
         isPasswordReset,
       };
 
@@ -352,12 +371,52 @@ const login = useCallback(
     [setAuthContextData]
   );
 
+  const createPassword = useCallback(
+    async (credentials: CreatePasswordCredentials) => {
+      if (!setAuthContextData) {
+        throw new Error("setAuthContextData is not defined");
+      }
+
+      try {
+        const { data } = await resetPasswordMutation({
+          variables: {
+            input: {
+              username: credentials.username,
+              token: credentials.token,
+              password: credentials.password,
+            }
+          }
+        });
+        if (!data?.createPassword?.success) {
+          throw new Error(data?.createPassword?.message || "Failed to create a password");
+        }
+
+
+        // update the user's password reset status
+        if (authContextData?.currentUser) {
+          const updatedUser = {
+            ...authContextData.currentUser,
+            isPasswordReset: false,
+          };
+          await setAuthData(updatedUser);
+        }
+
+        return data.createPassword;
+      }  catch (error) {
+          console.error("Create password error:", error);
+          throw error;
+        }
+      },
+    [resetPasswordMutation, setAuthData, authContextData]
+  );
+
   return {
     currentUser: authContextData?.currentUser,
     isAuthenticated,
     isLoading,
     login,
     logout,
+    createPassword,
     setAuthData,
     updateUser,
     updateAccessToken,

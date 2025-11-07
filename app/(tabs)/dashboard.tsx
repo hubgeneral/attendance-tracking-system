@@ -202,7 +202,7 @@ const handlePolygonEvent = (event: PolygonEvent) => {
   }, [keyboardOffset]);
 
 useEffect(()=>{
-  if(currentUser?.isPasswordReset){
+  if(currentUser?.isPasswordReset === false){
     console.log("gg","truel")
     setIsChangePasswordVisible(true);
   }
@@ -477,14 +477,14 @@ useEffect(()=>{
                 { transform: [{ translateY: keyboardOffset }] },
               ]}
             >
-              <TouchableOpacity
+             {currentUser?.isPasswordReset? <TouchableOpacity
                 style={styles.modalClose2}
                 onPress={() =>
                   setIsChangePasswordVisible(!currentUser?.isPasswordReset)
                 }
               >
                 <AntDesign name="close" size={18} color="#ccc" />
-              </TouchableOpacity>
+              </TouchableOpacity>: <></>}
 
               <CreatePasswordScreen />
             </Animated.View>

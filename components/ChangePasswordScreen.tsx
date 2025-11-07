@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";
-
+import { useAuth } from "@/hooks/useAuth";
+import { router } from "expo-router";
 export default function CreatePasswordScreen() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -11,6 +12,7 @@ export default function CreatePasswordScreen() {
     new: false,
     confirm: false,
   });
+  const { createPassword, currentUser } = useAuth();
 
   type ShowField = "current" | "new" | "confirm";
 
@@ -18,9 +20,44 @@ export default function CreatePasswordScreen() {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
+  const handleCreatePassword = async () => {
+  try {
+    // Debug logs
+    console.log("Current user:", currentUser);
+    console.log("Username:", currentUser?.userName);
+    console.log("Reset token:", currentUser?.resetToken);
+
+    // Password validation
+    if (!currentUser?.userName || !currentUser?.resetToken) {
+      Alert.alert("Error", "Missing user information");
+      return;
+    }
+
+    if (!confirmPassword) {
+      Alert.alert("Error", "Please enter a password");
+      return;
+    }
+
+    await createPassword({
+      password: confirmPassword,
+      token: currentUser.resetToken,
+      username: currentUser.userName,
+    });
+
+    router.replace("/(tabs)/dashboard");
+  } catch (error) {
+    console.error("Password change failed:", error);
+    Alert.alert("Error", "Failed to change password");
+  }
+};
+
   return (
     <View>
-      <Text style={[styles.modalTitle]}>Create Password</Text>
+      {currentUser?.isPasswordReset ? (
+        <Text style={[styles.modalTitle]}>Change Password</Text>
+      ) : (
+        <Text style={[styles.modalTitle]}>Create Password</Text>
+      )}
 
       <FloatingLabelInput
         value={currentPassword}
@@ -48,14 +85,15 @@ export default function CreatePasswordScreen() {
 
       <TouchableOpacity
         style={styles.modalButton}
-        onPress={() => {
-          if (!newPassword || !confirmPassword) {
-            Alert.alert(
-              "Missing details",
-              "Please enter both New Password and Confirm Password."
-            );
-            return;
-          }
+        onPress={
+          handleCreatePassword
+          // if (!newPassword || !confirmPassword) {
+          //   Alert.alert(
+          //     "Missing details",
+          //     "Please enter both New Password and Confirm Password."
+          //   );
+          //   return;
+          // }
 
           // setShowCreatePassword(false);
           // if (newPassword === confirmPassword) {
@@ -66,9 +104,13 @@ export default function CreatePasswordScreen() {
           // } else {
           //   setShowResetFailure(true);
           // }
-        }}
+        }
       >
-        <Text style={styles.modalButtonText}>Create Password</Text>
+        {currentUser?.isPasswordReset ? (
+        <Text style={[styles.modalButtonText]}>Change Password</Text>
+      ) : (
+        <Text style={[styles.modalButtonText]}>Create Password</Text>
+      )}
       </TouchableOpacity>
     </View>
   );
