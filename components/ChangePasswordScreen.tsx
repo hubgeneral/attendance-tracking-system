@@ -43,7 +43,7 @@ export default function CreatePasswordScreen({ isPasswordReset }: any) {
       variables: {
         userName: currentUser?.userName!,
         newPassword,
-        token: currentUser?.resetToken!, // depends on your auth setup
+        token: currentUser?.resetToken!, 
       },
     });
 
