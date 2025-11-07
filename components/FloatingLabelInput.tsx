@@ -1,11 +1,10 @@
 import { AntDesign } from "@expo/vector-icons";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
   KeyboardTypeOptions,
 } from "react-native";
 
@@ -29,6 +28,7 @@ export default function FloatingLabelInput({
   keyboardType,
 }: FloatingLabelInputProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
   // Initialize visibility: if secureTextEntry is true we start hidden (showPassword=false), otherwise visible
   const [showPassword, setShowPassword] = useState(!secureTextEntry);
   const isFloating = isFocused || value.length > 0;
@@ -37,7 +37,14 @@ export default function FloatingLabelInput({
     : !secureTextEntry;
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity 
+      style={styles.container}
+      activeOpacity={1}
+      onPress={() => {
+        // Focus the input when container is pressed
+        inputRef.current?.focus();
+      }}
+    >
       <Text
         style={[
           styles.label,
@@ -48,6 +55,7 @@ export default function FloatingLabelInput({
         {placeholder}
       </Text>
       <TextInput
+        ref={inputRef}
         style={[
           styles.input,
           isFocused && styles.inputFocused,
@@ -73,7 +81,7 @@ export default function FloatingLabelInput({
           />
         </TouchableOpacity>
       )}
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -83,6 +91,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 56,
     marginBottom: 15,
+    pointerEvents: "box-none",
   },
   label: {
     position: "absolute",
@@ -114,6 +123,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#fff",
     color: "#000",
+    zIndex: 0,
   },
   inputFocused: {
     borderColor: "#004E2B",
