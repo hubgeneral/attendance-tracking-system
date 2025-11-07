@@ -10,13 +10,3 @@ mutation Login($username: String!, $password: String!) {
   }
 }
 
-mutation ResetPassword(
-  $userName: String!
-  $newPassword: String!
-  $token: String!
-) {
-  resetPassword(username: $userName, token: $token, password: $newPassword) {
-    isPasswordReset
-    message
-  }
-}

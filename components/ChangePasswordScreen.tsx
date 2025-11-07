@@ -1,8 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useResetPasswordMutation } from "@/src/generated/graphql";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";
+import { useResetPasswordMutation } from "@/src/generated/graphql";
+
+
 
 export default function CreatePasswordScreen({ isPasswordReset }: any) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -15,7 +17,9 @@ export default function CreatePasswordScreen({ isPasswordReset }: any) {
   });
 
   const { currentUser, updateUser } = useAuth();
-  const [resetPassword, { loading }] = useResetPasswordMutation();
+  const [resetPasswordMutation, { data, loading, error }] = useResetPasswordMutation();
+
+
 
   type ShowField = "current" | "new" | "confirm";
 
@@ -23,61 +27,41 @@ export default function CreatePasswordScreen({ isPasswordReset }: any) {
     setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleCreatePassword = async () => {
-    if (!newPassword || !confirmPassword) {
-      Alert.alert(
-        "Missing details",
-        "Please enter both new password and confirm password. "
-      );
-      return;
+  const handleResetPassword = async () => {
+  if (!newPassword || !confirmPassword) {
+    Alert.alert("Missing Fields", "Please fill in all password fields.");
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    Alert.alert("Mismatch", "New password and confirm password must match.");
+    return;
+  }
+
+  try {
+    const response = await resetPasswordMutation({
+      variables: {
+        userName: currentUser?.userName!,
+        newPassword,
+        token: currentUser?.resetToken!, // depends on your auth setup
+      },
+    });
+
+    const result = response.data?.resetPassword;
+    if (result?.isPasswordReset) {
+      Alert.alert("Success", result.message || "Password reset successfully.");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      Alert.alert("Failed", result?.message || "Password reset failed.");
     }
-    if (newPassword !== confirmPassword) {
-      Alert.alert(
-        "Password mismatch",
-        "New password and confirm password must match."
-      );
-    }
+  } catch (err) {
+    Alert.alert("Error", "Something went wrong. Please try again.");
+  }
+};
 
-    const token = currentUser?.resetToken;
 
-    if (!token) {
-      Alert.alert(
-        "No reset token",
-        "Reset token not found. Please request a password reset again"
-      );
-      return;
-    }
-
-    try {
-      const { data } = await resetPassword({
-        variables: { token, newPassword },
-      });
-
-      const success = (data as any)?.resetPassword ?? false;
-      if (success) {
-        Alert.alert(
-          "Success",
-          "Password has been reset. Please log in with your new password."
-        );
-
-        //clear reset flag locally
-        if (currentUser) {
-          updateUser({ ...currentUser, isPasswordReset: false });
-        }
-
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        Alert.alert(
-          "Failed",
-          "Could not reset password. Try again or contact support."
-        );
-      }
-    } catch (err) {
-      console.error("Reset password error:", err);
-      Alert.alert("Error", "An error occured while resetting password");
-    }
-  };
+  
   return (
     <View>
       {isPasswordReset ? (
@@ -113,7 +97,7 @@ export default function CreatePasswordScreen({ isPasswordReset }: any) {
       <TouchableOpacity
         style={styles.modalButton}
         onPress={
-          handleCreatePassword
+          handleResetPassword
           // if (!newPassword || !confirmPassword) {
           //   Alert.alert(
           //     "Missing details",
@@ -214,25 +198,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-    modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#00274D",
-    textAlign: "center",
-    marginBottom: 40,
-  },
-    modalButton: {
-    backgroundColor: "#004E2B",
-    borderRadius: 4,
-    paddingVertical: 20,
-    alignItems: "center",
-    marginTop: 8,
-    width: "100%",
-  },
-    modalButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
 });
