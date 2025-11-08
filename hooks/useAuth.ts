@@ -1,4 +1,4 @@
-import AuthContext from "@/contexts/auth-context/AuthContext";
+import AuthContext from "../contexts/auth-context/AuthContext";
 import {
   useLoginMutation,
   type UserLoginResponse,
@@ -17,7 +17,7 @@ interface UseAuthProps {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  setAuthData: (user: UserLoginResponse, accessToken: string,token:string) => void;
+  setAuthData: (user: UserLoginResponse) => void;
   updateUser: (user: UserLoginResponse) => void;
   updateAccessToken: (accessToken: string) => void;
 }
