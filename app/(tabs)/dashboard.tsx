@@ -475,7 +475,7 @@ export default function DashboardScreen() {
               <TouchableOpacity
                 style={styles.modalClose2}
                 onPress={() =>
-                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
+                  setIsChangePasswordVisible(false)
                 }
               >
                 <AntDesign name="close" size={18} color="#ccc" />

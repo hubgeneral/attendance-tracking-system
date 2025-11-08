@@ -1,4 +1,4 @@
-import AuthContext from "@/contexts/auth-context/AuthContext";
+import AuthContext from "../contexts/auth-context/AuthContext";
 import {
   useLoginMutation,
   type UserLoginResponse,

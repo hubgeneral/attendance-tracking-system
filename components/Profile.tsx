@@ -1,7 +1,7 @@
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { useGetUserByIdQuery } from "@/src/generated/graphql";
 import { router } from "expo-router";
 import {
@@ -81,9 +81,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     };
   }, []);
 
-   useEffect(()=>{
-    setIsChangePasswordVisible(false);
-    },[]);
 
 
   return (
