@@ -61,6 +61,7 @@ export default function FloatingLabelInput({
           isFocused && styles.inputFocused,
           showPasswordToggle && styles.inputWithIcon,
         ]}
+        key={isPasswordVisible ? "visible" : "hidden"}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!isPasswordVisible}
