@@ -68,8 +68,11 @@ export default function DashboardScreen() {
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
+<<<<<<< HEAD
   const { currentUser } = useAuth();
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
+=======
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: { username: currentUser?.userName ?? "" },
   });
@@ -160,7 +163,14 @@ export default function DashboardScreen() {
     }
   }, []);
 
+<<<<<<< HEAD
   const handlePolygonEvent = (event: PolygonEvent) => {
+=======
+
+
+
+const handlePolygonEvent = (event: PolygonEvent) => {
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
     console.log("Polygon event detected:", event);
   };
 
@@ -199,11 +209,22 @@ export default function DashboardScreen() {
     };
   }, [keyboardOffset]);
 
+<<<<<<< HEAD
   useEffect(() => {
     if (currentUser?.isPasswordReset === false) {
       setIsChangePasswordVisible(true);
     }
   }, [currentUser]);
+=======
+useEffect(()=>{
+  if(currentUser?.isPasswordReset){
+    console.log("gg","truel")
+    setIsChangePasswordVisible(true);
+  }
+},[currentUser?.isPasswordReset])
+
+
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -485,6 +506,7 @@ export default function DashboardScreen() {
             </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
+<<<<<<< HEAD
 
         {/*Modal for creating a new password*/}
         <Modal
@@ -522,6 +544,8 @@ export default function DashboardScreen() {
             </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
+=======
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 
         {/* Modal for making a request */}
         <Modal

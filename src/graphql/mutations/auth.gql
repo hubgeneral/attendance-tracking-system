@@ -9,4 +9,7 @@ mutation Login($username: String!, $password: String!) {
     role
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770

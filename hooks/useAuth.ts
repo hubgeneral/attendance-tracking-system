@@ -17,7 +17,7 @@ interface UseAuthProps {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  setAuthData: (user: UserLoginResponse, accessToken: string) => void;
+  setAuthData: (user: UserLoginResponse) => void;
   updateUser: (user: UserLoginResponse) => void;
   updateAccessToken: (accessToken: string) => void;
 }
@@ -27,7 +27,11 @@ const STORAGE_KEYS = {
   ACCESS_TOKEN: "accessToken",
   REFRESH_TOKEN: "refreshToken",
   CURRENT_USER: "currentUser",
+<<<<<<< HEAD
   RESET_TOKEN: "resetToken",
+=======
+  TOKEN:"token"
+>>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 };
 
 export const useAuth = (): UseAuthProps => {
