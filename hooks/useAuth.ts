@@ -1,10 +1,10 @@
-import AuthContext from "../contexts/auth-context/AuthContext";
 import {
   useLoginMutation,
   type UserLoginResponse,
 } from "@/src/generated/graphql";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useContext, useEffect, useState } from "react";
+import AuthContext from "../contexts/auth-context/AuthContext";
 
 interface LoginCredentials {
   employeeId: string;
@@ -19,7 +19,9 @@ interface UseAuthProps {
   logout: () => void;
   setAuthData: (user: UserLoginResponse, accessToken: string) => void;
   updateUser: (user: UserLoginResponse) => void;
+  updateUserAndPersist: (user: UserLoginResponse) => Promise<void>;
   updateAccessToken: (accessToken: string) => void;
+  refreshCurrentUser: () => Promise<void>;
 }
 
 // AsyncStorage keys
@@ -100,7 +102,7 @@ export const useAuth = (): UseAuthProps => {
     };
 
     loadAuthFromStorage();
-  }, []);
+  }, [setAuthContextData]);
 
   // Save to AsyncStorage helper
   const saveToAsyncStorage = useCallback(async (user: UserLoginResponse) => {
@@ -364,6 +366,61 @@ export const useAuth = (): UseAuthProps => {
     [setAuthContextData]
   );
 
+  const updateUserAndPersist = useCallback(
+    async (user: UserLoginResponse) => {
+      if (!setAuthContextData) {
+        throw new Error("setAuthContextData is not defined");
+      }
+
+      // Update context
+      setAuthContextData((prev) => ({
+        ...prev,
+        currentUser: user,
+      }));
+
+      // Persist to AsyncStorage
+      await saveToAsyncStorage(user);
+    },
+    [setAuthContextData, saveToAsyncStorage]
+  );
+
+  const refreshCurrentUser = useCallback(async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem(
+        STORAGE_KEYS.CURRENT_USER
+      );
+      const storedAccessToken = await AsyncStorage.getItem(
+        STORAGE_KEYS.ACCESS_TOKEN
+      );
+      const storedRefreshToken = await AsyncStorage.getItem(
+        STORAGE_KEYS.REFRESH_TOKEN
+      );
+      const storedResetToken = await AsyncStorage.getItem(
+        STORAGE_KEYS.RESET_TOKEN
+      );
+
+      if (storedUser && storedAccessToken && storedRefreshToken) {
+        try {
+          const user: UserLoginResponse = JSON.parse(storedUser);
+          if (setAuthContextData) {
+            setAuthContextData({
+              currentUser: {
+                ...user,
+                accessToken: storedAccessToken,
+                refreshToken: storedRefreshToken,
+                resetToken: storedResetToken,
+              },
+            });
+          }
+        } catch {
+          console.warn("Stored `currentUser` is not valid JSON:", storedUser);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to refresh user from storage:", error);
+    }
+  }, [setAuthContextData]);
+
   return {
     currentUser: authContextData?.currentUser,
     isAuthenticated,
@@ -372,6 +429,8 @@ export const useAuth = (): UseAuthProps => {
     logout,
     setAuthData,
     updateUser,
+    updateUserAndPersist,
+    refreshCurrentUser,
     updateAccessToken,
   };
 };
