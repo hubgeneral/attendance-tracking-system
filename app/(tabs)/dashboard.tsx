@@ -1,17 +1,13 @@
-import { AntDesign } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
-// import {
-//   isUserInsideRegion,
-//   startGeofencing,
-// } from "../../components/geoFencing";
-// import { regions } from "../../components/regions";
-// import { isUserInsidePolygon, startPolygonGeofencing } from "@/components/PolyFence";
-// import { PolyRegion } from "@/components/PolyRegion";
 import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
-import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
+import {
+  useGetAttendanceByUsernameQuery,
+  useGetUserByIdQuery,
+} from "@/src/generated/graphql";
+import { AntDesign } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -34,7 +30,6 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
-import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -48,16 +43,15 @@ Notifications.setNotificationHandler({
 const { width } = Dimensions.get("window");
 
 export default function DashboardScreen() {
-  const [selectedDate] = useState("21/10/2025");
+  const today = new Date().toISOString().slice(0, 10);
+  const [selectedDate] = useState(today);
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { currentUser } = useAuth();
 
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
-    false
-  );
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
   const [requestText, setRequestText] = useState("");
   const [requests, setRequests] = useState<
@@ -68,10 +62,14 @@ export default function DashboardScreen() {
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-  const { currentUser } = useAuth();
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
-    variables: { username: currentUser?.userName ?? "" },
+    variables: {
+      username: currentUser?.userName ?? "",
+      day: today,
+    },
+  });
+  const { data: userData } = useGetUserByIdQuery({
+    variables: { id: Number(currentUser?.id) },
   });
 
   // UI state for metric cards (updated when query result changes)
@@ -116,7 +114,7 @@ export default function DashboardScreen() {
       return;
     }
 
-    if (error || !data || !data.attendanceByUserId) {
+    if (error || !data || !data?.attendanceByUserName) {
       setClockInText("-");
       setClockOutText("-");
       setHoursWorkedText("-");
@@ -126,8 +124,8 @@ export default function DashboardScreen() {
 
     // pick the first attendance entry (assumed to be the most relevant)
     const latestAttendance =
-      data.attendanceByUserId && data.attendanceByUserId.length
-        ? data.attendanceByUserId[0]
+      data.attendanceByUserName && data.attendanceByUserName.length
+        ? data.attendanceByUserName[0]
         : null;
 
     setClockInText(formatTime(latestAttendance?.clockIn));
@@ -202,6 +200,8 @@ export default function DashboardScreen() {
   useEffect(() => {
     if (currentUser?.isPasswordReset === false) {
       setIsChangePasswordVisible(true);
+    } else {
+      setIsChangePasswordVisible(false);
     }
   }, [currentUser]);
 
@@ -286,7 +286,9 @@ export default function DashboardScreen() {
       >
         {/* Greeting and Date Selector */}
         <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Hi {currentUser?.userName}</Text>
+          <Text style={styles.greeting}>
+            Hi, {userData?.userById?.employeeName?.split(" ").at(0) || "User"}
+          </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <DateRangePicker
               onApply={(s, e) => {
@@ -455,36 +457,6 @@ export default function DashboardScreen() {
             )}
           </View>
         </View>
-        {/*Modal for creating a new password*/}
-        <Modal
-          visible={isChangePasswordVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setIsChangePasswordVisible(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay2}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent2,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose2}
-                onPress={() =>
-                  setIsChangePasswordVisible(false)
-                }
-              >
-                <AntDesign name="close" size={18} color="#ccc" />
-              </TouchableOpacity>
-
-              <CreatePasswordScreen />
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
 
         {/*Modal for creating a new password*/}
         <Modal
