@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
 // import { regions } from "../../components/regions";
 // import { isUserInsidePolygon, startPolygonGeofencing } from "@/components/PolyFence";
 // import { PolyRegion } from "@/components/PolyRegion";
-import CreatePasswordScreen from "@/components/ChangePasswordScreen";
-import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
+import CreatePasswordScreen from "../../components/ChangePasswordScreen";
+import GeolibFence, { PolygonEvent } from "../../components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 import * as Notifications from "expo-notifications";
@@ -34,7 +34,6 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
-import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -68,13 +67,11 @@ export default function DashboardScreen() {
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-<<<<<<< HEAD
-  const { currentUser } = useAuth();
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
-=======
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
-    variables: { username: currentUser?.userName ?? "" },
+    variables: {
+      username: currentUser?.userName ?? "",
+      day: undefined
+    },
   });
 
   // UI state for metric cards (updated when query result changes)
@@ -163,14 +160,8 @@ export default function DashboardScreen() {
     }
   }, []);
 
-<<<<<<< HEAD
-  const handlePolygonEvent = (event: PolygonEvent) => {
-=======
-
-
 
 const handlePolygonEvent = (event: PolygonEvent) => {
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
     console.log("Polygon event detected:", event);
   };
 
@@ -209,13 +200,6 @@ const handlePolygonEvent = (event: PolygonEvent) => {
     };
   }, [keyboardOffset]);
 
-<<<<<<< HEAD
-  useEffect(() => {
-    if (currentUser?.isPasswordReset === false) {
-      setIsChangePasswordVisible(true);
-    }
-  }, [currentUser]);
-=======
 useEffect(()=>{
   if(currentUser?.isPasswordReset){
     console.log("gg","truel")
@@ -224,7 +208,6 @@ useEffect(()=>{
 },[currentUser?.isPasswordReset])
 
 
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -506,46 +489,6 @@ useEffect(()=>{
             </Animated.View>
           </KeyboardAvoidingView>
         </Modal>
-<<<<<<< HEAD
-
-        {/*Modal for creating a new password*/}
-        <Modal
-          visible={isChangePasswordVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setIsChangePasswordVisible(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay2}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent2,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose2}
-                onPress={() =>
-                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
-                }
-              >
-                {currentUser?.isPasswordReset ? (
-                  <AntDesign name="close" size={18} color="#ccc" />
-                ) : (
-                  <></>
-                )}
-              </TouchableOpacity>
-
-              <CreatePasswordScreen
-                isPasswordReset={currentUser?.isPasswordReset}
-              />
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
-=======
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 
         {/* Modal for making a request */}
         <Modal

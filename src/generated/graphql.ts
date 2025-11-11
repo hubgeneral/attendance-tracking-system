@@ -536,11 +536,7 @@ export type PunctualEmployees = {
 export type Query = {
   __typename?: 'Query';
   attendanceByDate: Array<Attendance>;
-<<<<<<< HEAD
-  attendanceByUserName: Array<Attendance>;
-=======
   attendanceByUserId: Array<Attendance>;
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
   attendances: Array<Attendance>;
   averageClockTime: AverageClockTimeResult;
   dashboardTotalStats: DashboardTotalSummary;
@@ -567,12 +563,7 @@ export type QueryAttendanceByDateArgs = {
 };
 
 
-<<<<<<< HEAD
-export type QueryAttendanceByUserNameArgs = {
-  day: Scalars['LocalDate']['input'];
-=======
 export type QueryAttendanceByUserIdArgs = {
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
   username: Scalars['String']['input'];
 };
 
@@ -861,11 +852,7 @@ export type GetAttendanceByUsernameQueryVariables = Exact<{
 }>;
 
 
-<<<<<<< HEAD
-export type GetAttendanceByUsernameQuery = { __typename?: 'Query', attendanceByUserName: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
-=======
 export type GetAttendanceByUsernameQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, totalHoursWorked?: any | null }> };
->>>>>>> cdf037b7c7d3c7621cc375de63e03b9816cf0770
 
 export type GetUserByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
