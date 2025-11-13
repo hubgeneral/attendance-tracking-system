@@ -10,12 +10,17 @@ interface ResponsiveModalProps extends ModalProps {
 export function ResponsiveModal({
   children,
   maxWidth = 480,
+  animationType,
   ...modalProps
 }: ResponsiveModalProps) {
   const { shouldUseWebLayout } = usePlatform();
 
+  // On web, change slide animation to fade for a pop-up effect
+  const webAnimationType =
+    shouldUseWebLayout && animationType === "slide" ? "fade" : animationType;
+
   return (
-    <Modal {...modalProps}>
+    <Modal {...modalProps} animationType={webAnimationType}>
       {shouldUseWebLayout ? (
         <View style={styles.webWrapper}>
           <View style={[styles.webContent, { maxWidth }]}>{children}</View>
