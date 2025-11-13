@@ -1,7 +1,6 @@
 import { Octicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -9,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { Calendar } from "react-native-calendars";
+import { ResponsiveModal } from "./ResponsiveModal";
 
 type Props = {
   startDate?: Date;
@@ -123,7 +123,12 @@ export default function DateRangePicker({
         }`}</Text>
       </TouchableOpacity>
 
-      <Modal visible={visible} animationType="slide" transparent>
+      <ResponsiveModal
+        visible={visible}
+        animationType="slide"
+        transparent
+        maxWidth={400}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.title}>Select Date Range</Text>
@@ -194,7 +199,7 @@ export default function DateRangePicker({
             </View>
           </View>
         </View>
-      </Modal>
+      </ResponsiveModal>
     </>
   );
 }

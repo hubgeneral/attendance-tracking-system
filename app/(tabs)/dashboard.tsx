@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import CreatePasswordScreen from "../../components/ChangePasswordScreen";
 import GeolibFence, { PolygonEvent } from "../../components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlatform } from "@/hooks/usePlatform";
 import { useGetAttendanceByUsernameQuery } from "@/src/generated/graphql";
 import * as Notifications from "expo-notifications";
 import {
@@ -20,7 +21,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -34,6 +34,8 @@ import DashboardHeader from "../../components/DashboardHeader";
 import DateRangePicker from "../../components/DateRangePicker";
 import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
+import { WebContainer } from "../../components/WebContainer";
+import { ResponsiveModal } from "../../components/ResponsiveModal";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -53,10 +55,9 @@ export default function DashboardScreen() {
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { currentUser } = useAuth();
+  const { shouldUseWebLayout, isWeb } = usePlatform();
 
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(
-    false
-  );
+  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
   const [requestText, setRequestText] = useState("");
   const [requests, setRequests] = useState<
@@ -70,7 +71,7 @@ export default function DashboardScreen() {
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: {
       username: currentUser?.userName ?? "",
-      day: undefined
+      day: undefined,
     },
   });
 
@@ -160,8 +161,7 @@ export default function DashboardScreen() {
     }
   }, []);
 
-
-const handlePolygonEvent = (event: PolygonEvent) => {
+  const handlePolygonEvent = (event: PolygonEvent) => {
     console.log("Polygon event detected:", event);
   };
 
@@ -200,14 +200,12 @@ const handlePolygonEvent = (event: PolygonEvent) => {
     };
   }, [keyboardOffset]);
 
-useEffect(()=>{
-  if(currentUser?.isPasswordReset){
-    console.log("gg","truel")
-    setIsChangePasswordVisible(true);
-  }
-},[currentUser?.isPasswordReset])
-
-
+  useEffect(() => {
+    if (currentUser?.isPasswordReset) {
+      console.log("gg", "truel");
+      setIsChangePasswordVisible(true);
+    }
+  }, [currentUser?.isPasswordReset]);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -283,424 +281,473 @@ useEffect(()=>{
 
   return (
     <SafeAreaView style={styles.container}>
-      <DashboardHeader />
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Greeting and Date Selector */}
-        <View style={styles.greetingSection}>
-          <Text style={styles.greeting}>Hi {currentUser?.userName}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <DateRangePicker
-              onApply={(s, e) => {
-                setRangeStart(s);
-                setRangeEnd(e);
-              }}
-            />
-          </View>
-        </View>
-
-        {/* Metric Cards */}
-        <View style={styles.metricsGrid}>
-          <View style={styles.metricCard}>
-            <View style={[styles.cardAccent, styles.blueAccent]} />
-            <Text style={styles.metricTitle}>Clock In Time</Text>
-            <Text style={styles.metricValue}>
-              <Text style={styles.metricTime}>{clockInText.split(" ")[0]}</Text>
-              <Text style={styles.metricPeriod}>
-                {" " + (clockInText.split(" ")[1] ?? "")}
-              </Text>
-            </Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.cardAccent, styles.orangeAccent]} />
-            <Text style={styles.metricTitle}>Clock Out Time</Text>
-            <Text style={styles.metricValue}>
-              <Text style={styles.metricTime}>
-                {clockOutText.split(" ")[0]}
-              </Text>
-              <Text style={styles.metricPeriod}>
-                {" " + (clockOutText.split(" ")[1] ?? "")}
-              </Text>
-            </Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.cardAccent, styles.greenAccent]} />
-            <Text style={styles.metricTitle}>Hours Worked</Text>
-            <Text style={styles.metricValue}>{hoursWorkedText}</Text>
-          </View>
-
-          <View style={styles.metricCard}>
-            <View style={[styles.cardAccent, styles.redAccent]} />
-            <Text style={styles.metricTitle}>Time Off</Text>
-            <Text style={styles.metricValue}>{timeOffText}</Text>
-          </View>
-        </View>
-
-        {/* History Section */}
-        <View style={styles.section}>
-          <View style={styles.cardContainer}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.sectionTitle}>History</Text>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>This Week</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.historyList}>
-              {/* Example static history data with date strings matching DD/MM/YYYY */}
-              {(() => {
-                const exampleData = [
-                  { date: "02/10/2025", in: "8:00 AM", out: "5:00 PM" },
-                  { date: "03/10/2025", in: "8:02 AM", out: "4:59 PM" },
-                  { date: "04/10/2025", in: "8:05 AM", out: "5:10 PM" },
-                  { date: "05/10/2025", in: "8:00 AM", out: "5:00 PM" },
-                  { date: "06/10/2025", in: "8:15 AM", out: "5:05 PM" },
-                ];
-
-                // filter by selected range if provided
-                const filtered = exampleData.filter((d) => {
-                  if (!rangeStart || !rangeEnd) return true;
-                  const parts = d.date.split("/");
-                  const dt = new Date(
-                    Number(parts[2]),
-                    Number(parts[1]) - 1,
-                    Number(parts[0])
-                  );
-                  return (
-                    dt.getTime() >= rangeStart.getTime() &&
-                    dt.getTime() <= rangeEnd.getTime()
-                  );
-                });
-
-                return filtered.map((item, index) => (
-                  <TouchableOpacity
-                    key={item.date + index}
-                    style={styles.historyItem}
-                    onPress={() => toggleHistoryExpansion(index)}
-                  >
-                    <View style={styles.historyItemHeader}>
-                      <Text style={styles.historyDate}>{item.date}</Text>
-                      <AntDesign
-                        name={expandedHistory === index ? "up" : "down"}
-                        size={12}
-                        color="#666"
-                      />
-                    </View>
-
-                    {expandedHistory === index && (
-                      <View style={styles.historyDetails}>
-                        <View style={styles.historyRow}>
-                          <Text style={styles.historyLabel}>Clock In</Text>
-                          <Text style={styles.historyValue}>{item.in}</Text>
-                        </View>
-
-                        <View style={styles.historyRow}>
-                          <Text style={styles.historyLabel}>Clock Out</Text>
-                          <Text style={styles.historyValue}>{item.out}</Text>
-                        </View>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ));
-              })()}
-            </View>
-          </View>
-        </View>
-
-        {/* Requests Section */}
-        <View style={styles.section}>
-          <View style={styles.cardContainer}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.sectionTitle}>Requests</Text>
-              <TouchableOpacity
-                style={styles.makeRequestButton}
-                onPress={() => setModalVisible(true)}
-              >
-                <Text style={styles.makeRequestButtonText}>Make a Request</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ maxHeight: 260 }}>
-              {requests.length > 0 ? (
-                <View style={styles.requestItem}>
-                  <View style={styles.requestHeader}>
-                    <Text style={styles.requestDate}>{requests[0].date}</Text>
-                    <StatusLabel status={requests[0].status as any} />
-                  </View>
-                  <ReadMoreText
-                    text={requests[0].text}
-                    numberOfLines={3}
-                    style={styles.requestDescription}
-                  />
-                </View>
-              ) : (
-                <View style={styles.emptyRequestsCard}>
-                  <Image
-                    source={require("../../assets/images/empty_request.png")}
-                    style={styles.emptyImage}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.emptyText}>No requests available</Text>
-                </View>
-              )}
-            </View>
-
-            {requests.length > 0 && (
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => setShowAllRequests(true)}
-              >
-                <Text style={styles.viewAllText}>View All Requests →</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-        {/*Modal for creating a new password*/}
-        <Modal
-          visible={isChangePasswordVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setIsChangePasswordVisible(false)}
+      <WebContainer>
+        <DashboardHeader />
+        <ScrollView
+          style={[
+            styles.scrollView,
+            shouldUseWebLayout && styles.scrollView_web,
+          ]}
+          showsVerticalScrollIndicator={shouldUseWebLayout}
+          contentContainerStyle={
+            shouldUseWebLayout ? { paddingBottom: 20 } : undefined
+          }
         >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay2}
+          {/* Greeting and Date Selector */}
+          <View
+            style={[
+              styles.greetingSection,
+              shouldUseWebLayout && styles.greetingSection_web,
+            ]}
           >
-            <Animated.View
-              style={[
-                styles.bottomModalContent2,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
+            <Text style={styles.greeting}>Hi {currentUser?.userName}</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
-              <TouchableOpacity
-                style={styles.modalClose2}
-                onPress={() =>
-                  setIsChangePasswordVisible(false)
-                }
-              >
-                <AntDesign name="close" size={18} color="#ccc" />
-              </TouchableOpacity>
-
-              <CreatePasswordScreen />
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
-
-        {/* Modal for making a request */}
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose}
-                onPress={() => setModalVisible(false)}
-              >
-                <AntDesign name="close" size={22} color="#ccc" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Requests</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.modalInput}
-                  placeholder="Type your request here"
-                  value={requestText}
-                  onChangeText={setRequestText}
-                  multiline
-                  numberOfLines={5}
-                  textAlignVertical="top"
-                />
-              </View>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={handleSubmitRequest}
-              >
-                <Text style={styles.modalButtonText}>Submit Request</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
-
-        {/* Success Modal */}
-        <Modal
-          visible={showSuccess}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setShowSuccess(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose}
-                onPress={() => setShowSuccess(false)}
-              >
-                <AntDesign name="close" size={22} color="#ccc" />
-              </TouchableOpacity>
-              <Image
-                source={require("../../assets/images/form_success.png")}
-                style={styles.successImage}
-                resizeMode="contain"
-              />
-              <Text style={styles.successText}>
-                Your request has been submitted successfully.
-              </Text>
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
-
-        {/* Failure Modal */}
-        <Modal
-          visible={showFailure}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setShowFailure(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose}
-                onPress={() => setShowFailure(false)}
-              >
-                <AntDesign name="close" size={22} color="#ccc" />
-              </TouchableOpacity>
-              <Image
-                source={require("../../assets/images/form_warning.png")}
-                style={styles.failureImage}
-                resizeMode="contain"
-              />
-              <Text style={styles.failureText}>
-                Sorry, we could not submit your request.
-              </Text>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => {
-                  setShowFailure(false);
-                  setModalVisible(true);
+              <DateRangePicker
+                onApply={(s, e) => {
+                  setRangeStart(s);
+                  setRangeEnd(e);
                 }}
-              >
-                <Text style={styles.modalButtonText}>Try Again</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
+              />
+            </View>
+          </View>
 
-        {/* View All Requests Modal */}
-        <Modal
-          visible={showAllRequests}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setShowAllRequests(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay}
+          {/* Metric Cards */}
+          <View
+            style={[
+              styles.metricsGrid,
+              shouldUseWebLayout && styles.metricsGrid_web,
+            ]}
           >
-            <Animated.View
+            <View
               style={[
-                styles.allRequestsModalContent,
-                { transform: [{ translateY: keyboardOffset }] },
+                styles.metricCard,
+                shouldUseWebLayout && styles.metricCard_web,
               ]}
             >
-              <TouchableOpacity
-                style={styles.modalClose}
-                onPress={() => setShowAllRequests(false)}
-              >
-                <AntDesign name="close" size={15} color="#797979" />
-              </TouchableOpacity>
-              <Text style={styles.allRequestsTitle}>All Requests</Text>
-              <FlatList
-                data={requests}
-                keyExtractor={(_, idx) => idx.toString()}
-                renderItem={({ item, index }) => (
-                  <View
-                    style={[
-                      styles.allRequestItem,
-                      styles.allRequestItemWithButton,
-                    ]}
-                  >
-                    <View style={styles.allRequestHeader}>
-                      <Text style={styles.allRequestDate}>{item.date}</Text>
-                      <View style={{ position: "absolute", top: 0, right: 0 }}>
-                        <View
-                          style={[
-                            styles.statusBadge,
-                            item.status === "approved"
-                              ? styles.statusBadge_approved
-                              : item.status === "pending"
-                              ? styles.statusBadge_pending
-                              : styles.statusBadge_rejected,
-                          ]}
-                        >
-                          <Text
-                            style={[
-                              styles.statusBadgeText,
-                              item.status === "approved"
-                                ? styles.statusBadgeText_approved
-                                : item.status === "pending"
-                                ? styles.statusBadgeText_pending
-                                : styles.statusBadgeText_rejected,
-                            ]}
-                          >
-                            {item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1)}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
+              <View style={[styles.cardAccent, styles.blueAccent]} />
+              <Text style={styles.metricTitle}>Clock In Time</Text>
+              <Text style={styles.metricValue}>
+                <Text style={styles.metricTime}>
+                  {clockInText.split(" ")[0]}
+                </Text>
+                <Text style={styles.metricPeriod}>
+                  {" " + (clockInText.split(" ")[1] ?? "")}
+                </Text>
+              </Text>
+            </View>
 
-                    {item.text.length > 99 ? (
-                      <ReadMoreText
-                        text={item.text}
-                        numberOfLines={4}
-                        style={styles.allRequestText}
-                      />
-                    ) : (
-                      <Text style={styles.allRequestText}>{item.text}</Text>
-                    )}
+            <View
+              style={[
+                styles.metricCard,
+                shouldUseWebLayout && styles.metricCard_web,
+              ]}
+            >
+              <View style={[styles.cardAccent, styles.orangeAccent]} />
+              <Text style={styles.metricTitle}>Clock Out Time</Text>
+              <Text style={styles.metricValue}>
+                <Text style={styles.metricTime}>
+                  {clockOutText.split(" ")[0]}
+                </Text>
+                <Text style={styles.metricPeriod}>
+                  {" " + (clockOutText.split(" ")[1] ?? "")}
+                </Text>
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.metricCard,
+                shouldUseWebLayout && styles.metricCard_web,
+              ]}
+            >
+              <View style={[styles.cardAccent, styles.greenAccent]} />
+              <Text style={styles.metricTitle}>Hours Worked</Text>
+              <Text style={styles.metricValue}>{hoursWorkedText}</Text>
+            </View>
+
+            <View
+              style={[
+                styles.metricCard,
+                shouldUseWebLayout && styles.metricCard_web,
+              ]}
+            >
+              <View style={[styles.cardAccent, styles.redAccent]} />
+              <Text style={styles.metricTitle}>Time Off</Text>
+              <Text style={styles.metricValue}>{timeOffText}</Text>
+            </View>
+          </View>
+
+          {/* History Section */}
+          <View style={styles.section}>
+            <View style={styles.cardContainer}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.sectionTitle}>History</Text>
+                <TouchableOpacity style={styles.filterButton}>
+                  <Text style={styles.filterButtonText}>This Week</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.historyList}>
+                {/* Example static history data with date strings matching DD/MM/YYYY */}
+                {(() => {
+                  const exampleData = [
+                    { date: "02/10/2025", in: "8:00 AM", out: "5:00 PM" },
+                    { date: "03/10/2025", in: "8:02 AM", out: "4:59 PM" },
+                    { date: "04/10/2025", in: "8:05 AM", out: "5:10 PM" },
+                    { date: "05/10/2025", in: "8:00 AM", out: "5:00 PM" },
+                    { date: "06/10/2025", in: "8:15 AM", out: "5:05 PM" },
+                  ];
+
+                  // filter by selected range if provided
+                  const filtered = exampleData.filter((d) => {
+                    if (!rangeStart || !rangeEnd) return true;
+                    const parts = d.date.split("/");
+                    const dt = new Date(
+                      Number(parts[2]),
+                      Number(parts[1]) - 1,
+                      Number(parts[0])
+                    );
+                    return (
+                      dt.getTime() >= rangeStart.getTime() &&
+                      dt.getTime() <= rangeEnd.getTime()
+                    );
+                  });
+
+                  return filtered.map((item, index) => (
+                    <TouchableOpacity
+                      key={item.date + index}
+                      style={styles.historyItem}
+                      onPress={() => toggleHistoryExpansion(index)}
+                    >
+                      <View style={styles.historyItemHeader}>
+                        <Text style={styles.historyDate}>{item.date}</Text>
+                        <AntDesign
+                          name={expandedHistory === index ? "up" : "down"}
+                          size={12}
+                          color="#666"
+                        />
+                      </View>
+
+                      {expandedHistory === index && (
+                        <View style={styles.historyDetails}>
+                          <View style={styles.historyRow}>
+                            <Text style={styles.historyLabel}>Clock In</Text>
+                            <Text style={styles.historyValue}>{item.in}</Text>
+                          </View>
+
+                          <View style={styles.historyRow}>
+                            <Text style={styles.historyLabel}>Clock Out</Text>
+                            <Text style={styles.historyValue}>{item.out}</Text>
+                          </View>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ));
+                })()}
+              </View>
+            </View>
+          </View>
+
+          {/* Requests Section */}
+          <View style={styles.section}>
+            <View style={styles.cardContainer}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.sectionTitle}>Requests</Text>
+                <TouchableOpacity
+                  style={styles.makeRequestButton}
+                  onPress={() => setModalVisible(true)}
+                >
+                  <Text style={styles.makeRequestButtonText}>
+                    Make a Request
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ maxHeight: 260 }}>
+                {requests.length > 0 ? (
+                  <View style={styles.requestItem}>
+                    <View style={styles.requestHeader}>
+                      <Text style={styles.requestDate}>{requests[0].date}</Text>
+                      <StatusLabel status={requests[0].status as any} />
+                    </View>
+                    <ReadMoreText
+                      text={requests[0].text}
+                      numberOfLines={3}
+                      style={styles.requestDescription}
+                    />
+                  </View>
+                ) : (
+                  <View style={styles.emptyRequestsCard}>
+                    <Image
+                      source={require("../../assets/images/empty_request.png")}
+                      style={styles.emptyImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.emptyText}>No requests available</Text>
                   </View>
                 )}
-                showsVerticalScrollIndicator={true}
-                style={{ width: "100%" }}
-                contentContainerStyle={{ paddingBottom: 16 }}
-              />
-            </Animated.View>
-          </KeyboardAvoidingView>
-        </Modal>
-      </ScrollView>
-      {/* //  this will only render after geofencing has started to avoid multiple initializations */}
-      {geofenceStarted && (
-        <GeolibFence polygon={OfficeRegion} onEvent={handlePolygonEvent} />
-      )}
+              </View>
+
+              {requests.length > 0 && (
+                <TouchableOpacity
+                  style={styles.viewAllButton}
+                  onPress={() => setShowAllRequests(true)}
+                >
+                  <Text style={styles.viewAllText}>View All Requests →</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+          {/*Modal for creating a new password*/}
+          <ResponsiveModal
+            visible={isChangePasswordVisible}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setIsChangePasswordVisible(false)}
+            maxWidth={450}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay2}
+            >
+              <Animated.View
+                style={[
+                  styles.bottomModalContent2,
+                  { transform: [{ translateY: keyboardOffset }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.modalClose2}
+                  onPress={() => setIsChangePasswordVisible(false)}
+                >
+                  <AntDesign name="close" size={18} color="#ccc" />
+                </TouchableOpacity>
+
+                <CreatePasswordScreen />
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </ResponsiveModal>
+
+          {/* Modal for making a request */}
+          <ResponsiveModal
+            visible={modalVisible}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setModalVisible(false)}
+            maxWidth={450}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <Animated.View
+                style={[
+                  styles.bottomModalContent,
+                  { transform: [{ translateY: keyboardOffset }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Text style={styles.modalTitle}>Requests</Text>
+                <View style={styles.inputWrapper}>
+                  <TextInput
+                    style={styles.modalInput}
+                    placeholder="Type your request here"
+                    value={requestText}
+                    onChangeText={setRequestText}
+                    multiline
+                    numberOfLines={5}
+                    textAlignVertical="top"
+                  />
+                </View>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={handleSubmitRequest}
+                >
+                  <Text style={styles.modalButtonText}>Submit Request</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </ResponsiveModal>
+
+          {/* Success Modal */}
+          <ResponsiveModal
+            visible={showSuccess}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowSuccess(false)}
+            maxWidth={400}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <Animated.View
+                style={[
+                  styles.bottomModalContent,
+                  { transform: [{ translateY: keyboardOffset }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowSuccess(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_success.png")}
+                  style={styles.successImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.successText}>
+                  Your request has been submitted successfully.
+                </Text>
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </ResponsiveModal>
+
+          {/* Failure Modal */}
+          <ResponsiveModal
+            visible={showFailure}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowFailure(false)}
+            maxWidth={400}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <Animated.View
+                style={[
+                  styles.bottomModalContent,
+                  { transform: [{ translateY: keyboardOffset }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowFailure(false)}
+                >
+                  <AntDesign name="close" size={22} color="#ccc" />
+                </TouchableOpacity>
+                <Image
+                  source={require("../../assets/images/form_warning.png")}
+                  style={styles.failureImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.failureText}>
+                  Sorry, we could not submit your request.
+                </Text>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setShowFailure(false);
+                    setModalVisible(true);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Try Again</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </ResponsiveModal>
+
+          {/* View All Requests Modal */}
+          <ResponsiveModal
+            visible={showAllRequests}
+            animationType="slide"
+            transparent
+            onRequestClose={() => setShowAllRequests(false)}
+            maxWidth={500}
+          >
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : undefined}
+              style={styles.bottomModalOverlay}
+            >
+              <Animated.View
+                style={[
+                  styles.allRequestsModalContent,
+                  { transform: [{ translateY: keyboardOffset }] },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.modalClose}
+                  onPress={() => setShowAllRequests(false)}
+                >
+                  <AntDesign name="close" size={15} color="#797979" />
+                </TouchableOpacity>
+                <Text style={styles.allRequestsTitle}>All Requests</Text>
+                <FlatList
+                  data={requests}
+                  keyExtractor={(_, idx) => idx.toString()}
+                  renderItem={({ item, index }) => (
+                    <View
+                      style={[
+                        styles.allRequestItem,
+                        styles.allRequestItemWithButton,
+                      ]}
+                    >
+                      <View style={styles.allRequestHeader}>
+                        <Text style={styles.allRequestDate}>{item.date}</Text>
+                        <View
+                          style={{ position: "absolute", top: 0, right: 0 }}
+                        >
+                          <View
+                            style={[
+                              styles.statusBadge,
+                              item.status === "approved"
+                                ? styles.statusBadge_approved
+                                : item.status === "pending"
+                                ? styles.statusBadge_pending
+                                : styles.statusBadge_rejected,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.statusBadgeText,
+                                item.status === "approved"
+                                  ? styles.statusBadgeText_approved
+                                  : item.status === "pending"
+                                  ? styles.statusBadgeText_pending
+                                  : styles.statusBadgeText_rejected,
+                              ]}
+                            >
+                              {item.status.charAt(0).toUpperCase() +
+                                item.status.slice(1)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+
+                      {item.text.length > 99 ? (
+                        <ReadMoreText
+                          text={item.text}
+                          numberOfLines={4}
+                          style={styles.allRequestText}
+                        />
+                      ) : (
+                        <Text style={styles.allRequestText}>{item.text}</Text>
+                      )}
+                    </View>
+                  )}
+                  showsVerticalScrollIndicator={true}
+                  style={{ width: "100%" }}
+                  contentContainerStyle={{ paddingBottom: 16 }}
+                />
+              </Animated.View>
+            </KeyboardAvoidingView>
+          </ResponsiveModal>
+        </ScrollView>
+        {/* //  this will only render after geofencing has started to avoid multiple initializations */}
+        {geofenceStarted && (
+          <GeolibFence polygon={OfficeRegion} onEvent={handlePolygonEvent} />
+        )}
+      </WebContainer>
     </SafeAreaView>
   );
 }
@@ -1250,5 +1297,22 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     justifyContent: "flex-end",
     alignItems: "flex-end",
+  },
+
+  // Web-specific responsive styles
+  scrollView_web: {
+    // @ts-ignore - web only
+    overflowY: "scroll",
+    // @ts-ignore - web only
+    overflowX: "hidden",
+  },
+  greetingSection_web: {
+    paddingHorizontal: 24,
+  },
+  metricsGrid_web: {
+    paddingHorizontal: 24,
+  },
+  metricCard_web: {
+    width: (480 - 60) / 2, // Adjusted for web max-width
   },
 });

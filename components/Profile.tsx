@@ -8,7 +8,6 @@ import {
   Animated,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -16,6 +15,7 @@ import {
   View,
 } from "react-native";
 import CreatePasswordScreen from "../components/ChangePasswordScreen";
+import { ResponsiveModal } from "./ResponsiveModal";
 
 interface ProfileCardProps {
   name?: string;
@@ -66,7 +66,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       }).start();
     });
 
-   
     const hideSub = Keyboard.addListener(hideEvent, () => {
       Animated.timing(keyboardOffset, {
         toValue: 0,
@@ -80,8 +79,6 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       hideSub.remove();
     };
   }, []);
-
-
 
   return (
     <View style={styles.container}>
@@ -110,11 +107,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <Text style={[styles.optionText, styles.logoutText]}>Log out</Text>
       </TouchableOpacity>
 
-      <Modal
+      <ResponsiveModal
         visible={isChangePasswordVisible}
         animationType="slide"
         transparent
         onRequestClose={() => setIsChangePasswordVisible(false)}
+        maxWidth={450}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -136,7 +134,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <CreatePasswordScreen />
           </Animated.View>
         </KeyboardAvoidingView>
-      </Modal>
+      </ResponsiveModal>
     </View>
   );
 };

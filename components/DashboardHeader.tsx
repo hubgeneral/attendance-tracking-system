@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import {
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Image, Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileCard from "../components/Profile";
 import { useBreakpoint } from "../hooks/useBreakpoint";
+import { ResponsiveModal } from "./ResponsiveModal";
 
 export default function DashboardHeader() {
   const [isProfileVisible, setIsProfileVisible] = useState(false);
@@ -68,11 +63,12 @@ export default function DashboardHeader() {
         />
       </TouchableOpacity>
       {/* Modal for ProfileCard */}
-      <Modal
+      <ResponsiveModal
         transparent
         animationType="fade"
         visible={isProfileVisible}
         onRequestClose={() => setIsProfileVisible(false)}
+        maxWidth={350}
       >
         {/* Outer Pressable closes modal */}
         <Pressable
@@ -91,7 +87,7 @@ export default function DashboardHeader() {
             />
           </Pressable>
         </Pressable>
-      </Modal>
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }

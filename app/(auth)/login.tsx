@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { usePlatform } from "@/hooks/usePlatform";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +11,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -22,6 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import LogoRow from "../../components/LogoRow";
 import PrimaryButton from "../../components/PrimaryButton";
+import { WebContainer } from "../../components/WebContainer";
+import { ResponsiveModal } from "../../components/ResponsiveModal";
 const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
@@ -40,6 +42,7 @@ export default function LoginScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { login } = useAuth();
+  const { shouldUseWebLayout } = usePlatform();
 
   // const handleLogin = async () => {
   //   try {
@@ -65,19 +68,18 @@ export default function LoginScreen() {
   // };
 
   const handleLogin = async () => {
-  try {
-    await login({ employeeId: employeeId.trim(), password: password.trim() });
+    try {
+      await login({ employeeId: employeeId.trim(), password: password.trim() });
 
-   
-    // await AsyncStorage.setItem("USER_ID", employeeId.trim());
-    // console.log("UserId stored for geofence:", employeeId.trim());
+      // await AsyncStorage.setItem("USER_ID", employeeId.trim());
+      // console.log("UserId stored for geofence:", employeeId.trim());
 
-    router.replace("/(tabs)/dashboard");
-  } catch (error) {
-    console.error("Login failed:", error);
-    Alert.alert("Login Failed", "Invalid credentials");
-  }
-};
+      router.replace("/(tabs)/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      Alert.alert("Login Failed", "Invalid credentials");
+    }
+  };
 
   useEffect(() => {
     const showEvent =
@@ -171,261 +173,271 @@ export default function LoginScreen() {
       accessible={false}
     >
       <SafeAreaView style={styles.container}>
-        <Animated.View
-          ref={innerRef}
-          style={[styles.inner, { transform: [{ translateY }] }]}
-        >
-          <LogoRow />
+        <WebContainer>
+          <Animated.View
+            ref={innerRef}
+            style={[styles.inner, { transform: [{ translateY }] }]}
+          >
+            <LogoRow />
 
-          <Text style={styles.title}>Sign in</Text>
+            <Text style={styles.title}>Sign in</Text>
 
-          <View style={styles.form}>
-            <FloatingLabelInput
-              value={employeeId}
-              onChangeText={setEmployeeId}
-              placeholder="Employee Id"
-            />
+            <View style={styles.form}>
+              <FloatingLabelInput
+                value={employeeId}
+                onChangeText={setEmployeeId}
+                placeholder="Employee Id"
+              />
 
-            <FloatingLabelInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              secureTextEntry={true}
-              showPasswordToggle={true}
-            />
+              <FloatingLabelInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                secureTextEntry={true}
+                showPasswordToggle={true}
+              />
 
-            <TouchableOpacity
-              onPress={() => setShowReset(true)}
-              style={styles.resetLinkContainer}
+              <TouchableOpacity
+                onPress={() => setShowReset(true)}
+                style={styles.resetLinkContainer}
+              >
+                <Text style={styles.resetLink}>Reset password?</Text>
+              </TouchableOpacity>
+
+              <PrimaryButton title="Login" onPress={handleLogin} />
+            </View>
+
+            <ResponsiveModal
+              visible={showReset}
+              transparent
+              animationType="fade"
+              maxWidth={420}
             >
-              <Text style={styles.resetLink}>Reset password?</Text>
-            </TouchableOpacity>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  Keyboard.dismiss();
+                }}
+              >
+                <View style={styles.modalOverlay}>
+                  <Animated.View
+                    style={[
+                      styles.modal,
+                      { transform: [{ translateY: modalY }] },
+                    ]}
+                  >
+                    <TouchableOpacity
+                      style={styles.modalClose}
+                      onPress={() => setShowReset(false)}
+                    >
+                      <AntDesign name="close" size={20} color="#797979" />
+                    </TouchableOpacity>
+                    <Text style={styles.modalTitle}>Forgot Password?</Text>
+                    <Text style={styles.modalSubtitle}>
+                      Enter your account details to reset your password.
+                    </Text>
 
-            <PrimaryButton title="Login" onPress={handleLogin} />
-          </View>
+                    <FloatingLabelInput
+                      value={resetEmail}
+                      onChangeText={setResetEmail}
+                      placeholder="Email"
+                      keyboardType="email-address"
+                    />
 
-          <Modal visible={showReset} transparent animationType="fade">
-            <TouchableWithoutFeedback
-              onPress={() => {
-                Keyboard.dismiss();
-              }}
+                    <FloatingLabelInput
+                      value={resetEmployeeId}
+                      onChangeText={setResetEmployeeId}
+                      placeholder="Employee Id"
+                      autoCapitalize="characters"
+                    />
+
+                    <FloatingLabelInput
+                      value={resetContact}
+                      onChangeText={setResetContact}
+                      placeholder="Contact"
+                      keyboardType="phone-pad"
+                    />
+
+                    <TouchableOpacity
+                      style={styles.modalButton}
+                      onPress={() => {
+                        // Validation: require ALL fields to be provided
+                        if (!resetEmail || !resetEmployeeId || !resetContact) {
+                          Alert.alert(
+                            "Missing details",
+                            "Please fill Email, Employee Id and Contact to reset your password."
+                          );
+                          return;
+                        }
+
+                        const isValidEmail = (s: string) =>
+                          /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+                        const isValidEmployeeId = (s: string) =>
+                          /^[A-Za-z0-9\-]{3,}$/.test(s);
+                        const isValidContact = (s: string) =>
+                          /^\+?\d{7,15}$/.test(s.replace(/\s+/g, ""));
+
+                        const allValid =
+                          isValidEmail(resetEmail) &&
+                          isValidEmployeeId(resetEmployeeId) &&
+                          isValidContact(resetContact);
+
+                        setShowReset(false);
+                        if (allValid) {
+                          // Credentials look valid -> open Create Password modal
+                          setShowCreatePassword(true);
+                        } else {
+                          // Show a popup alert for incorrect credentials
+                          Alert.alert(
+                            "Invalid details",
+                            "The credentials entered are incorrect."
+                          );
+                        }
+                      }}
+                    >
+                      <Text style={styles.modalButtonText}>Reset Password</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setShowReset(false)}
+                      style={styles.modalClose}
+                    >
+                      <AntDesign name="close" size={20} color="#797979" />
+                    </TouchableOpacity>
+                  </Animated.View>
+                </View>
+              </TouchableWithoutFeedback>
+            </ResponsiveModal>
+
+            {/* Success modal for password reset */}
+            {/* Create New Password modal */}
+            <ResponsiveModal
+              visible={showCreatePassword}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowCreatePassword(false)}
+              maxWidth={420}
             >
-              <View style={styles.modalOverlay}>
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={styles.modalOverlay}
+              >
                 <Animated.View
                   style={[
                     styles.modal,
+                    styles.createModal,
                     { transform: [{ translateY: modalY }] },
                   ]}
                 >
                   <TouchableOpacity
                     style={styles.modalClose}
-                    onPress={() => setShowReset(false)}
+                    onPress={() => setShowCreatePassword(false)}
                   >
                     <AntDesign name="close" size={20} color="#797979" />
                   </TouchableOpacity>
-                  <Text style={styles.modalTitle}>Forgot Password?</Text>
-                  <Text style={styles.modalSubtitle}>
-                    Enter your account details to reset your password.
-                  </Text>
+                  <Text style={[styles.modalTitle]}>Create New Password</Text>
 
                   <FloatingLabelInput
-                    value={resetEmail}
-                    onChangeText={setResetEmail}
-                    placeholder="Email"
-                    keyboardType="email-address"
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="New Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
                   />
 
                   <FloatingLabelInput
-                    value={resetEmployeeId}
-                    onChangeText={setResetEmployeeId}
-                    placeholder="Employee Id"
-                    autoCapitalize="characters"
-                  />
-
-                  <FloatingLabelInput
-                    value={resetContact}
-                    onChangeText={setResetContact}
-                    placeholder="Contact"
-                    keyboardType="phone-pad"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
                   />
 
                   <TouchableOpacity
                     style={styles.modalButton}
                     onPress={() => {
-                      // Validation: require ALL fields to be provided
-                      if (!resetEmail || !resetEmployeeId || !resetContact) {
+                      if (!newPassword || !confirmPassword) {
                         Alert.alert(
                           "Missing details",
-                          "Please fill Email, Employee Id and Contact to reset your password."
+                          "Please enter both New Password and Confirm Password."
                         );
                         return;
                       }
 
-                      const isValidEmail = (s: string) =>
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-                      const isValidEmployeeId = (s: string) =>
-                        /^[A-Za-z0-9\-]{3,}$/.test(s);
-                      const isValidContact = (s: string) =>
-                        /^\+?\d{7,15}$/.test(s.replace(/\s+/g, ""));
-
-                      const allValid =
-                        isValidEmail(resetEmail) &&
-                        isValidEmployeeId(resetEmployeeId) &&
-                        isValidContact(resetContact);
-
-                      setShowReset(false);
-                      if (allValid) {
-                        // Credentials look valid -> open Create Password modal
-                        setShowCreatePassword(true);
+                      setShowCreatePassword(false);
+                      if (newPassword === confirmPassword) {
+                        setShowResetSuccess(true);
+                        // clear fields
+                        setNewPassword("");
+                        setConfirmPassword("");
                       } else {
-                        // Show a popup alert for incorrect credentials
-                        Alert.alert(
-                          "Invalid details",
-                          "The credentials entered are incorrect."
-                        );
+                        setShowResetFailure(true);
                       }
                     }}
                   >
-                    <Text style={styles.modalButtonText}>Reset Password</Text>
+                    <Text style={styles.modalButtonText}>Create Password</Text>
                   </TouchableOpacity>
-
+                </Animated.View>
+              </KeyboardAvoidingView>
+            </ResponsiveModal>
+            <ResponsiveModal
+              visible={showResetSuccess}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowResetSuccess(false)}
+              maxWidth={400}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modal}>
                   <TouchableOpacity
-                    onPress={() => setShowReset(false)}
                     style={styles.modalClose}
+                    onPress={() => setShowResetSuccess(false)}
                   >
                     <AntDesign name="close" size={20} color="#797979" />
                   </TouchableOpacity>
-                </Animated.View>
+                  <Image
+                    source={require("../../assets/images/form_success.png")}
+                    style={styles.successImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.successText}>
+                    Your password has been reset successfully
+                  </Text>
+                </View>
               </View>
-            </TouchableWithoutFeedback>
-          </Modal>
+            </ResponsiveModal>
 
-          {/* Success modal for password reset */}
-          {/* Create New Password modal */}
-          <Modal
-            visible={showCreatePassword}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowCreatePassword(false)}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalOverlay}
+            {/* Failure modal for password reset */}
+            <ResponsiveModal
+              visible={showResetFailure}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setShowResetFailure(false)}
+              maxWidth={400}
             >
-              <Animated.View
-                style={[
-                  styles.modal,
-                  styles.createModal,
-                  { transform: [{ translateY: modalY }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowCreatePassword(false)}
-                >
-                  <AntDesign name="close" size={20} color="#797979" />
-                </TouchableOpacity>
-                <Text style={[styles.modalTitle]}>Create New Password</Text>
-
-                <FloatingLabelInput
-                  value={newPassword}
-                  onChangeText={setNewPassword}
-                  placeholder="New Password"
-                  secureTextEntry={true}
-                  showPasswordToggle={true}
-                />
-
-                <FloatingLabelInput
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  placeholder="Confirm Password"
-                  secureTextEntry={true}
-                  showPasswordToggle={true}
-                />
-
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={() => {
-                    if (!newPassword || !confirmPassword) {
-                      Alert.alert(
-                        "Missing details",
-                        "Please enter both New Password and Confirm Password."
-                      );
-                      return;
-                    }
-
-                    setShowCreatePassword(false);
-                    if (newPassword === confirmPassword) {
-                      setShowResetSuccess(true);
-                      // clear fields
-                      setNewPassword("");
-                      setConfirmPassword("");
-                    } else {
-                      setShowResetFailure(true);
-                    }
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Create Password</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </Modal>
-          <Modal
-            visible={showResetSuccess}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowResetSuccess(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modal}>
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowResetSuccess(false)}
-                >
-                  <AntDesign name="close" size={20} color="#797979" />
-                </TouchableOpacity>
-                <Image
-                  source={require("../../assets/images/form_success.png")}
-                  style={styles.successImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.successText}>
-                  Your password has been reset successfully
-                </Text>
+              <View style={styles.modalOverlay}>
+                <View style={[styles.modal, styles.compactModal]}>
+                  <Image
+                    source={require("../../assets/images/form_warning.png")}
+                    style={styles.failureImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.failureText}>
+                    Sorry, we could not reset your password
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => {
+                      setShowResetFailure(false);
+                      setShowCreatePassword(true);
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Try Again</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          </Modal>
-
-          {/* Failure modal for password reset */}
-          <Modal
-            visible={showResetFailure}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowResetFailure(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={[styles.modal, styles.compactModal]}>
-                <Image
-                  source={require("../../assets/images/form_warning.png")}
-                  style={styles.failureImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.failureText}>
-                  Sorry, we could not reset your password
-                </Text>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={() => {
-                    setShowResetFailure(false);
-                    setShowCreatePassword(true);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Try Again</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        </Animated.View>
+            </ResponsiveModal>
+          </Animated.View>
+        </WebContainer>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
