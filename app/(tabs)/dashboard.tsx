@@ -71,7 +71,7 @@ export default function DashboardScreen() {
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: {
       username: currentUser?.userName ?? "",
-      day: undefined,
+      day: new Date().toISOString().slice(0, 10), // e.g., '2025-10-21'
     },
   });
 

@@ -1,4 +1,4 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 import { usePlatform } from "@/hooks/usePlatform";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
