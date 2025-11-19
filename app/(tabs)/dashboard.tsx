@@ -2,6 +2,7 @@ import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import {
+  useCreateNewRequestMutation,
   useGetAttendanceByUsernameQuery,
   useGetUserByIdQuery,
 } from "@/src/generated/graphql";
@@ -62,7 +63,7 @@ export default function DashboardScreen() {
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-  const { data, loading, error } = useGetAttendanceByUsernameQuery({
+  const { data, loading, error, refetch } = useGetAttendanceByUsernameQuery({
     variables: {
       username: currentUser?.userName ?? "",
       day: today,
@@ -71,7 +72,7 @@ export default function DashboardScreen() {
   const { data: userData } = useGetUserByIdQuery({
     variables: { id: Number(currentUser?.id) },
   });
-
+  const [createNewRequestMutation] = useCreateNewRequestMutation();
   // UI state for metric cards (updated when query result changes)
   const [clockInText, setClockInText] = useState<string>("-");
   const [clockOutText, setClockOutText] = useState<string>("-");
@@ -205,12 +206,24 @@ export default function DashboardScreen() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (geofenceStarted) {
+      refetch({ username: currentUser?.userName ?? "", day: today });
+    }
+  }, [geofenceStarted, refetch, currentUser?.userName, today]);
+
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
   };
 
   const handleSubmitRequest = () => {
     if (requestText.trim()) {
+      createNewRequestMutation({
+        variables: {
+          userId: Number(currentUser?.id),
+          reason: requestText.trim(),
+        },
+      });
       setRequests([
         {
           date: selectedDate,
