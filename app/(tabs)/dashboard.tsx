@@ -5,12 +5,16 @@ import {
   useGetAttendanceByUserIdLazyQuery,
   useCreateNewRequestMutation,
   useGetAttendanceByUsernameQuery,
-  useGetUserByIdQuery
+  useGetRequestsByUserIdQuery,
+  useGetUserByIdQuery,
+  useMakeARequestMutation,
+  useUpdateRequestMutation,
 } from "@/src/generated/graphql";
 import { AntDesign } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Easing,
@@ -58,9 +62,10 @@ export default function DashboardScreen()
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
 
   const [requestText, setRequestText] = useState("");
-  const [requests, setRequests] = useState<
-    { date: string; status: string; text: string }[]
-  >([]);
+  // const [requests, setRequests] = useState<
+  //   { date: string; status: string; text: string }[]
+  // >([]);
+  const [editingRequestId, setEditingRequestId] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showFailure, setShowFailure] = useState(false);
   const [showAllRequests, setShowAllRequests] = useState(false);
@@ -76,6 +81,47 @@ export default function DashboardScreen()
     variables: { id: Number(currentUser?.id) },
   });
   const [createNewRequestMutation] = useCreateNewRequestMutation();
+
+  const {
+    data: requestsData,
+    loading: requestsLoading,
+    refetch: refetchRequests,
+  } = useGetRequestsByUserIdQuery({
+    variables: { id: Number(currentUser?.id) },
+    skip: !currentUser?.id,
+  });
+
+  const [createRequest, { loading: createLoading }] = useMakeARequestMutation({
+    onCompleted: () => {
+      refetchRequests();
+      setRequestText("");
+      setModalVisible(false);
+      setTimeout(() => setShowSuccess(true), 300);
+    },
+    onError: (err: any) => {
+      console.error("Create request error:", err);
+      setModalVisible(false);
+      setTimeout(() => setShowFailure(true), 300);
+    },
+  });
+
+  const [updateRequest, { loading: updateLoading }] = useUpdateRequestMutation({
+    onCompleted: () => {
+      refetchRequests();
+      setRequestText("");
+      setEditingRequestId(null);
+      setModalVisible(false);
+      setTimeout(() => setShowSuccess(true), 300);
+    },
+    onError: (err: any) => {
+      console.error("Update request error:", err);
+      setModalVisible(false);
+      setTimeout(() => setShowFailure(true), 300);
+    },
+  });
+
+  const requests = requestsData?.requestLogsByUserId || [];
+
   // UI state for metric cards (updated when query result changes)
   const [clockInText, setClockInText] = useState<string>("-");
   const [clockOutText, setClockOutText] = useState<string>("-");
@@ -273,29 +319,77 @@ export default function DashboardScreen()
     setExpandedHistory(expandedHistory === index ? null : index);
   };
 
-  const handleSubmitRequest = () => {
-    if (requestText.trim()) {
-      createNewRequestMutation({
-        variables: {
-          userId: Number(currentUser?.id),
-          reason: requestText.trim(),
-        },
-      });
-      setRequests([
-        {
-          date: selectedDate,
-          status: "pending",
-          text: requestText.trim(),
-        },
-        ...requests,
-      ]);
-      setRequestText("");
-      setModalVisible(false);
-      setTimeout(() => setShowSuccess(true), 300);
-    } else {
+  const handleSubmitRequest = async () => {
+    if (!requestText.trim()) {
       setModalVisible(false);
       setTimeout(() => setShowFailure(true), 300);
+      return;
     }
+
+    try {
+      if (editingRequestId) {
+        await updateRequest({
+          variables: {
+            requestId: editingRequestId,
+            reason: requestText.trim(),
+          },
+        });
+      } else {
+        await createRequest({
+          variables: {
+            userId: Number(currentUser?.id),
+            reason: requestText.trim(),
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+    }
+  };
+
+  const handleNewRequest = () => {
+    setEditingRequestId(null);
+    setRequestText("");
+    setModalVisible(true);
+  };
+
+  const handleEditRequest = (request: any) => {
+    const status = getStatusForDisplay(request.approvalStatus);
+    if (status === "pending") {
+      setEditingRequestId(request.id);
+      setRequestText(request.reason);
+      setModalVisible(true);
+    }
+  };
+
+  useEffect(() => {
+    if (editingRequestId !== null) {
+      setShowAllRequests(false);
+    }
+  }, [editingRequestId]);
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const day = date.getDate().toString().padStart(2, "0");
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getStatusForDisplay = (approvalStatus: string | null | undefined) => {
+    // Map your backend status to what StatusLabel expects
+    const statusMap: { [key: string]: string } = {
+      approved: "approved",
+      pending: "pending",
+      unconfirmed: "pending",
+      rejected: "rejected",
+    };
+    const key = (approvalStatus ?? "pending").toLowerCase();
+    return statusMap[key] || "pending";
   };
 
   const ReadMoreText = ({
@@ -489,7 +583,10 @@ export default function DashboardScreen()
               <Text style={styles.sectionTitle}>Requests</Text>
               <TouchableOpacity
                 style={styles.makeRequestButton}
-                onPress={() => setModalVisible(true)}
+                // onPress={() => setModalVisible(true)}
+                onPress={() => {
+                  handleNewRequest();
+                }}
               >
                 <Text style={styles.makeRequestButtonText}>Make a Request</Text>
               </TouchableOpacity>
@@ -499,11 +596,17 @@ export default function DashboardScreen()
               {requests.length > 0 ? (
                 <View style={styles.requestItem}>
                   <View style={styles.requestHeader}>
-                    <Text style={styles.requestDate}>{requests[0].date}</Text>
-                    <StatusLabel status={requests[0].status as any} />
+                    <Text style={styles.requestDate}>
+                      {formatDate(new Date().toISOString())}
+                    </Text>
+                    <StatusLabel
+                      status={
+                        getStatusForDisplay(requests[0].approvalStatus) as any
+                      }
+                    />
                   </View>
                   <ReadMoreText
-                    text={requests[0].text}
+                    text={requests[0].reason ?? ""}
                     numberOfLines={3}
                     style={styles.requestDescription}
                   />
@@ -604,10 +707,20 @@ export default function DashboardScreen()
                 />
               </View>
               <TouchableOpacity
-                style={styles.modalButton}
+                style={[
+                  styles.modalButton,
+                  (createLoading || updateLoading) && { opacity: 0.6 },
+                ]}
                 onPress={handleSubmitRequest}
+                disabled={createLoading || updateLoading}
               >
-                <Text style={styles.modalButtonText}>Submit Request</Text>
+                {createLoading || updateLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>
+                    {editingRequestId ? "Update Request" : "Submit Request"}
+                  </Text>
+                )}
               </TouchableOpacity>
             </Animated.View>
           </KeyboardAvoidingView>
@@ -705,7 +818,7 @@ export default function DashboardScreen()
           >
             <Animated.View
               style={[
-                styles.allRequestsModalContent,
+                styles.bottomModalContent,
                 { transform: [{ translateY: keyboardOffset }] },
               ]}
             >
@@ -713,28 +826,31 @@ export default function DashboardScreen()
                 style={styles.modalClose}
                 onPress={() => setShowAllRequests(false)}
               >
-                <AntDesign name="close" size={15} color="#797979" />
+                <AntDesign name="close" size={22} color="#ccc" />
               </TouchableOpacity>
-              <Text style={styles.allRequestsTitle}>All Requests</Text>
+              <Text style={styles.modalTitle}>All Requests</Text>
+
               <FlatList
                 data={requests}
-                keyExtractor={(_, idx) => idx.toString()}
-                renderItem={({ item, index }) => (
-                  <View
-                    style={[
-                      styles.allRequestItem,
-                      styles.allRequestItemWithButton,
-                    ]}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => handleEditRequest(item)}
+                    activeOpacity={0.7}
                   >
-                    <View style={styles.allRequestHeader}>
-                      <Text style={styles.allRequestDate}>{item.date}</Text>
-                      <View style={{ position: "absolute", top: 0, right: 0 }}>
+                    <View style={styles.allRequestItem}>
+                      <View style={styles.allRequestHeader}>
+                        <Text style={styles.allRequestDate}>
+                          {formatDate(new Date().toISOString())}
+                        </Text>
                         <View
                           style={[
                             styles.statusBadge,
-                            item.status === "approved"
+                            getStatusForDisplay(item.approvalStatus) ===
+                            "approved"
                               ? styles.statusBadge_approved
-                              : item.status === "pending"
+                              : getStatusForDisplay(item.approvalStatus) ===
+                                "pending"
                               ? styles.statusBadge_pending
                               : styles.statusBadge_rejected,
                           ]}
@@ -742,33 +858,31 @@ export default function DashboardScreen()
                           <Text
                             style={[
                               styles.statusBadgeText,
-                              item.status === "approved"
+                              getStatusForDisplay(item.approvalStatus) ===
+                              "approved"
                                 ? styles.statusBadgeText_approved
-                                : item.status === "pending"
+                                : getStatusForDisplay(item.approvalStatus) ===
+                                  "pending"
                                 ? styles.statusBadgeText_pending
                                 : styles.statusBadgeText_rejected,
                             ]}
                           >
-                            {item.status.charAt(0).toUpperCase() +
-                              item.status.slice(1)}
+                            {item.approvalStatus
+                              ? item.approvalStatus.charAt(0).toUpperCase() +
+                                item.approvalStatus.slice(1)
+                              : "Pending"}
                           </Text>
                         </View>
                       </View>
-                    </View>
 
-                    {item.text.length > 99 ? (
-                      <ReadMoreText
-                        text={item.text}
-                        numberOfLines={4}
-                        style={styles.allRequestText}
-                      />
-                    ) : (
-                      <Text style={styles.allRequestText}>{item.text}</Text>
-                    )}
-                  </View>
+                      <Text style={styles.allRequestText} numberOfLines={2}>
+                        {item.reason}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
                 )}
                 showsVerticalScrollIndicator={true}
-                style={{ width: "100%" }}
+                style={{ width: "100%", maxHeight: 400 }}
                 contentContainerStyle={{ paddingBottom: 16 }}
               />
             </Animated.View>
@@ -1225,6 +1339,7 @@ const styles = StyleSheet.create({
   },
   allRequestHeader: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 4,
   },

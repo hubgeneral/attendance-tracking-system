@@ -1,0 +1,7 @@
+mutation MakeARequest($userId: Int!, $reason: String!) {
+  createRequestLog(userid: $userId, reason: $reason)
+}
+
+mutation UpdateRequest($requestId: Int!, $reason: String!) {
+  updateRequestLog(requestId: $requestId, reason: $reason)
+}
