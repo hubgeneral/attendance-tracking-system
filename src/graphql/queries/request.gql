@@ -1,12 +1,12 @@
-mutation createNewRequest($userId: Int!, $reason: String!) {
-  createRequestLog(userid: $userId, reason: $reason)
-}
+# mutation createNewRequest($userId: Int!, $reason: String!) {
+#   createRequestLog(userid: $userId, reason: $reason)
+# }
 
-query getRequestLogsByUserId($userId: Int!) {
-  requestLogsByUserId(id: $userId) {
-    id
-    userid
-    reason
-    date
-  }
-}
+# query getRequestLogsByUserId($userId: Int!) {
+#   requestLogsByUserId(id: $userId) {
+#     id
+#     userid
+#     reason
+#     date
+#   }
+# }
