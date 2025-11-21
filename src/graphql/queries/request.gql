@@ -5,8 +5,8 @@ mutation createNewRequest($userId: Int!, $reason: String!) {
 query getRequestLogsByUserId($userId: Int!) {
   requestLogsByUserId(id: $userId) {
     id
-    userid
     reason
-    date
+    appUserId
+    currentDate
   }
 }

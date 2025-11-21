@@ -197,6 +197,39 @@ export type AttendanceSortInput = {
   user?: InputMaybe<AppUserSortInput>;
 };
 
+export type AverageAttendanceResult = {
+  __typename?: "AverageAttendanceResult";
+  averageClockIn?: Maybe<Scalars["DateTime"]["output"]>;
+  averageClockOut?: Maybe<Scalars["DateTime"]["output"]>;
+  averageTotalHoursWorked?: Maybe<Scalars["Decimal"]["output"]>;
+  employeeeName?: Maybe<Scalars["String"]["output"]>;
+  startDate: Scalars["LocalDate"]["output"];
+  stopDate: Scalars["LocalDate"]["output"];
+  userId: Scalars["Int"]["output"];
+};
+
+export type AverageAttendanceResultFilterInput = {
+  and?: InputMaybe<AverageAttendanceResultFilterInput[]>;
+  averageClockIn?: InputMaybe<DateTimeOperationFilterInput>;
+  averageClockOut?: InputMaybe<DateTimeOperationFilterInput>;
+  averageTotalHoursWorked?: InputMaybe<DecimalOperationFilterInput>;
+  employeeeName?: InputMaybe<StringOperationFilterInput>;
+  or?: InputMaybe<AverageAttendanceResultFilterInput[]>;
+  startDate?: InputMaybe<LocalDateOperationFilterInput>;
+  stopDate?: InputMaybe<LocalDateOperationFilterInput>;
+  userId?: InputMaybe<IntOperationFilterInput>;
+};
+
+export type AverageAttendanceResultSortInput = {
+  averageClockIn?: InputMaybe<SortEnumType>;
+  averageClockOut?: InputMaybe<SortEnumType>;
+  averageTotalHoursWorked?: InputMaybe<SortEnumType>;
+  employeeeName?: InputMaybe<SortEnumType>;
+  startDate?: InputMaybe<SortEnumType>;
+  stopDate?: InputMaybe<SortEnumType>;
+  userId?: InputMaybe<SortEnumType>;
+};
+
 export type AverageClockTimeResult = {
   __typename?: "AverageClockTimeResult";
   averageClockIn?: Maybe<Scalars["DateTime"]["output"]>;
@@ -534,8 +567,11 @@ export type PunctualEmployees = {
 export type Query = {
   __typename?: "Query";
   attendanceByDate: Attendance[];
+  attendanceByUserId: Attendance[];
   attendanceByUserName: Attendance[];
   attendances: Attendance[];
+  averageAttendanceByDate: AverageAttendanceResult[];
+  averageAttendanceByUserId?: Maybe<AverageAttendanceResult>;
   averageClockTime: AverageClockTimeResult;
   dashboardTotalStats: DashboardTotalSummary;
   graphData: GraphDataResults[];
@@ -555,8 +591,18 @@ export type Query = {
 };
 
 export type QueryAttendanceByDateArgs = {
-  startDate: Scalars["DateTime"]["input"];
-  stopDate: Scalars["DateTime"]["input"];
+  order?: InputMaybe<AttendanceSortInput[]>;
+  startDate: Scalars["LocalDate"]["input"];
+  stopDate: Scalars["LocalDate"]["input"];
+  where?: InputMaybe<AttendanceFilterInput>;
+};
+
+export type QueryAttendanceByUserIdArgs = {
+  order?: InputMaybe<AttendanceSortInput[]>;
+  startDate: Scalars["LocalDate"]["input"];
+  stopDate: Scalars["LocalDate"]["input"];
+  userId: Scalars["Int"]["input"];
+  where?: InputMaybe<AttendanceFilterInput>;
 };
 
 export type QueryAttendanceByUserNameArgs = {
@@ -567,6 +613,21 @@ export type QueryAttendanceByUserNameArgs = {
 export type QueryAttendancesArgs = {
   order?: InputMaybe<AttendanceSortInput[]>;
   where?: InputMaybe<AttendanceFilterInput>;
+};
+
+export type QueryAverageAttendanceByDateArgs = {
+  order?: InputMaybe<AverageAttendanceResultSortInput[]>;
+  startDate?: InputMaybe<Scalars["LocalDate"]["input"]>;
+  stopDate?: InputMaybe<Scalars["LocalDate"]["input"]>;
+  where?: InputMaybe<AverageAttendanceResultFilterInput>;
+};
+
+export type QueryAverageAttendanceByUserIdArgs = {
+  endDate?: InputMaybe<Scalars["LocalDate"]["input"]>;
+  order?: InputMaybe<AverageAttendanceResultSortInput[]>;
+  startDate?: InputMaybe<Scalars["LocalDate"]["input"]>;
+  userId: Scalars["Int"]["input"];
+  where?: InputMaybe<AverageAttendanceResultFilterInput>;
 };
 
 export type QueryAverageClockTimeArgs = {
@@ -863,6 +924,22 @@ export type GetAttendanceByUsernameQuery = {
   }[];
 };
 
+export type GetAttendanceByUserIdQueryVariables = Exact<{
+  userid: Scalars["Int"]["input"];
+  startdate: Scalars["LocalDate"]["input"];
+  stopdate: Scalars["LocalDate"]["input"];
+}>;
+
+export type GetAttendanceByUserIdQuery = {
+  __typename?: "Query";
+  attendanceByUserId: {
+    __typename?: "Attendance";
+    clockIn?: any | null;
+    clockOut?: any | null;
+    currentDate?: any | null;
+  }[];
+};
+
 export type CreateNewRequestMutationVariables = Exact<{
   userId: Scalars["Int"]["input"];
   reason: Scalars["String"]["input"];
@@ -871,6 +948,21 @@ export type CreateNewRequestMutationVariables = Exact<{
 export type CreateNewRequestMutation = {
   __typename?: "Mutation";
   createRequestLog: string;
+};
+
+export type GetRequestLogsByUserIdQueryVariables = Exact<{
+  userId: Scalars["Int"]["input"];
+}>;
+
+export type GetRequestLogsByUserIdQuery = {
+  __typename?: "Query";
+  requestLogsByUserId: {
+    __typename?: "RequestLog";
+    id: number;
+    reason?: string | null;
+    appUserId: number;
+    currentDate?: any | null;
+  }[];
 };
 
 export type GetUserByIdQueryVariables = Exact<{
@@ -1202,6 +1294,100 @@ export type GetAttendanceByUsernameQueryResult = Apollo.QueryResult<
   GetAttendanceByUsernameQuery,
   GetAttendanceByUsernameQueryVariables
 >;
+export const GetAttendanceByUserIdDocument = gql`
+  query getAttendanceByUserId(
+    $userid: Int!
+    $startdate: LocalDate!
+    $stopdate: LocalDate!
+  ) {
+    attendanceByUserId(
+      userId: $userid
+      startDate: $startdate
+      stopDate: $stopdate
+    ) {
+      clockIn
+      clockOut
+      currentDate
+    }
+  }
+`;
+
+/**
+ * __useGetAttendanceByUserIdQuery__
+ *
+ * To run a query within a React component, call `useGetAttendanceByUserIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAttendanceByUserIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAttendanceByUserIdQuery({
+ *   variables: {
+ *      userid: // value for 'userid'
+ *      startdate: // value for 'startdate'
+ *      stopdate: // value for 'stopdate'
+ *   },
+ * });
+ */
+export function useGetAttendanceByUserIdQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetAttendanceByUserIdQuery,
+    GetAttendanceByUserIdQueryVariables
+  > &
+    (
+      | { variables: GetAttendanceByUserIdQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetAttendanceByUserIdQuery,
+    GetAttendanceByUserIdQueryVariables
+  >(GetAttendanceByUserIdDocument, options);
+}
+export function useGetAttendanceByUserIdLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetAttendanceByUserIdQuery,
+    GetAttendanceByUserIdQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetAttendanceByUserIdQuery,
+    GetAttendanceByUserIdQueryVariables
+  >(GetAttendanceByUserIdDocument, options);
+}
+export function useGetAttendanceByUserIdSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetAttendanceByUserIdQuery,
+        GetAttendanceByUserIdQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetAttendanceByUserIdQuery,
+    GetAttendanceByUserIdQueryVariables
+  >(GetAttendanceByUserIdDocument, options);
+}
+export type GetAttendanceByUserIdQueryHookResult = ReturnType<
+  typeof useGetAttendanceByUserIdQuery
+>;
+export type GetAttendanceByUserIdLazyQueryHookResult = ReturnType<
+  typeof useGetAttendanceByUserIdLazyQuery
+>;
+export type GetAttendanceByUserIdSuspenseQueryHookResult = ReturnType<
+  typeof useGetAttendanceByUserIdSuspenseQuery
+>;
+export type GetAttendanceByUserIdQueryResult = Apollo.QueryResult<
+  GetAttendanceByUserIdQuery,
+  GetAttendanceByUserIdQueryVariables
+>;
 export const CreateNewRequestDocument = gql`
   mutation createNewRequest($userId: Int!, $reason: String!) {
     createRequestLog(userid: $userId, reason: $reason)
@@ -1250,6 +1436,91 @@ export type CreateNewRequestMutationResult =
 export type CreateNewRequestMutationOptions = Apollo.BaseMutationOptions<
   CreateNewRequestMutation,
   CreateNewRequestMutationVariables
+>;
+export const GetRequestLogsByUserIdDocument = gql`
+  query getRequestLogsByUserId($userId: Int!) {
+    requestLogsByUserId(id: $userId) {
+      id
+      reason
+      appUserId
+      currentDate
+    }
+  }
+`;
+
+/**
+ * __useGetRequestLogsByUserIdQuery__
+ *
+ * To run a query within a React component, call `useGetRequestLogsByUserIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRequestLogsByUserIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRequestLogsByUserIdQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetRequestLogsByUserIdQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetRequestLogsByUserIdQuery,
+    GetRequestLogsByUserIdQueryVariables
+  > &
+    (
+      | { variables: GetRequestLogsByUserIdQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetRequestLogsByUserIdQuery,
+    GetRequestLogsByUserIdQueryVariables
+  >(GetRequestLogsByUserIdDocument, options);
+}
+export function useGetRequestLogsByUserIdLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetRequestLogsByUserIdQuery,
+    GetRequestLogsByUserIdQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetRequestLogsByUserIdQuery,
+    GetRequestLogsByUserIdQueryVariables
+  >(GetRequestLogsByUserIdDocument, options);
+}
+export function useGetRequestLogsByUserIdSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetRequestLogsByUserIdQuery,
+        GetRequestLogsByUserIdQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken
+      ? baseOptions
+      : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetRequestLogsByUserIdQuery,
+    GetRequestLogsByUserIdQueryVariables
+  >(GetRequestLogsByUserIdDocument, options);
+}
+export type GetRequestLogsByUserIdQueryHookResult = ReturnType<
+  typeof useGetRequestLogsByUserIdQuery
+>;
+export type GetRequestLogsByUserIdLazyQueryHookResult = ReturnType<
+  typeof useGetRequestLogsByUserIdLazyQuery
+>;
+export type GetRequestLogsByUserIdSuspenseQueryHookResult = ReturnType<
+  typeof useGetRequestLogsByUserIdSuspenseQuery
+>;
+export type GetRequestLogsByUserIdQueryResult = Apollo.QueryResult<
+  GetRequestLogsByUserIdQuery,
+  GetRequestLogsByUserIdQueryVariables
 >;
 export const GetUserByIdDocument = gql`
   query getUserById($id: Int!) {
