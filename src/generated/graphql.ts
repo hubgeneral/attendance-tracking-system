@@ -902,6 +902,22 @@ export type GeofenceClockOutMutationVariables = Exact<{
 
 export type GeofenceClockOutMutation = { __typename?: 'Mutation', geofenceClockOut: string };
 
+export type MakeARequestMutationVariables = Exact<{
+  userId: Scalars['Int']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type MakeARequestMutation = { __typename?: 'Mutation', createRequestLog: string };
+
+export type UpdateRequestMutationVariables = Exact<{
+  requestId: Scalars['Int']['input'];
+  reason: Scalars['String']['input'];
+}>;
+
+
+export type UpdateRequestMutation = { __typename?: 'Mutation', updateRequestLog: string };
+
 export type ResetPasswordMutationVariables = Exact<{
   userName: Scalars['String']['input'];
   newPassword: Scalars['String']['input'];
@@ -942,6 +958,13 @@ export type GetRequestLogsByUserIdQueryVariables = Exact<{
 
 
 export type GetRequestLogsByUserIdQuery = { __typename?: 'Query', requestLogsByUserId: Array<{ __typename?: 'RequestLog', id: number, reason?: string | null, appUserId: number, currentDate?: any | null }> };
+
+export type GetRequestsByUserIdQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type GetRequestsByUserIdQuery = { __typename?: 'Query', requestLogsByUserId: Array<{ __typename?: 'RequestLog', id: number, reason?: string | null, approvalStatus?: string | null }> };
 
 export type GetUserByIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -1060,6 +1083,70 @@ export function useGeofenceClockOutMutation(baseOptions?: Apollo.MutationHookOpt
 export type GeofenceClockOutMutationHookResult = ReturnType<typeof useGeofenceClockOutMutation>;
 export type GeofenceClockOutMutationResult = Apollo.MutationResult<GeofenceClockOutMutation>;
 export type GeofenceClockOutMutationOptions = Apollo.BaseMutationOptions<GeofenceClockOutMutation, GeofenceClockOutMutationVariables>;
+export const MakeARequestDocument = gql`
+    mutation MakeARequest($userId: Int!, $reason: String!) {
+  createRequestLog(userid: $userId, reason: $reason)
+}
+    `;
+export type MakeARequestMutationFn = Apollo.MutationFunction<MakeARequestMutation, MakeARequestMutationVariables>;
+
+/**
+ * __useMakeARequestMutation__
+ *
+ * To run a mutation, you first call `useMakeARequestMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMakeARequestMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [makeARequestMutation, { data, loading, error }] = useMakeARequestMutation({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useMakeARequestMutation(baseOptions?: Apollo.MutationHookOptions<MakeARequestMutation, MakeARequestMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<MakeARequestMutation, MakeARequestMutationVariables>(MakeARequestDocument, options);
+      }
+export type MakeARequestMutationHookResult = ReturnType<typeof useMakeARequestMutation>;
+export type MakeARequestMutationResult = Apollo.MutationResult<MakeARequestMutation>;
+export type MakeARequestMutationOptions = Apollo.BaseMutationOptions<MakeARequestMutation, MakeARequestMutationVariables>;
+export const UpdateRequestDocument = gql`
+    mutation UpdateRequest($requestId: Int!, $reason: String!) {
+  updateRequestLog(requestId: $requestId, reason: $reason)
+}
+    `;
+export type UpdateRequestMutationFn = Apollo.MutationFunction<UpdateRequestMutation, UpdateRequestMutationVariables>;
+
+/**
+ * __useUpdateRequestMutation__
+ *
+ * To run a mutation, you first call `useUpdateRequestMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateRequestMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateRequestMutation, { data, loading, error }] = useUpdateRequestMutation({
+ *   variables: {
+ *      requestId: // value for 'requestId'
+ *      reason: // value for 'reason'
+ *   },
+ * });
+ */
+export function useUpdateRequestMutation(baseOptions?: Apollo.MutationHookOptions<UpdateRequestMutation, UpdateRequestMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateRequestMutation, UpdateRequestMutationVariables>(UpdateRequestDocument, options);
+      }
+export type UpdateRequestMutationHookResult = ReturnType<typeof useUpdateRequestMutation>;
+export type UpdateRequestMutationResult = Apollo.MutationResult<UpdateRequestMutation>;
+export type UpdateRequestMutationOptions = Apollo.BaseMutationOptions<UpdateRequestMutation, UpdateRequestMutationVariables>;
 export const ResetPasswordDocument = gql`
     mutation ResetPassword($userName: String!, $newPassword: String!, $token: String!) {
   resetPassword(username: $userName, token: $token, password: $newPassword) {
@@ -1258,6 +1345,48 @@ export type GetRequestLogsByUserIdQueryHookResult = ReturnType<typeof useGetRequ
 export type GetRequestLogsByUserIdLazyQueryHookResult = ReturnType<typeof useGetRequestLogsByUserIdLazyQuery>;
 export type GetRequestLogsByUserIdSuspenseQueryHookResult = ReturnType<typeof useGetRequestLogsByUserIdSuspenseQuery>;
 export type GetRequestLogsByUserIdQueryResult = Apollo.QueryResult<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>;
+export const GetRequestsByUserIdDocument = gql`
+    query GetRequestsByUserId($id: Int!) {
+  requestLogsByUserId(id: $id) {
+    id
+    reason
+    approvalStatus
+  }
+}
+    `;
+
+/**
+ * __useGetRequestsByUserIdQuery__
+ *
+ * To run a query within a React component, call `useGetRequestsByUserIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRequestsByUserIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRequestsByUserIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetRequestsByUserIdQuery(baseOptions: Apollo.QueryHookOptions<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables> & ({ variables: GetRequestsByUserIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>(GetRequestsByUserIdDocument, options);
+      }
+export function useGetRequestsByUserIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>(GetRequestsByUserIdDocument, options);
+        }
+export function useGetRequestsByUserIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>(GetRequestsByUserIdDocument, options);
+        }
+export type GetRequestsByUserIdQueryHookResult = ReturnType<typeof useGetRequestsByUserIdQuery>;
+export type GetRequestsByUserIdLazyQueryHookResult = ReturnType<typeof useGetRequestsByUserIdLazyQuery>;
+export type GetRequestsByUserIdSuspenseQueryHookResult = ReturnType<typeof useGetRequestsByUserIdSuspenseQuery>;
+export type GetRequestsByUserIdQueryResult = Apollo.QueryResult<GetRequestsByUserIdQuery, GetRequestsByUserIdQueryVariables>;
 export const GetUserByIdDocument = gql`
     query getUserById($id: Int!) {
   userById(id: $id) {
