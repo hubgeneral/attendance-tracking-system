@@ -455,15 +455,23 @@ export const startGeofence = async (
     // Setup notifications
     await setupNotifications();
 
-    // Permissions
-    const { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
+    // Foreground Permissions
+    let { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
     console.log(`[Geofence]  Foreground permission status: ${foregroundStatus}`);
+
+    if (foregroundStatus !== "granted") {
+      console.log("[Geofence]  Requesting foreground permissions...");
+      const { status: newForegroundStatus } = await Location.requestForegroundPermissionsAsync();
+      foregroundStatus = newForegroundStatus;
+      console.log(`[Geofence]  New foreground status: ${foregroundStatus}`);
+    }
 
     if (foregroundStatus !== "granted") {
       Alert.alert("Permission Required", "Please enable location access in settings.");
       return { ok: false, message: "Foreground location permission denied" };
     }
 
+    // Background Permissions 
     let { status: backgroundStatus } = await Location.getBackgroundPermissionsAsync();
     console.log(`[Geofence]  Background permission status: ${backgroundStatus}`); 
 
@@ -478,7 +486,6 @@ export const startGeofence = async (
       Alert.alert("Background Permission Required", "Please enable background location access for geofence monitoring.");
       return { ok: false, message: "Background location permission denied" };
     }
-
     //  Store configuration
     await AsyncStorage.setItem(`${ASYNC_KEY_PREFIX}config`, JSON.stringify(polygonConfig));
     console.log(`[Geofence]  Config stored: ${polygonConfig.identifier}`);
