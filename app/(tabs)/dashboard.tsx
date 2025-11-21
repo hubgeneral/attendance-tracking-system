@@ -6,6 +6,7 @@ import GeolibFence, {
 } from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import {
+  useGetAttendanceByUserIdLazyQuery,
   useCreateNewRequestMutation,
   useGetAttendanceByUserIdLazyQuery,
   useGetAttendanceByUsernameLazyQuery,
@@ -111,6 +112,51 @@ export default function DashboardScreen() {
         userid: Number(currentUser.id),
       },
     });
+  };
+ // fetch when date range is applied (only when both start & end are set)
+  useEffect(() => {
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      fetchAttendanceForRange(startDate, endDate);
+    }
+    // intentionally do not fetch when only one boundary is set; wait for both
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, currentUser?.id]);
+
+
+   // fetch last 5 days history on mount (excluding today)
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const end = new Date(); // today
+    end.setDate(end.getDate() - 1); // yesterday
+    const start = new Date();
+    start.setDate(end.getDate() - 4); // 5 days total: end - 4
+    const startStr = start.toISOString().split("T")[0];
+    const endStr = end.toISOString().split("T")[0];
+    fetchAttendanceForRange(startStr, endStr);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
+
+// attendanceHistory: safely unwrap the lazy query result.
+  // The GraphQL shape is assumed to be uid_data.attendanceByUserId (array).
+  const attendanceHistory = Array.isArray(uid_data?.attendanceByUserId)
+    ? uid_data!.attendanceByUserId
+    : [];
+
+// End  User Attendance History ******************************************************************************************
+  const formatTime = (dt: any) => {
+    if (!dt) return "-";
+    try {
+      const d = new Date(dt);
+      if (isNaN(d.getTime())) return "-";
+      let hours = d.getHours();
+      const minutes = d.getMinutes().toString().padStart(2, "0");
+      const period = hours >= 12 ? "Pm" : "Am";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes} ${period}`;
+    } catch {
+      return "-";
+    }
   };
 
   // ✅ OPTIMIZATION: Memoized callback for attendance refresh to prevent duplicate registrations
@@ -383,6 +429,9 @@ export default function DashboardScreen() {
       displayText = trimmed + "...";
     }
 
+    
+  
+  
     return (
       <View style={{ overflow: expanded ? "visible" : "hidden" }}>
         <Text style={style}>
@@ -405,6 +454,7 @@ export default function DashboardScreen() {
     );
   };
 
+  
   return (
     <SafeAreaView style={styles.container}>
       <DashboardHeader />
