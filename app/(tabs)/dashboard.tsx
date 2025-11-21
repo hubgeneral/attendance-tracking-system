@@ -2,8 +2,9 @@ import CreatePasswordScreen from "@/components/ChangePasswordScreen";
 import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import {
+  useGetAttendanceByUserIdLazyQuery,
   useGetAttendanceByUsernameQuery,
-  useGetUserByIdQuery,
+  useGetUserByIdQuery
 } from "@/src/generated/graphql";
 import { AntDesign } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
@@ -42,9 +43,11 @@ Notifications.setNotificationHandler({
 
 const { width } = Dimensions.get("window");
 
-export default function DashboardScreen() {
-  const today = new Date().toISOString().slice(0, 10);
-  const [selectedDate] = useState(today);
+export default function DashboardScreen() 
+{
+  const presentDay = new Date().toISOString().slice(0, 10);
+
+  const [selectedDate] = useState(presentDay);
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
@@ -65,7 +68,7 @@ export default function DashboardScreen() {
   const { data, loading, error } = useGetAttendanceByUsernameQuery({
     variables: {
       username: currentUser?.userName ?? "",
-      day: today,
+      day: presentDay,
     },
   });
   const { data: userData } = useGetUserByIdQuery({
@@ -79,6 +82,60 @@ export default function DashboardScreen() {
   const [timeOffText, setTimeOffText] = useState<string>("-");
   const [geofenceStarted, setGeofenceStarted] = useState(false);
 
+  // Start User Attendance History ****************************************************************************************
+   // const [getAttendance, {uid_data,uid_loading,uid_error}] = useGetAttendanceByUserIdLazyQuery();
+   const [getAttendance, { data: uid_data, loading: uid_loading, error: uid_error }] = useGetAttendanceByUserIdLazyQuery();
+   
+   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null,null,]);
+  
+  const today = new Date().toISOString().split("T")[0];
+
+  const startDate = dateRange[0]? dateRange[0].toISOString().split("T")[0]: today;
+  const endDate = dateRange[1]? dateRange[1].toISOString().split("T")[0]: today;
+
+
+  // Helper to fetch attendance with safe guards
+  const fetchAttendanceForRange = (start: string, stop: string) => {
+    if (!currentUser?.id) return;
+    getAttendance({
+      variables: {
+        startdate: start,
+        stopdate: stop,
+        userid: Number(currentUser.id),
+      },
+    });
+  };
+ // fetch when date range is applied (only when both start & end are set)
+  useEffect(() => {
+    if (dateRange && dateRange[0] && dateRange[1]) {
+      fetchAttendanceForRange(startDate, endDate);
+    }
+    // intentionally do not fetch when only one boundary is set; wait for both
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, currentUser?.id]);
+
+
+   // fetch last 5 days history on mount (excluding today)
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const end = new Date(); // today
+    end.setDate(end.getDate() - 1); // yesterday
+    const start = new Date();
+    start.setDate(end.getDate() - 4); // 5 days total: end - 4
+    const startStr = start.toISOString().split("T")[0];
+    const endStr = end.toISOString().split("T")[0];
+    fetchAttendanceForRange(startStr, endStr);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
+
+// attendanceHistory: safely unwrap the lazy query result.
+  // The GraphQL shape is assumed to be uid_data.attendanceByUserId (array).
+  const attendanceHistory = Array.isArray(uid_data?.attendanceByUserId)
+    ? uid_data!.attendanceByUserId
+    : [];
+
+// End  User Attendance History ******************************************************************************************
   const formatTime = (dt: any) => {
     if (!dt) return "-";
     try {
@@ -255,6 +312,9 @@ export default function DashboardScreen() {
       displayText = trimmed + "...";
     }
 
+    
+  
+  
     return (
       <View style={{ overflow: expanded ? "visible" : "hidden" }}>
         <Text style={style}>
@@ -277,6 +337,7 @@ export default function DashboardScreen() {
     );
   };
 
+  
   return (
     <SafeAreaView style={styles.container}>
       <DashboardHeader />
@@ -348,64 +409,63 @@ export default function DashboardScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.historyList}>
-              {/* Example static history data with date strings matching DD/MM/YYYY */}
-              {(() => {
-                const exampleData = [
-                  { date: "02/10/2025", in: "8:00 AM", out: "5:00 PM" },
-                  { date: "03/10/2025", in: "8:02 AM", out: "4:59 PM" },
-                  { date: "04/10/2025", in: "8:05 AM", out: "5:10 PM" },
-                  { date: "05/10/2025", in: "8:00 AM", out: "5:00 PM" },
-                  { date: "06/10/2025", in: "8:15 AM", out: "5:05 PM" },
-                ];
+                <View style={styles.historyList}>
+                                                                        
+                            {/* Render attendanceHistory (safely handled) */}
+                              {attendanceHistory.length === 0 ? (
+                                <Text style={{ padding: 12, color: "#666" }}>
+                                  No history available
+                                </Text>
+                              ) : (
+                                attendanceHistory
+                                  // if the dateRange buttons are used, filter accordingly
+                                  .filter((d: any) => {
+                                    if (!rangeStart || !rangeEnd) return true;
+                                    // expecting d.date in DD/MM/YYYY
+                                    const parts = (d.currentDate || "").split("/");
+                                    if (parts.length !== 3) return true;
+                                    const dt = new Date(
+                                      Number(parts[2]),
+                                      Number(parts[1]) - 1,
+                                      Number(parts[0])
+                                    );
+                                    return (
+                                      dt.getTime() >= rangeStart.getTime() &&
+                                      dt.getTime() <= rangeEnd.getTime()
+                                    );
+                                  })
+                                  .map((item: any, index: number) => (
+                                    <TouchableOpacity
+                                      key={(item.currentDate ?? "") + "-" + index}
+                                      style={styles.historyItem}
+                                      onPress={() => toggleHistoryExpansion(index)}
+                                    >
+                                      <View style={styles.historyItemHeader}>
+                                        <Text style={styles.historyDate}>{item.currentDate}</Text>
+                                        <AntDesign
+                                          name={expandedHistory === index ? "up" : "down"}
+                                          size={12}
+                                          color="#666"
+                                        />
+                                      </View>
 
-                // filter by selected range if provided
-                const filtered = exampleData.filter((d) => {
-                  if (!rangeStart || !rangeEnd) return true;
-                  const parts = d.date.split("/");
-                  const dt = new Date(
-                    Number(parts[2]),
-                    Number(parts[1]) - 1,
-                    Number(parts[0])
-                  );
-                  return (
-                    dt.getTime() >= rangeStart.getTime() &&
-                    dt.getTime() <= rangeEnd.getTime()
-                  );
-                });
+                                      {expandedHistory === index && (
+                                        <View style={styles.historyDetails}>
+                                          <View style={styles.historyRow}>
+                                            <Text style={styles.historyLabel}>Clock In</Text>
+                                            <Text style={styles.historyValue}>{`${item.clockIn}`}</Text>
+                                          </View>
 
-                return filtered.map((item, index) => (
-                  <TouchableOpacity
-                    key={item.date + index}
-                    style={styles.historyItem}
-                    onPress={() => toggleHistoryExpansion(index)}
-                  >
-                    <View style={styles.historyItemHeader}>
-                      <Text style={styles.historyDate}>{item.date}</Text>
-                      <AntDesign
-                        name={expandedHistory === index ? "up" : "down"}
-                        size={12}
-                        color="#666"
-                      />
-                    </View>
-
-                    {expandedHistory === index && (
-                      <View style={styles.historyDetails}>
-                        <View style={styles.historyRow}>
-                          <Text style={styles.historyLabel}>Clock In</Text>
-                          <Text style={styles.historyValue}>{item.in}</Text>
-                        </View>
-
-                        <View style={styles.historyRow}>
-                          <Text style={styles.historyLabel}>Clock Out</Text>
-                          <Text style={styles.historyValue}>{item.out}</Text>
-                        </View>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                ));
-              })()}
-            </View>
+                                          <View style={styles.historyRow}>
+                                            <Text style={styles.historyLabel}>Clock Out</Text>
+                                            <Text style={styles.historyValue}>{item.clockOut}</Text>
+                                          </View>
+                                        </View>
+                                      )}
+                                    </TouchableOpacity>
+                                  ))
+                              )}
+                </View> 
           </View>
         </View>
 
