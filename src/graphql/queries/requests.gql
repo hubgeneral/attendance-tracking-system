@@ -1,0 +1,7 @@
+query GetRequestsByUserId($id: Int!) {
+  requestLogsByUserId(id: $id) {
+    id
+    reason
+    approvalStatus
+  }
+}
