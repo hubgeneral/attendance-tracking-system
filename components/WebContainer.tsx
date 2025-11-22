@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   },
   webContent: {
     width: "100%",
-    maxWidth: 490, 
+    maxWidth: "48%", 
     flex: 1,
     backgroundColor: "#f2f5f7",
     shadowColor: "#000",
