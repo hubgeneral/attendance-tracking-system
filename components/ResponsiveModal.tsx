@@ -9,7 +9,7 @@ interface ResponsiveModalProps extends ModalProps {
 
 export function ResponsiveModal({
   children,
-  maxWidth = 480,
+  maxWidth = 490,
   animationType,
   ...modalProps
 }: ResponsiveModalProps) {
