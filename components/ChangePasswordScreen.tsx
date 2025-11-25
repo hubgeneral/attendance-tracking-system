@@ -1,5 +1,5 @@
-import { useAuth } from "@/hooks/useAuth";
-import { useResetPasswordMutation } from "@/src/generated/graphql";
+import { useAuth } from "../hooks/useAuth";
+import { useResetPasswordMutation } from "../src/generated/graphql";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";

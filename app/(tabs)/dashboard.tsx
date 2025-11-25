@@ -1,5 +1,4 @@
-import CreatePasswordScreen from "@/components/ChangePasswordScreen";
-import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
+import GeolibFence, { PolygonEvent } from "../../components/GeolibFence";
 import HistorySection from "@/components/HistorySection";
 import MetricCards from "@/components/MetricCards";
 import RequestsSection from "@/components/RequestsSection";
@@ -7,12 +6,9 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   useGetAttendanceByUserIdLazyQuery,
   useGetAttendanceByUsernameQuery,
-  useGetRequestsByUserIdQuery,
   useGetUserByIdQuery,
-  useMakeARequestMutation,
-  useUpdateRequestMutation,
 } from "@/src/generated/graphql";
-import { AntDesign } from "@expo/vector-icons";
+// icon imports not used in this file (DashboardHeader/Profile handle icons)
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -35,6 +31,7 @@ import { OfficeRegion } from "../../components/GeolibFenceRegion";
 import StatusLabel from "../../components/StatusLabel";
 import { WebContainer } from "../../components/WebContainer";
 import { ResponsiveModal } from "../../components/ResponsiveModal";
+import { usePlatform } from "../../hooks/usePlatform";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -54,17 +51,8 @@ export default function DashboardScreen() {
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
   const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const { currentUser } = useAuth();
   const { shouldUseWebLayout, isWeb } = usePlatform();
-
-  const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
-
-  const [requestText, setRequestText] = useState("");
-  const [editingRequestId, setEditingRequestId] = useState<number | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFailure, setShowFailure] = useState(false);
-  const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const { data, loading, error, refetch } = useGetAttendanceByUsernameQuery({
@@ -76,46 +64,6 @@ export default function DashboardScreen() {
   const { data: userData } = useGetUserByIdQuery({
     variables: { id: Number(currentUser?.id) },
   });
-
-  const {
-    data: requestsData,
-    loading: requestsLoading,
-    refetch: refetchRequests,
-  } = useGetRequestsByUserIdQuery({
-    variables: { id: Number(currentUser?.id) },
-    skip: !currentUser?.id,
-  });
-
-  const [createRequest, { loading: createLoading }] = useMakeARequestMutation({
-    onCompleted: () => {
-      refetchRequests();
-      setRequestText("");
-      setModalVisible(false);
-      setTimeout(() => setShowSuccess(true), 300);
-    },
-    onError: (err: any) => {
-      console.error("Create request error:", err);
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-    },
-  });
-
-  const [updateRequest, { loading: updateLoading }] = useUpdateRequestMutation({
-    onCompleted: () => {
-      refetchRequests();
-      setRequestText("");
-      setEditingRequestId(null);
-      setModalVisible(false);
-      setTimeout(() => setShowSuccess(true), 300);
-    },
-    onError: (err: any) => {
-      console.error("Update request error:", err);
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-    },
-  });
-
-  const requests = requestsData?.requestLogsByUserId || [];
 
   // UI state for metric cards (updated when query result changes)
   const [clockInText, setClockInText] = useState<string>("-");
@@ -305,15 +253,6 @@ export default function DashboardScreen() {
   }, [keyboardOffset]);
 
   useEffect(() => {
-    if (currentUser?.isPasswordReset) {
-      console.log("gg", "truel");
-      setIsChangePasswordVisible(true);
-    } else {
-      setIsChangePasswordVisible(false);
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
     if (geofenceStarted) {
       refetch({ username: currentUser?.userName ?? "", day: today });
     }
@@ -322,55 +261,6 @@ export default function DashboardScreen() {
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
   };
-
-  const handleSubmitRequest = async () => {
-    if (!requestText.trim()) {
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-      return;
-    }
-
-    try {
-      if (editingRequestId) {
-        await updateRequest({
-          variables: {
-            requestId: editingRequestId,
-            reason: requestText.trim(),
-          },
-        });
-      } else {
-        await createRequest({
-          variables: {
-            userId: Number(currentUser?.id),
-            reason: requestText.trim(),
-          },
-        });
-      }
-    } catch (err) {
-      console.error("Submit error:", err);
-    }
-  };
-
-  const handleNewRequest = () => {
-    setEditingRequestId(null);
-    setRequestText("");
-    setModalVisible(true);
-  };
-
-  const handleEditRequest = (request: any) => {
-    const status = getStatusForDisplay(request.approvalStatus);
-    if (status === "pending") {
-      setEditingRequestId(request.id);
-      setRequestText(request.reason);
-      setModalVisible(true);
-    }
-  };
-
-  useEffect(() => {
-    if (editingRequestId !== null) {
-      setShowAllRequests(false);
-    }
-  }, [editingRequestId]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -479,259 +369,14 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-        {/* Metric Cards */}
-        <MetricCards />
+          {/* Metric Cards */}
+          <MetricCards />
 
-        {/* History Section */}
-        <HistorySection rangeStart={null} rangeEnd={null} />
+          {/* History Section */}
+          <HistorySection rangeStart={null} rangeEnd={null} />
 
-        {/* Requests Section */}
-        <RequestsSection />
-
-        {/*Modal for creating a new password*/}
-        <Modal
-          visible={isChangePasswordVisible}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setIsChangePasswordVisible(false)}
-        >
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.bottomModalOverlay2}
-          >
-            <Animated.View
-              style={[
-                styles.bottomModalContent2,
-                { transform: [{ translateY: keyboardOffset }] },
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.modalClose2}
-                onPress={() =>
-                  setIsChangePasswordVisible(!currentUser?.isPasswordReset)
-                }
-              >
-                {currentUser?.isPasswordReset ? (
-                  <AntDesign name="close" size={18} color="#ccc" />
-                </TouchableOpacity>
-
-                <CreatePasswordScreen />
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </ResponsiveModal>
-
-          {/* Modal for making a request */}
-          <ResponsiveModal
-            visible={modalVisible}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setModalVisible(false)}
-            maxWidth={450}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.bottomModalContent,
-                  { transform: [{ translateY: keyboardOffset }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Text style={styles.modalTitle}>Requests</Text>
-                <View style={styles.inputWrapper}>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="Type your request here"
-                    value={requestText}
-                    onChangeText={setRequestText}
-                    multiline
-                    numberOfLines={5}
-                    textAlignVertical="top"
-                  />
-                </View>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={handleSubmitRequest}
-                >
-                  <Text style={styles.modalButtonText}>Submit Request</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </ResponsiveModal>
-
-          {/* Success Modal */}
-          <ResponsiveModal
-            visible={showSuccess}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowSuccess(false)}
-            maxWidth={400}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.bottomModalContent,
-                  { transform: [{ translateY: keyboardOffset }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowSuccess(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Image
-                  source={require("../../assets/images/form_success.png")}
-                  style={styles.successImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.successText}>
-                  Your request has been submitted successfully.
-                </Text>
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </ResponsiveModal>
-
-          {/* Failure Modal */}
-          <ResponsiveModal
-            visible={showFailure}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowFailure(false)}
-            maxWidth={400}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.bottomModalContent,
-                  { transform: [{ translateY: keyboardOffset }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowFailure(false)}
-                >
-                  <AntDesign name="close" size={22} color="#ccc" />
-                </TouchableOpacity>
-                <Image
-                  source={require("../../assets/images/form_warning.png")}
-                  style={styles.failureImage}
-                  resizeMode="contain"
-                />
-                <Text style={styles.failureText}>
-                  Sorry, we could not submit your request.
-                </Text>
-                <TouchableOpacity
-                  style={styles.modalButton}
-                  onPress={() => {
-                    setShowFailure(false);
-                    setModalVisible(true);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Try Again</Text>
-                </TouchableOpacity>
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </ResponsiveModal>
-
-          {/* View All Requests Modal */}
-          <ResponsiveModal
-            visible={showAllRequests}
-            animationType="slide"
-            transparent
-            onRequestClose={() => setShowAllRequests(false)}
-            maxWidth={500}
-          >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.bottomModalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.allRequestsModalContent,
-                  { transform: [{ translateY: keyboardOffset }] },
-                ]}
-              >
-                <TouchableOpacity
-                  style={styles.modalClose}
-                  onPress={() => setShowAllRequests(false)}
-                >
-                  <AntDesign name="close" size={15} color="#797979" />
-                </TouchableOpacity>
-                <Text style={styles.allRequestsTitle}>All Requests</Text>
-                <FlatList
-                  data={requests}
-                  keyExtractor={(_, idx) => idx.toString()}
-                  renderItem={({ item, index }) => (
-                    <View
-                      style={[
-                        styles.allRequestItem,
-                        styles.allRequestItemWithButton,
-                      ]}
-                    >
-                      <View style={styles.allRequestHeader}>
-                        <Text style={styles.allRequestDate}>{item.date}</Text>
-                        <View
-                          style={{ position: "absolute", top: 0, right: 0 }}
-                        >
-                          <View
-                            style={[
-                              styles.statusBadge,
-                              item.status === "approved"
-                                ? styles.statusBadge_approved
-                                : item.status === "pending"
-                                ? styles.statusBadge_pending
-                                : styles.statusBadge_rejected,
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.statusBadgeText,
-                                item.status === "approved"
-                                  ? styles.statusBadgeText_approved
-                                  : item.status === "pending"
-                                  ? styles.statusBadgeText_pending
-                                  : styles.statusBadgeText_rejected,
-                              ]}
-                            >
-                              {item.status.charAt(0).toUpperCase() +
-                                item.status.slice(1)}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      {item.text.length > 99 ? (
-                        <ReadMoreText
-                          text={item.text}
-                          numberOfLines={4}
-                          style={styles.allRequestText}
-                        />
-                      ) : (
-                        <Text style={styles.allRequestText}>{item.text}</Text>
-                      )}
-                    </View>
-                  )}
-                  showsVerticalScrollIndicator={true}
-                  style={{ width: "100%" }}
-                  contentContainerStyle={{ paddingBottom: 16 }}
-                />
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </ResponsiveModal>
+          {/* Requests Section */}
+          <RequestsSection />
         </ScrollView>
         {/* //  this will only render after geofencing has started to avoid multiple initializations */}
         {geofenceStarted && (
