@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: 10,
-    backgroundColor: "#fff",
+    backgroundColor: "#581515ff",
   },
   title: {
     textAlign: "center",
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 8,
     paddingHorizontal: 0,
-    marginVertical: 10,
+    marginVertical:10,
   },
   input: {
     flex: 1,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#004E2B",
     borderRadius: 4,
-    paddingVertical: 20,
+    paddingVertical:20,
     alignItems: "center",
     marginTop: 8,
     width: "100%",

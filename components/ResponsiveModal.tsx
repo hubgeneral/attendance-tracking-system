@@ -1,16 +1,19 @@
 import React from "react";
-import { View, StyleSheet, Modal, ModalProps } from "react-native";
+import { StyleSheet, Modal, ModalProps, Pressable } from "react-native";
 import { usePlatform } from "../hooks/usePlatform";
 
 interface ResponsiveModalProps extends ModalProps {
   children: React.ReactNode;
   maxWidth?: number;
+  useWebContainer?: boolean;
 }
 
 export function ResponsiveModal({
   children,
   maxWidth = 490,
   animationType,
+  useWebContainer = false,
+  onRequestClose,
   ...modalProps
 }: ResponsiveModalProps) {
   const { shouldUseWebLayout } = usePlatform();
@@ -20,13 +23,29 @@ export function ResponsiveModal({
     shouldUseWebLayout && animationType === "slide" ? "fade" : animationType;
 
   return (
-    <Modal {...modalProps} animationType={webAnimationType}>
+    <Modal
+      {...modalProps}
+      animationType={webAnimationType}
+      onRequestClose={onRequestClose}
+    >
       {shouldUseWebLayout ? (
-        <View style={styles.webWrapper}>
-          <View style={[styles.webContent, { maxWidth }, styles.webContainer]}>
-            {children}
-          </View>
-        </View>
+        <Pressable style={styles.webWrapper} onPress={onRequestClose}>
+          {useWebContainer ? (
+            <Pressable
+              style={[styles.webContent, { maxWidth }, styles.webContainer]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {children}
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[styles.webContent, { maxWidth }]}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {children}
+            </Pressable>
+          )}
+        </Pressable>
       ) : (
         <>{children}</>
       )}
@@ -51,6 +70,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 48,
+    paddingBottom: 80,
   },
 });

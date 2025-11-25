@@ -1284,7 +1284,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 16,
-    maxHeight: "90%",
+    maxHeight: "100%",
   },
 
   modalClose2: {

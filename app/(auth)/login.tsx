@@ -320,6 +320,7 @@ export default function LoginScreen() {
             animationType="fade"
             onRequestClose={() => setShowCreatePassword(false)}
             maxWidth={420}
+            useWebContainer={true}
           >
             {shouldUseWebLayout ? (
               <View style={{ width: "100%" }}>
@@ -371,6 +372,8 @@ export default function LoginScreen() {
                 >
                   <Text style={styles.modalButtonText}>Create Password</Text>
                 </TouchableOpacity>
+                {/* spacer to ensure white container extends below button on web */}
+                <View style={{ height: 20 }} />
               </View>
             ) : (
               <KeyboardAvoidingView
