@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 56,
     marginBottom: 15,
+    pointerEvents: "box-none",
   },
   label: {
     position: "absolute",

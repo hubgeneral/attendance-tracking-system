@@ -30,7 +30,7 @@ const getConfig = (): AppConfig => {
 
   // Base configurations - pick from env or default to localhost
   const initialApiBase =
-    process.env.EXPO_PUBLIC_API_BASE_URL ||
+    process.env.EXPO_PUBLIC_API_BASE_URL  || "http://localhost:5015/graphql" ||
     "https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/";
 
   // If running on Android emulator, requests to 'localhost' should go to 10.0.2.2

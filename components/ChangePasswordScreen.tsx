@@ -1,67 +1,62 @@
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { useResetPasswordMutation } from "@/src/generated/graphql";
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FloatingLabelInput from "../components/FloatingLabelInput";
-import { useResetPasswordMutation } from "@/src/generated/graphql";
-
-
 
 export default function CreatePasswordScreen({ isPasswordReset }: any) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  });
 
-  const { currentUser, updateUser } = useAuth();
-  const [resetPasswordMutation, { data, loading, error }] = useResetPasswordMutation();
-
-
-
-  type ShowField = "current" | "new" | "confirm";
-
-  const toggleVisibility = (field: ShowField) => {
-    setShowPassword((prev) => ({ ...prev, [field]: !prev[field] }));
-  };
+  const { currentUser, updateUserAndPersist, refreshCurrentUser } = useAuth();
+  const [resetPasswordMutation, { loading }] = useResetPasswordMutation();
 
   const handleResetPassword = async () => {
-  if (!newPassword || !confirmPassword) {
-    Alert.alert("Missing Fields", "Please fill in all password fields.");
-    return;
-  }
-
-  if (newPassword !== confirmPassword) {
-    Alert.alert("Mismatch", "New password and confirm password must match.");
-    return;
-  }
-
-  try {
-    const response = await resetPasswordMutation({
-      variables: {
-        userName: currentUser?.userName!,
-        newPassword,
-        token: currentUser?.resetToken!, 
-      },
-    });
-
-    const result = response.data?.resetPassword;
-    if (result?.isPasswordReset) {
-      Alert.alert("Success", result.message || "Password reset successfully.");
-      setNewPassword("");
-      setConfirmPassword("");
-    } else {
-      Alert.alert("Failed", result?.message || "Password reset failed.");
+    if (!newPassword || !confirmPassword) {
+      Alert.alert("Missing Fields", "Please fill in all password fields.");
+      return;
     }
-  } catch (err) {
-    Alert.alert("Error", "Something went wrong. Please try again.");
-  }
-};
 
+    if (newPassword !== confirmPassword) {
+      Alert.alert("Mismatch", "New password and confirm password must match.");
+      return;
+    }
 
-  
+    try {
+      const response = await resetPasswordMutation({
+        variables: {
+          userName: currentUser?.userName!,
+          newPassword,
+          token: currentUser?.resetToken!,
+        },
+      });
+
+      const result = response.data?.resetPassword;
+      if (result?.isPasswordReset) {
+        Alert.alert(
+          "Success",
+          result.message || "Password reset successfully."
+        );
+        // Update current user with new isPasswordReset status and persist to storage
+        if (currentUser) {
+          await updateUserAndPersist({
+            ...currentUser,
+            isPasswordReset: result.isPasswordReset,
+          });
+          // Refresh currentUser from storage to update context
+          await refreshCurrentUser();
+        }
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        Alert.alert("Failed", result?.message || "Password reset failed.");
+      }
+    } catch {
+      Alert.alert("Error", "Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <View>
       {isPasswordReset ? (

@@ -73,6 +73,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       }).start();
     });
 
+   
     const hideSub = Keyboard.addListener(hideEvent, () => {
       Animated.timing(keyboardOffset, {
         toValue: 0,
@@ -86,6 +87,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
       hideSub.remove();
     };
   }, []);
+
+
 
   return (
     <View style={styles.container}>
