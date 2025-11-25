@@ -23,7 +23,9 @@ export function ResponsiveModal({
     <Modal {...modalProps} animationType={webAnimationType}>
       {shouldUseWebLayout ? (
         <View style={styles.webWrapper}>
-          <View style={[styles.webContent, { maxWidth }]}>{children}</View>
+          <View style={[styles.webContent, { maxWidth }, styles.webContainer]}>
+            {children}
+          </View>
         </View>
       ) : (
         <>{children}</>
@@ -37,9 +39,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingHorizontal: 20,
   },
   webContent: {
     width: "100%",
     alignSelf: "center",
+  },
+  webContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 48,
   },
 });

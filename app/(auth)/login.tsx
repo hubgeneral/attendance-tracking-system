@@ -44,6 +44,11 @@ export default function LoginScreen() {
   const { login } = useAuth();
   const { shouldUseWebLayout } = usePlatform();
 
+  const WINDOW_HEIGHT = Dimensions.get("window").height;
+  const webCreateModalStyle = shouldUseWebLayout
+    ? ({ paddingBottom: 72, maxHeight: WINDOW_HEIGHT * 0.82 } as any)
+    : null;
+
   // const handleLogin = async () => {
   //   try {
   //     await login({ employeeId: employeeId.trim(), password: password.trim() });
@@ -316,17 +321,8 @@ export default function LoginScreen() {
             onRequestClose={() => setShowCreatePassword(false)}
             maxWidth={420}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.modal,
-                  styles.createModal,
-                  { transform: [{ translateY: modalY }] },
-                ]}
-              >
+            {shouldUseWebLayout ? (
+              <View style={{ width: "100%" }}>
                 <TouchableOpacity
                   style={styles.modalClose}
                   onPress={() => setShowCreatePassword(false)}
@@ -375,8 +371,71 @@ export default function LoginScreen() {
                 >
                   <Text style={styles.modalButtonText}>Create Password</Text>
                 </TouchableOpacity>
-              </Animated.View>
-            </KeyboardAvoidingView>
+              </View>
+            ) : (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={styles.modalOverlay}
+              >
+                <Animated.View
+                  style={[
+                    styles.modal,
+                    styles.createModal,
+                    webCreateModalStyle,
+                    { transform: [{ translateY: modalY }] },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setShowCreatePassword(false)}
+                  >
+                    <AntDesign name="close" size={20} color="#797979" />
+                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle]}>Create New Password</Text>
+
+                  <FloatingLabelInput
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="New Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
+                  />
+
+                  <FloatingLabelInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => {
+                      if (!newPassword || !confirmPassword) {
+                        Alert.alert(
+                          "Missing details",
+                          "Please enter both New Password and Confirm Password."
+                        );
+                        return;
+                      }
+
+                      setShowCreatePassword(false);
+                      if (newPassword === confirmPassword) {
+                        setShowResetSuccess(true);
+                        // clear fields
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      } else {
+                        setShowResetFailure(true);
+                      }
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Create Password</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </KeyboardAvoidingView>
+            )}
           </ResponsiveModal>
           <ResponsiveModal
             visible={showResetSuccess}
@@ -479,7 +538,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "flex-end",
   },
   modal: {
