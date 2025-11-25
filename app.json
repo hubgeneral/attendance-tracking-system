@@ -35,15 +35,17 @@
         "ACCESS_BACKGROUND_LOCATION",
         "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION"
+        "FOREGROUND_SERVICE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
-      "bundler" : "metro",
+      "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": [     
+    "plugins": [
       [
         "expo-splash-screen",
         {
@@ -57,7 +59,7 @@
           }
         }
       ],
-       "expo-router",
+      "expo-router",
       [
         "expo-location",
         {
@@ -75,10 +77,11 @@
       "reactCompiler": true
     },
     "extra": {
-     /*  "router" : {
-         "origin" : false
-      }, */
-      "owner": "illusionalgod"
+      "owner": "illusionalgod",
+      "router": {},
+      "eas": {
+        "projectId": "5c6347c9-5ce9-4f1b-bdd4-0e7a898f5c8c"
+      }
     }
   }
 }

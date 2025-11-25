@@ -5,3 +5,12 @@ query getAttendanceByUsername($day: LocalDate!, $username: String!) {
     totalHoursWorked
   }
 }
+
+
+query getAttendanceByUserId($userid : Int!, $startdate: LocalDate!,$stopdate: LocalDate!) {
+  attendanceByUserId(userId: $userid, startDate: $startdate, stopDate:$stopdate) {
+    clockIn 
+    clockOut 
+    currentDate 
+  }
+}

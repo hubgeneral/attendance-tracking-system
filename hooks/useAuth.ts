@@ -17,7 +17,7 @@ interface UseAuthProps {
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
-  setAuthData: (user: UserLoginResponse, accessToken: string) => void;
+  setAuthData: (user: UserLoginResponse) => void;
   updateUser: (user: UserLoginResponse) => void;
   updateUserAndPersist: (user: UserLoginResponse) => Promise<void>;
   updateAccessToken: (accessToken: string) => void;

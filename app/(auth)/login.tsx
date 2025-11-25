@@ -1,4 +1,5 @@
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
+import { usePlatform } from "@/hooks/usePlatform";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +11,6 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   Text,
@@ -22,6 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FloatingLabelInput from "../../components/FloatingLabelInput";
 import LogoRow from "../../components/LogoRow";
 import PrimaryButton from "../../components/PrimaryButton";
+import { WebContainer } from "../../components/WebContainer";
+import { ResponsiveModal } from "../../components/ResponsiveModal";
 const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
@@ -40,6 +42,12 @@ export default function LoginScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { login } = useAuth();
+  const { shouldUseWebLayout } = usePlatform();
+
+  const WINDOW_HEIGHT = Dimensions.get("window").height;
+  const webCreateModalStyle = shouldUseWebLayout
+    ? ({ paddingBottom: 72, maxHeight: WINDOW_HEIGHT * 0.82 } as any)
+    : null;
 
   // const handleLogin = async () => {
   //   try {
@@ -65,19 +73,18 @@ export default function LoginScreen() {
   // };
 
   const handleLogin = async () => {
-  try {
-    await login({ employeeId: employeeId.trim(), password: password.trim() });
+    try {
+      await login({ employeeId: employeeId.trim(), password: password.trim() });
 
-   
-    // await AsyncStorage.setItem("USER_ID", employeeId.trim());
-    // console.log("UserId stored for geofence:", employeeId.trim());
+      // await AsyncStorage.setItem("USER_ID", employeeId.trim());
+      // console.log("UserId stored for geofence:", employeeId.trim());
 
-    router.replace("/(tabs)/dashboard");
-  } catch (error) {
-    console.error("Login failed:", error);
-    Alert.alert("Login Failed", "Invalid credentials");
-  }
-};
+      router.replace("/(tabs)/dashboard");
+    } catch (error) {
+      console.error("Login failed:", error);
+      Alert.alert("Login Failed", "Invalid credentials");
+    }
+  };
 
   useEffect(() => {
     const showEvent =
@@ -204,7 +211,12 @@ export default function LoginScreen() {
             <PrimaryButton title="Login" onPress={handleLogin} />
           </View>
 
-          <Modal visible={showReset} transparent animationType="fade">
+          <ResponsiveModal
+            visible={showReset}
+            transparent
+            animationType="fade"
+            maxWidth={420}
+          >
             <TouchableWithoutFeedback
               onPress={() => {
                 Keyboard.dismiss();
@@ -298,27 +310,20 @@ export default function LoginScreen() {
                 </Animated.View>
               </View>
             </TouchableWithoutFeedback>
-          </Modal>
+          </ResponsiveModal>
 
           {/* Success modal for password reset */}
           {/* Create New Password modal */}
-          <Modal
+          <ResponsiveModal
             visible={showCreatePassword}
             transparent
             animationType="fade"
             onRequestClose={() => setShowCreatePassword(false)}
+            maxWidth={420}
+            useWebContainer={true}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalOverlay}
-            >
-              <Animated.View
-                style={[
-                  styles.modal,
-                  styles.createModal,
-                  { transform: [{ translateY: modalY }] },
-                ]}
-              >
+            {shouldUseWebLayout ? (
+              <View style={{ width: "100%" }}>
                 <TouchableOpacity
                   style={styles.modalClose}
                   onPress={() => setShowCreatePassword(false)}
@@ -367,14 +372,80 @@ export default function LoginScreen() {
                 >
                   <Text style={styles.modalButtonText}>Create Password</Text>
                 </TouchableOpacity>
-              </Animated.View>
-            </KeyboardAvoidingView>
-          </Modal>
-          <Modal
+                {/* spacer to ensure white container extends below button on web */}
+                <View style={{ height: 20 }} />
+              </View>
+            ) : (
+              <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={styles.modalOverlay}
+              >
+                <Animated.View
+                  style={[
+                    styles.modal,
+                    styles.createModal,
+                    webCreateModalStyle,
+                    { transform: [{ translateY: modalY }] },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setShowCreatePassword(false)}
+                  >
+                    <AntDesign name="close" size={20} color="#797979" />
+                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle]}>Create New Password</Text>
+
+                  <FloatingLabelInput
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                    placeholder="New Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
+                  />
+
+                  <FloatingLabelInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm Password"
+                    secureTextEntry={true}
+                    showPasswordToggle={true}
+                  />
+
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => {
+                      if (!newPassword || !confirmPassword) {
+                        Alert.alert(
+                          "Missing details",
+                          "Please enter both New Password and Confirm Password."
+                        );
+                        return;
+                      }
+
+                      setShowCreatePassword(false);
+                      if (newPassword === confirmPassword) {
+                        setShowResetSuccess(true);
+                        // clear fields
+                        setNewPassword("");
+                        setConfirmPassword("");
+                      } else {
+                        setShowResetFailure(true);
+                      }
+                    }}
+                  >
+                    <Text style={styles.modalButtonText}>Create Password</Text>
+                  </TouchableOpacity>
+                </Animated.View>
+              </KeyboardAvoidingView>
+            )}
+          </ResponsiveModal>
+          <ResponsiveModal
             visible={showResetSuccess}
             transparent
             animationType="fade"
             onRequestClose={() => setShowResetSuccess(false)}
+            maxWidth={400}
           >
             <View style={styles.modalOverlay}>
               <View style={styles.modal}>
@@ -394,14 +465,15 @@ export default function LoginScreen() {
                 </Text>
               </View>
             </View>
-          </Modal>
+          </ResponsiveModal>
 
           {/* Failure modal for password reset */}
-          <Modal
+          <ResponsiveModal
             visible={showResetFailure}
             transparent
             animationType="fade"
             onRequestClose={() => setShowResetFailure(false)}
+            maxWidth={400}
           >
             <View style={styles.modalOverlay}>
               <View style={[styles.modal, styles.compactModal]}>
@@ -424,7 +496,7 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </Modal>
+          </ResponsiveModal>
         </Animated.View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -469,7 +541,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "flex-end",
   },
   modal: {

@@ -1,18 +1,21 @@
 import React, { useState } from "react";
 import {
   Image,
-  Modal,
   Pressable,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileCard from "../components/Profile";
 import { useBreakpoint } from "../hooks/useBreakpoint";
+import { usePlatform } from "../hooks/usePlatform";
+import { ResponsiveModal } from "./ResponsiveModal";
 
 export default function DashboardHeader() {
   const [isProfileVisible, setIsProfileVisible] = useState(false);
   const bp = useBreakpoint();
+  const { shouldUseWebLayout } = usePlatform();
   const headerPadding =
     bp === "xs" ? 4 : bp === "s" ? 8 : bp === "m" ? 16 : bp === "l" ? 24 : 32;
   const logoWidth =
@@ -68,30 +71,52 @@ export default function DashboardHeader() {
         />
       </TouchableOpacity>
       {/* Modal for ProfileCard */}
-      <Modal
+      <ResponsiveModal
         transparent
         animationType="fade"
         visible={isProfileVisible}
         onRequestClose={() => setIsProfileVisible(false)}
+        maxWidth={350}
       >
-        {/* Outer Pressable closes modal */}
-        <Pressable
-          style={styles.modalBackground}
-          onPress={() => setIsProfileVisible(false)}
-        >
+        {shouldUseWebLayout ? (
           <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={styles.modalContentContainer}
+            style={styles.fullScreenOverlay}
+            onPress={() => setIsProfileVisible(false)}
           >
-            <ProfileCard
-              onChangePassword={() => {
-                setIsProfileVisible(false);
-                console.log("Change Password pressed");
-              }}
-            />
+            <Pressable
+              onPress={(e) => e.stopPropagation()}
+              style={styles.webModalContent}
+            >
+              <ProfileCard
+                onChangePassword={() => {
+                  setIsProfileVisible(false);
+                  console.log("Change Password pressed");
+                }}
+              />
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
+        ) : (
+          <>
+            {/* Outer Pressable closes modal */}
+            <Pressable
+              style={styles.modalBackground}
+              onPress={() => setIsProfileVisible(false)}
+            >
+              <Pressable
+                onPress={(e) => e.stopPropagation()}
+                style={styles.modalContentContainer}
+              >
+                <ProfileCard
+                  onChangePassword={() => {
+                    setIsProfileVisible(false);
+                    console.log("Change Password pressed");
+                  }}
+                />
+              </Pressable>
+            </Pressable>
+          </>
+        )}
+      </ResponsiveModal>
     </SafeAreaView>
   );
 }
@@ -112,23 +137,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
-  //   modalBackground: {
-  //   flex: 1,
-  //   backgroundColor: "rgba(0,0,0,0.5)",
-  //   justifyContent: "flex-start",
-  //   alignItems: "flex-end",
-  //   marginTop: -20,
-  //   marginRight: -40,
-  // },
-
-  //   modalBackground: {
-  //   flex: 1,
-  //   backgroundColor: "rgba(0,0,0,0.5)",
-  //   justifyContent: "flex-start",
-  //   alignItems: "flex-end",
-  //   paddingTop: 0,
-  //   paddingRight: 0,
-  // },
+  fullScreenOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  webModalContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
   modalBackground: {
     flex: 1,
     backgroundColor: "transparent",

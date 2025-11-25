@@ -1,5 +1,6 @@
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
+import { Dimensions } from "react-native";
 
 import { useAuth } from "../hooks/useAuth";
 import { useGetUserByIdQuery } from "@/src/generated/graphql";
@@ -8,14 +9,15 @@ import {
   Animated,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { usePlatform } from "../hooks/usePlatform";
 import CreatePasswordScreen from "../components/ChangePasswordScreen";
+import { ResponsiveModal } from "./ResponsiveModal";
 
 interface ProfileCardProps {
   name?: string;
@@ -33,6 +35,11 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
   // onLogout,
 }) => {
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
+  const { shouldUseWebLayout } = usePlatform();
+  const WINDOW_HEIGHT = Dimensions.get("window").height;
+  const webModalOverride = shouldUseWebLayout
+    ? ({ paddingBottom: 72, maxHeight: WINDOW_HEIGHT * 0.82 } as any)
+    : null;
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const { currentUser, logout } = useAuth();
@@ -110,11 +117,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <Text style={[styles.optionText, styles.logoutText]}>Log out</Text>
       </TouchableOpacity>
 
-      <Modal
+      <ResponsiveModal
         visible={isChangePasswordVisible}
         animationType="slide"
         transparent
         onRequestClose={() => setIsChangePasswordVisible(false)}
+        maxWidth={450}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -123,6 +131,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
           <Animated.View
             style={[
               styles.bottomModalContent,
+              webModalOverride,
               { transform: [{ translateY: keyboardOffset }] },
             ]}
           >
@@ -136,7 +145,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             <CreatePasswordScreen />
           </Animated.View>
         </KeyboardAvoidingView>
-      </Modal>
+      </ResponsiveModal>
     </View>
   );
 };
@@ -220,7 +229,8 @@ const styles = StyleSheet.create({
     width: "100%",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 16,
+    padding: 20,
+    paddingBottom: 40,
     maxHeight: "90%",
   },
 
