@@ -1313,6 +1313,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   metricCard_web: {
-    width: 430,
+    width: "100%",
   },
 });
