@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   metricCard: {
-    width: (width - 52) / 2,
+    width: "100%",
     backgroundColor: "#fff",
     padding: 16,
     position: "relative",
