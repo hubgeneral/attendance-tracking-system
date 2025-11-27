@@ -1,3 +1,4 @@
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
   Image,
@@ -5,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileCard from "../components/Profile";
@@ -17,16 +19,16 @@ export default function DashboardHeader() {
     bp === "xs" ? 4 : bp === "s" ? 8 : bp === "m" ? 16 : bp === "l" ? 24 : 32;
   const logoWidth =
     bp === "xs"
-      ? 60
-      : bp === "s"
       ? 80
-      : bp === "m"
+      : bp === "s"
       ? 110
-      : bp === "l"
+      : bp === "m"
       ? 130
-      : 160;
+      : bp === "l"
+      ? 160
+      : 190;
   const logoHeight =
-    bp === "xs" ? 20 : bp === "s" ? 28 : bp === "m" ? 36 : bp === "l" ? 44 : 56;
+    bp === "xs" ? 36 : bp === "s" ? 44 : bp === "m" ? 56 : bp === "l" ? 62 : 74;
   const profileSize =
     bp === "xs" ? 20 : bp === "s" ? 28 : bp === "m" ? 36 : bp === "l" ? 44 : 56;
 
@@ -38,61 +40,72 @@ export default function DashboardHeader() {
   //   .toUpperCase();
 
   return (
-    <SafeAreaView
-      edges={[]}
-      style={[
-        styles.header,
-        { paddingHorizontal: headerPadding, paddingVertical: headerPadding },
-      ]}
-    >
-      <Image
-        source={require("../assets/images/hm-clockr.png")}
-        style={{ width: logoWidth, height: logoHeight }}
-        resizeMode="contain"
-      />
-      <TouchableOpacity
-        style={[
-          styles.profileIcon,
-          {
-            width: profileSize,
-            height: profileSize,
-            borderRadius: profileSize / 0.5,
-          },
-        ]}
-        onPress={() => setIsProfileVisible(true)}
-      >
-        <Image
-          source={require("../assets/images/profile.png")}
-          style={{ width: 12, height: 12 }}
-          resizeMode="cover"
+    <>
+      <SafeAreaView edges={[]}>
+        <StatusBar
+          style="dark"
+          backgroundColor="#f81d1d12"
+          translucent={false}
         />
-      </TouchableOpacity>
-      {/* Modal for ProfileCard */}
-      <Modal
-        transparent
-        animationType="fade"
-        visible={isProfileVisible}
-        onRequestClose={() => setIsProfileVisible(false)}
-      >
-        {/* Outer Pressable closes modal */}
-        <Pressable
-          style={styles.modalBackground}
-          onPress={() => setIsProfileVisible(false)}
+        <View
+          style={[
+            styles.header,
+            {
+              paddingHorizontal: headerPadding,
+              paddingVertical: headerPadding,
+            },
+          ]}
         >
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={styles.modalContentContainer}
+          <Image
+            source={require("../assets/images/hm-clockr.png")}
+            style={{ width: logoWidth, height: logoHeight }}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            style={[
+              styles.profileIcon,
+              {
+                width: profileSize,
+                height: profileSize,
+                borderRadius: profileSize / 0.5,
+              },
+            ]}
+            onPress={() => setIsProfileVisible(true)}
           >
-            <ProfileCard
-              onChangePassword={() => {
-                setIsProfileVisible(false);
-                console.log("Change Password pressed");
-              }}
+            <Image
+              source={require("../assets/images/profile.png")}
+              style={{ width: 12, height: 12 }}
+              resizeMode="cover"
             />
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </SafeAreaView>
+          </TouchableOpacity>
+          {/* Modal for ProfileCard */}
+          <Modal
+            transparent
+            animationType="fade"
+            visible={isProfileVisible}
+            onRequestClose={() => setIsProfileVisible(false)}
+          >
+            {/* Outer Pressable closes modal */}
+            <Pressable
+              style={styles.modalBackground}
+              onPress={() => setIsProfileVisible(false)}
+            >
+              <Pressable
+                onPress={(e) => e.stopPropagation()}
+                style={styles.modalContentContainer}
+              >
+                <ProfileCard
+                  onChangePassword={() => {
+                    setIsProfileVisible(false);
+                    console.log("Change Password pressed");
+                  }}
+                />
+              </Pressable>
+            </Pressable>
+          </Modal>
+        </View>
+      </SafeAreaView>
+    </>
   );
 }
 

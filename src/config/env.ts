@@ -1,6 +1,5 @@
 import { Platform } from "react-native";
 
-// Environment types
 export enum Environment {
   DEVELOPMENT = "development",
   LOCAL = "local",
@@ -8,80 +7,105 @@ export enum Environment {
   PRODUCTION = "production",
 }
 
-// Configuration interface
 interface AppConfig {
   GRAPHQL_ENDPOINT: string;
   API_BASE_URL: string;
   APP_ENV: Environment;
-  IS_DEV: boolean;
+  // IS_DEV: boolean;
 }
 
-// Get current environment from process.env or default to development
+/* -------------------------------------------
+ * Default config for ALL environments
+ * ----------------------------------------- */
+
+const FALLBACK_CONFIG = {
+  [Environment.LOCAL]: {
+    API_BASE_URL: "http://localhost:5015",
+    GRAPHQL_ENDPOINT: "http://localhost:5015/graphql",
+  },
+  [Environment.DEVELOPMENT]: {
+    API_BASE_URL: "https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/",
+    GRAPHQL_ENDPOINT:
+      "https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/graphql/",
+  },
+  [Environment.STAGING]: {
+    API_BASE_URL: "https://staging.myapp.com",
+    GRAPHQL_ENDPOINT: "https://staging.myapp.com/graphql",
+  },
+  [Environment.PRODUCTION]: {
+    API_BASE_URL: "https://api.myapp.com",
+    GRAPHQL_ENDPOINT: "https://api.myapp.com/graphql",
+  },
+};
+
+/* -------------------------------------------
+ * Helpers
+ * ----------------------------------------- */
+
 const getCurrentEnvironment = (): Environment => {
   const env = process.env.EXPO_PUBLIC_APP_ENV as Environment;
-  return env && Object.values(Environment).includes(env)
-    ? env
-    : Environment.LOCAL; // Default to LOCAL instead of DEVELOPMENT
-};
 
-// Environment-specific configurations
-const getConfig = (): AppConfig => {
-  const currentEnv = getCurrentEnvironment();
-
-  // Base configurations - pick from env or default to localhost
-  const initialApiBase =
-    process.env.EXPO_PUBLIC_API_BASE_URL  || "http://localhost:5015/graphql" ||
-    "https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/";
-
-  // If running on Android emulator, requests to 'localhost' should go to 10.0.2.2
-  // (Android emulator maps host machine localhost to 10.0.2.2)
-  const resolvedApiBase =
-    Platform.OS === "android" && initialApiBase.includes("localhost")
-      ? initialApiBase.replace("localhost", "10.0.2.2")
-      : initialApiBase;
-
-  const baseConfig = {
-    API_BASE_URL: resolvedApiBase,
-    APP_ENV: currentEnv,
-    IS_DEV: currentEnv === Environment.DEVELOPMENT,
-  };
-
-  // Platform-specific GraphQL endpoint handling
-  let graphqlEndpoint =
-    process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT || `${baseConfig.API_BASE_URL}/graphql/`;
-
-  // Also rewrite graphqlEndpoint if it contains localhost and we're on Android
-  if (Platform.OS === "android" && graphqlEndpoint.includes("localhost")) {
-    graphqlEndpoint = graphqlEndpoint.replace("localhost", "10.0.2.2");
+  // If env file exists → use it
+  if (env && Object.values(Environment).includes(env)) {
+    return env;
   }
 
-  return {
-    ...baseConfig,
-    GRAPHQL_ENDPOINT: graphqlEndpoint,
-  };
+  // If .env does not exist → fallback to LOCAL
+  return Environment.LOCAL;
 };
 
-console.log("api base url", getConfig().API_BASE_URL);
-console.log("graphql endpoint", getConfig().GRAPHQL_ENDPOINT);
-console.log("environment", getConfig().APP_ENV);
+// Replace localhost for Android emulator
+const fixAndroidLocalhost = (url: string): string => {
+  if (Platform.OS === "android" && url.includes("localhost")) {
+    return url.replace("localhost", "10.0.2.2");
+  }
+  return url;
+};
 
-// Get the current configuration
-export const config = getConfig();
+/* -------------------------------------------
+ * Build Config
+ * ----------------------------------------- */
 
-// Helper functions
-export const getGraphQLEndpoint = (): string => config.GRAPHQL_ENDPOINT;
-export const getApiBaseUrl = (): string => config.API_BASE_URL;
-export const getEnvironment = (): Environment => config.APP_ENV;
-export const isDevelopment = (): boolean => config.IS_DEV;
+const getConfig = (): AppConfig => {
+  const APP_ENV = getCurrentEnvironment();
+  // const IS_DEV = APP_ENV === Environment.DEVELOPMENT;
 
-// Log current configuration (only in development)
-if (config.IS_DEV) {
+  const fallback = FALLBACK_CONFIG[APP_ENV];
+
+  const API_BASE_URL = fixAndroidLocalhost(
+    process.env.EXPO_PUBLIC_API_BASE_URL || fallback.API_BASE_URL
+  );
+
+  const GRAPHQL_ENDPOINT = fixAndroidLocalhost(
+    process.env.EXPO_PUBLIC_GRAPHQL_ENDPOINT || fallback.GRAPHQL_ENDPOINT
+  );
+
+  const config: AppConfig = {
+    API_BASE_URL,
+    GRAPHQL_ENDPOINT,
+    APP_ENV,
+    // IS_DEV,
+  };
+
   console.log("📱 App Configuration:", {
-    environment: config.APP_ENV,
-    graphqlEndpoint: config.GRAPHQL_ENDPOINT,
-    apiBaseUrl: config.API_BASE_URL,
+    environment: APP_ENV,
+    apiBaseUrl: API_BASE_URL,
+    graphqlEndpoint: GRAPHQL_ENDPOINT,
     platform: Platform.OS,
   });
-}
+
+  return config;
+};
+
+/* -------------------------------------------
+ * Exports
+ * ----------------------------------------- */
+
+export const config = getConfig();
+
+export const getGraphQLEndpoint = () => config.GRAPHQL_ENDPOINT;
+export const getApiBaseUrl = () => config.API_BASE_URL;
+export const getEnvironment = () => config.APP_ENV;
+// export const isDevelopment = () => config.IS_DEV;
 
 export default config;

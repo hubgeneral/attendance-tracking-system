@@ -1,50 +1,220 @@
-# Welcome to your Expo app 👋
+# Attendance Tracking System
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native application for managing employee attendance using Expo, Apollo Client, and GraphQL.
 
-## Get started
+## Prerequisites
 
-1. Install dependencies
+- Node.js (v16 or higher)
+- npm (comes with Node.js)
+- Android emulator or physical Android device (for Android development)
+- iOS simulator or physical iOS device (for iOS development) - macOS only
+
+## Installation
+
+1. Clone the repository and navigate to the project directory
+2. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+## Environment Setup
 
-   ```bash
-   npx expo start
-   ```
+### Local Development (.env not required)
 
-In the output, you'll find options to open the app in a
+If running against a local backend (localhost):
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- The app uses `http://localhost:5015/graphql` as the default GraphQL endpoint
+- No `.env` file is needed
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Staging/Production (.env required)
 
-## Get a fresh project
+For staging or production environments, create a `.env` file in the project root:
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```env
+EXPO_PUBLIC_APP_ENV=development
+EXPO_PUBLIC_GRAPHQL_ENDPOINT=https://your-graphql-endpoint.com/graphql
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**Environment options:**
 
-## Learn more
+- `local` - Local development (default)
+- `development` - Development server
+- `staging` - Staging environment
+- `production` - Production environment
 
-To learn more about developing your project with Expo, look at the following resources:
+## Development
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Web Development
 
-## Join the community
+Start the web version:
 
-Join our community of developers creating universal apps.
+```bash
+npm run web
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+The app will open in your default browser at `http://localhost:19006`
+
+### Android Development
+
+Start the Android version:
+
+```bash
+npm run android
+```
+
+This will:
+
+- Build the APK
+- Start the development server
+- Launch the app on an Android emulator or connected device
+
+**Requirements:**
+
+- Android Studio installed with emulator, OR
+- Physical Android device with USB debugging enabled
+
+### iOS Development
+
+Start the iOS version:
+
+```bash
+npm run ios
+```
+
+**Note:** Requires macOS and Xcode installed
+
+### Start Development Server
+
+To start the general development server (choose platform interactively):
+
+```bash
+npm start
+```
+
+Options will appear to open in:
+
+- Development build
+- Android emulator
+- iOS simulator
+- Expo Go
+
+## Project Structure
+
+```
+├── app/                  # File-based routing (Expo Router)
+│   ├── (auth)/          # Authentication screens
+│   ├── (tabs)/          # Tab-based navigation
+│   └── index.tsx        # Root entry point
+├── components/          # Reusable React components
+├── contexts/            # React context for state management
+├── hooks/               # Custom React hooks
+├── src/
+│   ├── config/          # Configuration files
+│   ├── generated/       # GraphQL codegen output (auto-generated)
+│   ├── graphql/         # GraphQL queries and mutations
+│   └── lib/             # Utility libraries (Apollo Client)
+├── types/               # TypeScript type definitions
+├── utils/               # Utility functions
+└── assets/              # Images and static assets
+```
+
+## GraphQL Codegen
+
+Generate TypeScript types from GraphQL schema and operations:
+
+```bash
+npm run codegen
+```
+
+This will:
+
+1. Generate types in `src/generated/graphql.ts`
+2. Consolidate Apollo imports automatically
+3. Create typed hooks for queries and mutations
+
+**Note:** The codegen automatically consolidates Apollo imports to prevent duplicates.
+
+## Linting
+
+Run ESLint to check code quality:
+
+```bash
+npm run lint
+```
+
+## Key Technologies
+
+- **Expo** - React Native framework
+- **React Navigation** - Navigation library
+- **Apollo Client** - GraphQL client
+- **GraphQL Codegen** - Type generation from GraphQL
+- **AsyncStorage** - Local storage solution
+- **TypeScript** - Type safety
+- **React Router** - File-based routing
+
+## API Integration
+
+The app connects to a GraphQL API for:
+
+- User authentication (login, password reset)
+- Attendance tracking (clock in/out)
+- Geofencing for location-based clocking
+- Employee data and roles
+- Leave management
+
+**Default endpoints by environment:**
+
+- Local: `http://localhost:5015/graphql`
+- Development: `https://unprinted-nucleoplasmic-ammie.ngrok-free.dev/graphql/`
+- Staging: `https://staging.myapp.com/graphql`
+- Production: `https://api.myapp.com/graphql`
+
+## Available Scripts
+
+| Script                  | Description                                       |
+| ----------------------- | ------------------------------------------------- |
+| `npm start`             | Start dev server (interactive platform selection) |
+| `npm run web`           | Start web development server                      |
+| `npm run android`       | Build and run on Android emulator/device          |
+| `npm run ios`           | Build and run on iOS simulator/device             |
+| `npm run lint`          | Run ESLint                                        |
+| `npm run codegen`       | Generate TypeScript types from GraphQL            |
+| `npm run reset-project` | Reset app directory to starter code               |
+
+## Troubleshooting
+
+### Codegen fails
+
+If GraphQL codegen fails, ensure:
+
+- The GraphQL endpoint is accessible
+- `.env` is correctly configured for non-local environments
+- All GraphQL documents in `src/graphql/` are valid
+
+### Apollo imports not consolidated
+
+The post-processing script (`fix-apollo-imports.js`) runs automatically after codegen. If imports are still duplicated, run:
+
+```bash
+node fix-apollo-imports.js
+```
+
+### AsyncStorage errors
+
+If you encounter AsyncStorage parsing errors, ensure data is serialized properly before storing. The app validates JSON data on retrieval.
+
+## Contributing
+
+1. Create feature branches from `clocking_history`
+2. Run linting before committing: `npm run lint`
+3. Regenerate types if GraphQL schema changes: `npm run codegen`
+4. Keep ESLint clean (fix errors, not just warnings)
+
+## Support
+
+For issues or questions, refer to:
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [Apollo Client Documentation](https://www.apollographql.com/docs/react/)
+- [GraphQL Documentation](https://graphql.org/learn/)

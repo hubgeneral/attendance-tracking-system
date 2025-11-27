@@ -304,7 +304,9 @@ export const useAuth = (): UseAuthProps => {
 
         // STORE THE CORRECT ID FOR GEOFENCE
         await AsyncStorage.setItem("USER_ID", id.toString());
+        await AsyncStorage.setItem("USER_NAME", userData.userName ?? "");
         console.log(" User ID stored for geofence:", id);
+        console.log(" User name stored for geofence:", userData.userName);
       } catch (error) {
         console.error("Login error:", error);
         throw error;
@@ -386,9 +388,7 @@ export const useAuth = (): UseAuthProps => {
 
   const refreshCurrentUser = useCallback(async () => {
     try {
-      const storedUser = await AsyncStorage.getItem(
-        STORAGE_KEYS.CURRENT_USER
-      );
+      const storedUser = await AsyncStorage.getItem(STORAGE_KEYS.CURRENT_USER);
       const storedAccessToken = await AsyncStorage.getItem(
         STORAGE_KEYS.ACCESS_TOKEN
       );
