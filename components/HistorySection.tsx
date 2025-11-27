@@ -2,41 +2,36 @@ import { AntDesign } from "@expo/vector-icons";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-interface HistorySectionProps {
-  rangeStart: Date | null;
-  rangeEnd: Date | null;
+interface AttendanceItem {
+  currentDate?: string;
+  clockIn?: string | null;
+  clockOut?: string | null;
 }
 
-export default function HistorySection({
-  rangeStart,
-  rangeEnd,
-}: HistorySectionProps) {
+interface HistorySectionProps {
+  data?: AttendanceItem[];
+}
+
+export default function HistorySection({ data = [] }: HistorySectionProps) {
   const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
   };
 
-  const exampleData = [
-    { date: "02/10/2025", in: "8:00 AM", out: "5:00 PM" },
-    { date: "03/10/2025", in: "8:02 AM", out: "4:59 PM" },
-    { date: "04/10/2025", in: "8:05 AM", out: "5:10 PM" },
-    { date: "05/10/2025", in: "8:00 AM", out: "5:00 PM" },
-    { date: "06/10/2025", in: "8:15 AM", out: "5:05 PM" },
-  ];
-
-  const filtered = exampleData.filter((d) => {
-    if (!rangeStart || !rangeEnd) return true;
-    const parts = d.date.split("/");
-    const dt = new Date(
-      Number(parts[2]),
-      Number(parts[1]) - 1,
-      Number(parts[0])
-    );
-    return (
-      dt.getTime() >= rangeStart.getTime() && dt.getTime() <= rangeEnd.getTime()
-    );
-  });
+  const formatTime = (dt: any) => {
+    if (!dt) return "-";
+    try {
+      const date = new Date(dt);
+      const hours = date.getHours().toString().padStart(2, "0");
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      const period = date.getHours() >= 12 ? "PM" : "AM";
+      const displayHours = date.getHours() % 12 || 12;
+      return `${displayHours}:${minutes} ${period}`;
+    } catch {
+      return "-";
+    }
+  };
 
   return (
     <View style={styles.section}>
@@ -49,36 +44,46 @@ export default function HistorySection({
         </View>
 
         <View style={styles.historyList}>
-          {filtered.map((item, index) => (
-            <TouchableOpacity
-              key={item.date + index}
-              style={styles.historyItem}
-              onPress={() => toggleHistoryExpansion(index)}
-            >
-              <View style={styles.historyItemHeader}>
-                <Text style={styles.historyDate}>{item.date}</Text>
-                <AntDesign
-                  name={expandedHistory === index ? "up" : "down"}
-                  size={12}
-                  color="#666"
-                />
-              </View>
-
-              {expandedHistory === index && (
-                <View style={styles.historyDetails}>
-                  <View style={styles.historyRow}>
-                    <Text style={styles.historyLabel}>Clock In</Text>
-                    <Text style={styles.historyValue}>{item.in}</Text>
-                  </View>
-
-                  <View style={styles.historyRow}>
-                    <Text style={styles.historyLabel}>Clock Out</Text>
-                    <Text style={styles.historyValue}>{item.out}</Text>
-                  </View>
+          {data.length === 0 ? (
+            <Text style={{ padding: 12, color: "#666" }}>
+              No history available
+            </Text>
+          ) : (
+            data.map((item, index) => (
+              <TouchableOpacity
+                key={(item.currentDate ?? "") + "-" + index}
+                style={styles.historyItem}
+                onPress={() => toggleHistoryExpansion(index)}
+              >
+                <View style={styles.historyItemHeader}>
+                  <Text style={styles.historyDate}>{item.currentDate}</Text>
+                  <AntDesign
+                    name={expandedHistory === index ? "up" : "down"}
+                    size={12}
+                    color="#666"
+                  />
                 </View>
-              )}
-            </TouchableOpacity>
-          ))}
+
+                {expandedHistory === index && (
+                  <View style={styles.historyDetails}>
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Clock In</Text>
+                      <Text style={styles.historyValue}>
+                        {formatTime(item.clockIn)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.historyRow}>
+                      <Text style={styles.historyLabel}>Clock Out</Text>
+                      <Text style={styles.historyValue}>
+                        {formatTime(item.clockOut)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </View>
     </View>

@@ -944,6 +944,13 @@ export type GetAttendanceByUserIdQueryVariables = Exact<{
 
 export type GetAttendanceByUserIdQuery = { __typename?: 'Query', attendanceByUserId: Array<{ __typename?: 'Attendance', clockIn?: any | null, clockOut?: any | null, currentDate?: any | null }> };
 
+export type GetRequestLogsByUserIdQueryVariables = Exact<{
+  userId: Scalars['Int']['input'];
+}>;
+
+
+export type GetRequestLogsByUserIdQuery = { __typename?: 'Query', requestLogsByUserId: Array<{ __typename?: 'RequestLog', id: number, reason?: string | null, appUserId: number, currentDate?: any | null }> };
+
 export type GetRequestsByUserIdQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -1255,6 +1262,49 @@ export type GetAttendanceByUserIdQueryHookResult = ReturnType<typeof useGetAtten
 export type GetAttendanceByUserIdLazyQueryHookResult = ReturnType<typeof useGetAttendanceByUserIdLazyQuery>;
 export type GetAttendanceByUserIdSuspenseQueryHookResult = ReturnType<typeof useGetAttendanceByUserIdSuspenseQuery>;
 export type GetAttendanceByUserIdQueryResult = Apollo.QueryResult<GetAttendanceByUserIdQuery, GetAttendanceByUserIdQueryVariables>;
+export const GetRequestLogsByUserIdDocument = gql`
+    query getRequestLogsByUserId($userId: Int!) {
+  requestLogsByUserId(id: $userId) {
+    id
+    reason
+    appUserId
+    currentDate
+  }
+}
+    `;
+
+/**
+ * __useGetRequestLogsByUserIdQuery__
+ *
+ * To run a query within a React component, call `useGetRequestLogsByUserIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRequestLogsByUserIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRequestLogsByUserIdQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetRequestLogsByUserIdQuery(baseOptions: Apollo.QueryHookOptions<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables> & ({ variables: GetRequestLogsByUserIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>(GetRequestLogsByUserIdDocument, options);
+      }
+export function useGetRequestLogsByUserIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>(GetRequestLogsByUserIdDocument, options);
+        }
+export function useGetRequestLogsByUserIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>(GetRequestLogsByUserIdDocument, options);
+        }
+export type GetRequestLogsByUserIdQueryHookResult = ReturnType<typeof useGetRequestLogsByUserIdQuery>;
+export type GetRequestLogsByUserIdLazyQueryHookResult = ReturnType<typeof useGetRequestLogsByUserIdLazyQuery>;
+export type GetRequestLogsByUserIdSuspenseQueryHookResult = ReturnType<typeof useGetRequestLogsByUserIdSuspenseQuery>;
+export type GetRequestLogsByUserIdQueryResult = Apollo.QueryResult<GetRequestLogsByUserIdQuery, GetRequestLogsByUserIdQueryVariables>;
 export const GetRequestsByUserIdDocument = gql`
     query GetRequestsByUserId($id: Int!) {
   requestLogsByUserId(id: $id) {

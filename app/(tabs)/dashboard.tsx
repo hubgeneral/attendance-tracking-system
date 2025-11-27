@@ -1,26 +1,17 @@
 import CreatePasswordScreen from "@/components/ChangePasswordScreen";
-import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
+import GeolibFence, {
+  PolygonEvent,
+  onClockInSuccess,
+  onClockOutSuccess,
+} from "@/components/GeolibFence";
 import HistorySection from "@/components/HistorySection";
 import MetricCards from "@/components/MetricCards";
 import RequestsSection from "@/components/RequestsSection";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useGetAttendanceByUserIdLazyQuery,
-  useGetAttendanceByUsernameQuery,
-import GeolibFence, {
-  PolygonEvent,
-  onClockInSuccess,
-  onClockOutSuccess,
-} from "@/components/GeolibFence";
-import { useAuth } from "@/hooks/useAuth";
-import {
-  useCreateNewRequestMutation,
-  useGetAttendanceByUserIdLazyQuery,
   useGetAttendanceByUsernameLazyQuery,
-  useGetRequestsByUserIdQuery,
   useGetUserByIdQuery,
-  useMakeARequestMutation,
-  useUpdateRequestMutation,
 } from "@/src/generated/graphql";
 import { AntDesign } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
@@ -58,20 +49,9 @@ const { width } = Dimensions.get("window");
 export default function DashboardScreen() {
   const presentDay = new Date().toISOString().slice(0, 10);
 
-  const [selectedDate] = useState(presentDay);
-  const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
-  const [rangeStart, setRangeStart] = useState<Date | null>(null);
-  const [rangeEnd, setRangeEnd] = useState<Date | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const { currentUser } = useAuth();
 
   const [isChangePasswordVisible, setIsChangePasswordVisible] = useState(false);
-
-  const [requestText, setRequestText] = useState("");
-  const [editingRequestId, setEditingRequestId] = useState<number | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [showFailure, setShowFailure] = useState(false);
-  const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
   const [attendanceByUserName, { data, loading, error }] =
@@ -79,46 +59,6 @@ export default function DashboardScreen() {
   const { data: userData } = useGetUserByIdQuery({
     variables: { id: Number(currentUser?.id) },
   });
-
-  const {
-    data: requestsData,
-    loading: requestsLoading,
-    refetch: refetchRequests,
-  } = useGetRequestsByUserIdQuery({
-    variables: { id: Number(currentUser?.id) },
-    skip: !currentUser?.id,
-  });
-
-  const [createRequest, { loading: createLoading }] = useMakeARequestMutation({
-    onCompleted: () => {
-      refetchRequests();
-      setRequestText("");
-      setModalVisible(false);
-      setTimeout(() => setShowSuccess(true), 300);
-    },
-    onError: (err: any) => {
-      console.error("Create request error:", err);
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-    },
-  });
-
-  const [updateRequest, { loading: updateLoading }] = useUpdateRequestMutation({
-    onCompleted: () => {
-      refetchRequests();
-      setRequestText("");
-      setEditingRequestId(null);
-      setModalVisible(false);
-      setTimeout(() => setShowSuccess(true), 300);
-    },
-    onError: (err: any) => {
-      console.error("Update request error:", err);
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-    },
-  });
-
-  const requests = requestsData?.requestLogsByUserId || [];
 
   // UI state for metric cards (consolidated from 4 separate states)
   const [metrics, setMetrics] = useState({
@@ -130,16 +70,10 @@ export default function DashboardScreen() {
   const [geofenceStarted, setGeofenceStarted] = useState(false);
 
   // Start User Attendance History ****************************************************************************************
-  // const [getAttendance, {uid_data,uid_loading,uid_error}] = useGetAttendanceByUserIdLazyQuery();
-  const [
-    getAttendance,
-    { data: uid_data, loading: uid_loading, error: uid_error },
-  ] = useGetAttendanceByUserIdLazyQuery();
+  const [getAttendance, { data: uid_data }] =
+    useGetAttendanceByUserIdLazyQuery();
 
-  const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([
-    null,
-    null,
-  ]);
+  const [dateRange] = useState<[Date | null, Date | null]>([null, null]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -420,132 +354,6 @@ export default function DashboardScreen() {
     }
   }, [currentUser]);
 
-  const toggleHistoryExpansion = (index: number) => {
-    setExpandedHistory(expandedHistory === index ? null : index);
-  };
-
-  const handleSubmitRequest = async () => {
-    if (!requestText.trim()) {
-      setModalVisible(false);
-      setTimeout(() => setShowFailure(true), 300);
-      return;
-    }
-
-    try {
-      if (editingRequestId) {
-        await updateRequest({
-          variables: {
-            requestId: editingRequestId,
-            reason: requestText.trim(),
-          },
-        });
-      } else {
-        await createRequest({
-          variables: {
-            userId: Number(currentUser?.id),
-            reason: requestText.trim(),
-          },
-        });
-      }
-    } catch (err) {
-      console.error("Submit error:", err);
-    }
-  };
-
-  const handleNewRequest = () => {
-    setEditingRequestId(null);
-    setRequestText("");
-    setModalVisible(true);
-  };
-
-  const handleEditRequest = (request: any) => {
-    const status = getStatusForDisplay(request.approvalStatus);
-    if (status === "pending") {
-      setEditingRequestId(request.id);
-      setRequestText(request.reason);
-      setModalVisible(true);
-    }
-  };
-
-  useEffect(() => {
-    if (editingRequestId !== null) {
-      setShowAllRequests(false);
-    }
-  }, [editingRequestId]);
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      const day = date.getDate().toString().padStart(2, "0");
-      const month = (date.getMonth() + 1).toString().padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}/${month}/${year}`;
-    } catch {
-      return dateString;
-    }
-  };
-
-  const getStatusForDisplay = (approvalStatus: string | null | undefined) => {
-    // Map your backend status to what StatusLabel expects
-    const statusMap: { [key: string]: string } = {
-      approved: "approved",
-      pending: "pending",
-      unconfirmed: "pending",
-      rejected: "rejected",
-    };
-    const key = (approvalStatus ?? "pending").toLowerCase();
-    return statusMap[key] || "pending";
-  };
-
-  const ReadMoreText = ({
-    text,
-    numberOfLines = 4,
-    style,
-  }: {
-    text: string;
-    numberOfLines?: number;
-    style?: any;
-  }) => {
-    const [expanded, setExpanded] = useState(false);
-
-    const approxCharsPerLine = 40;
-    const maxChars = numberOfLines * approxCharsPerLine;
-
-    const needsTrim = text.length > maxChars;
-
-    let displayText = text;
-    if (!expanded && needsTrim) {
-      // Trim to nearest word boundary before maxChars - leave room for ellipses + link
-      const reserve = 12; // space for '... Read more'
-      const cutAt = Math.max(0, maxChars - reserve);
-      const head = text.slice(0, cutAt);
-      // remove trailing partial word
-      const trimmed = head.replace(/\s?\S+$/, "").trim();
-      displayText = trimmed + "...";
-    }
-
-    return (
-      <View style={{ overflow: expanded ? "visible" : "hidden" }}>
-        <Text style={style}>
-          {displayText}
-          {!expanded && needsTrim ? (
-            <Text style={styles.readMoreText} onPress={() => setExpanded(true)}>
-              Read more
-            </Text>
-          ) : null}
-          {expanded ? (
-            <Text
-              style={styles.readMoreText}
-              onPress={() => setExpanded(false)}
-            >
-              {"\n"}Read less
-            </Text>
-          ) : null}
-        </Text>
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <DashboardHeader />
@@ -559,90 +367,15 @@ export default function DashboardScreen() {
             Hi, {userData?.userById?.employeeName?.split(" ").at(0) || "User"}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <DateRangePicker
-              onApply={(s, e) => {
-                setRangeStart(s);
-                setRangeEnd(e);
-              }}
-            />
+            <DateRangePicker onApply={() => {}} />
           </View>
         </View>
 
         {/* Metric Cards */}
-        <MetricCards />
-        <View style={styles.section}>
-          <View style={styles.cardContainer}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.sectionTitle}>History</Text>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterButtonText}>This Week</Text>
-              </TouchableOpacity>
-            </View>
+        <MetricCards data={metrics} />
 
-            <View style={styles.historyList}>
-              {/* Render attendanceHistory (safely handled) */}
-              {attendanceHistory.length === 0 ? (
-                <Text style={{ padding: 12, color: "#666" }}>
-                  No history available
-                </Text>
-              ) : (
-                attendanceHistory
-                  // if the dateRange buttons are used, filter accordingly
-                  .filter((d: any) => {
-                    if (!rangeStart || !rangeEnd) return true;
-                    // expecting d.date in DD/MM/YYYY
-                    const parts = (d.currentDate || "").split("/");
-                    if (parts.length !== 3) return true;
-                    const dt = new Date(
-                      Number(parts[2]),
-                      Number(parts[1]) - 1,
-                      Number(parts[0])
-                    );
-                    return (
-                      dt.getTime() >= rangeStart.getTime() &&
-                      dt.getTime() <= rangeEnd.getTime()
-                    );
-                  })
-                  .map((item: any, index: number) => (
-                    <TouchableOpacity
-                      key={(item.currentDate ?? "") + "-" + index}
-                      style={styles.historyItem}
-                      onPress={() => toggleHistoryExpansion(index)}
-                    >
-                      <View style={styles.historyItemHeader}>
-                        <Text style={styles.historyDate}>
-                          {formatDate(item.currentDate)}
-                        </Text>
-                        <AntDesign
-                          name={expandedHistory === index ? "up" : "down"}
-                          size={12}
-                          color="#666"
-                        />
-                      </View>
-
-                      {expandedHistory === index && (
-                        <View style={styles.historyDetails}>
-                          <View style={styles.historyRow}>
-                            <Text style={styles.historyLabel}>Clock In</Text>
-                            <Text style={styles.historyValue}>
-                              {formatTime(item.clockIn)}
-                            </Text>
-                          </View>
-
-                          <View style={styles.historyRow}>
-                            <Text style={styles.historyLabel}>Clock Out</Text>
-                            <Text style={styles.historyValue}>
-                              {formatTime(item.clockOut)}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  ))
-              )}
-            </View>
-          </View>
-        </View>
+        {/* History Section */}
+        <HistorySection data={attendanceHistory} />
 
         {/* Requests Section */}
         <RequestsSection />
@@ -754,7 +487,434 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     fontFamily: "Inter",
   },
-
+  metricsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    paddingHorizontal: 20,
+    gap: 12,
+    marginBottom: 15,
+  },
+  metricCard: {
+    width: (width - 52) / 2,
+    backgroundColor: "#fff",
+    padding: 16,
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderRadius: 8,
+  },
+  cardAccent: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  blueAccent: {
+    left: 0,
+    backgroundColor: "#4E63C0",
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+  },
+  orangeAccent: {
+    right: 0,
+    backgroundColor: "#C8973C",
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  greenAccent: {
+    left: 0,
+    backgroundColor: "#7DA645",
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+  },
+  redAccent: {
+    right: 0,
+    backgroundColor: "#BE5B5B",
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  metricTitle: {
+    fontSize: 16,
+    color: "#758DA3",
+    lineHeight: 25,
+    letterSpacing: 0,
+    fontWeight: 500,
+    fontFamily: "Inter",
+  },
+  metricValue: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricTime: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#1A1A1A",
+  },
+  metricPeriod: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  section: {
+    paddingHorizontal: 20,
+  },
+  cardContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#758DA3",
+    margin: 8,
+  },
+  filterButton: {
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#D1D9E0",
+  },
+  filterButtonText: {
+    fontSize: 12,
+    color: "#000000ff",
+  },
+  makeRequestButton: {
+    backgroundColor: "#004E2B",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  makeRequestButtonText: {
+    fontSize: 14,
+    color: "#fff",
+    fontWeight: "500",
+  },
+  historyList: {
+    gap: 8,
+  },
+  historyItem: {
+    backgroundColor: "#FCFCFC",
+    borderRadius: 4,
+    padding: 13,
+    borderColor: "#D1D9E0",
+    borderWidth: 1,
+  },
+  historyItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  historyDate: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1A1A1A",
+  },
+  historyDetails: {
+    marginTop: 12,
+    gap: 8,
+  },
+  historyRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  historyLabel: {
+    fontSize: 14,
+    color: "#666",
+  },
+  historyValue: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#1A1A1A",
+  },
+  requestItem: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  requestHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  requestDate: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#1A1A1A",
+  },
+  requestDescription: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
+  },
+  requestDescriptionWrapper: {
+    position: "relative",
+    paddingBottom: 28,
+  },
+  readMoreButton: {
+    position: "absolute",
+    right: 8,
+    bottom: 6,
+    backgroundColor: "transparent",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  viewAllButton: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: "#004E2B",
+    fontWeight: "500",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "stretch",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#00274D",
+    textAlign: "center",
+    margin: 25,
+  },
+  inputWrapper: {
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    borderRadius: 4,
+    backgroundColor: "#FAFAFA",
+    marginBottom: 20,
+    padding: 4,
+    width: "100%",
+  },
+  modalInput: {
+    minHeight: 200,
+    padding: 12,
+    fontSize: 15,
+    backgroundColor: "transparent",
+    width: "100%",
+  },
+  modalButton: {
+    backgroundColor: "#004E2B",
+    borderRadius: 4,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 8,
+    width: "100%",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalClose: {
+    position: "absolute",
+    right: 10,
+    top: 10,
+    zIndex: 2,
+    width: 33.13,
+    height: 33.13,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#FAFAFA",
+    color: "#797979",
+  },
+  bottomModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.25)",
+  },
+  bottomModalContent: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 24,
+    minHeight: "40%",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  successOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  successContent: {
+    width: "85%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    position: "relative",
+  },
+  successImage: {
+    width: 182,
+    height: 185,
+    marginBottom: 18,
+  },
+  successText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginBottom: 50,
+    fontWeight: "500",
+    width: 335,
+    height: 24,
+  },
+  failureImage: {
+    width: 197,
+    height: 147,
+    marginBottom: 18,
+  },
+  failureText: {
+    fontSize: 16,
+    color: "#1A1A1A",
+    textAlign: "center",
+    marginTop: 8,
+    fontWeight: "500",
+    marginBottom: 18,
+    width: 313,
+    height: 24,
+  },
+  allRequestsModalContent: {
+    width: "95%",
+    maxHeight: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    alignItems: "stretch",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    marginTop: 32,
+    alignSelf: "center",
+    position: "relative",
+  },
+  allRequestsTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#00274D",
+    textAlign: "center",
+    marginBottom: 16,
+    marginTop: 25,
+  },
+  allRequestItem: {
+    marginBottom: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    paddingBottom: 12,
+  },
+  allRequestItemWithButton: {
+    position: "relative",
+    paddingBottom: 36,
+  },
+  allRequestTextWrapper: {
+    position: "relative",
+    paddingBottom: 28,
+  },
+  allRequestHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  allRequestDate: {
+    fontSize: 15,
+    color: "#222",
+    marginRight: 8,
+  },
+  statusBadge: {
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    marginLeft: 4,
+    alignSelf: "flex-start",
+  },
+  statusBadge_approved: {
+    backgroundColor: "#F2FBF6",
+    borderWidth: 1,
+    borderColor: "#D9F2E5",
+  },
+  statusBadge_pending: {
+    backgroundColor: "#FFF6ED",
+    borderWidth: 1,
+    borderColor: "#FFE9D6",
+  },
+  statusBadge_rejected: {
+    backgroundColor: "#FFEDED",
+    borderWidth: 1,
+    borderColor: "#FFD0D1",
+  },
+  statusBadgeText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  statusBadgeText_approved: {
+    color: "#00AB50",
+  },
+  statusBadgeText_pending: {
+    color: "#FF8D28",
+  },
+  statusBadgeText_rejected: {
+    color: "#FF383C",
+  },
+  allRequestText: {
+    fontSize: 15,
+    color: "#222",
+    marginTop: 4,
+  },
   readMoreText: {
     color: "#758DA3",
     fontSize: 14,
@@ -763,6 +923,26 @@ const styles = StyleSheet.create({
   readMoreRow: {
     alignItems: "flex-end",
     marginTop: 6,
+  },
+  emptyRequestsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 200,
+  },
+  emptyImage: {
+    width: 93,
+    height: 84,
+    marginBottom: 12,
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 14,
+    width: 144,
+    marginTop: 12,
+    marginLeft: 25,
   },
 
   bottomModalOverlay2: {
