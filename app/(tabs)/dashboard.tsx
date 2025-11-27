@@ -1,15 +1,20 @@
 import CreatePasswordScreen from "@/components/ChangePasswordScreen";
-import GeolibFence, { PolygonEvent } from "@/components/GeolibFence";
+import GeolibFence, {
+  PolygonEvent,
+  onClockInSuccess,
+  onClockOutSuccess,
+} from "@/components/GeolibFence";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  useGetAttendanceByUserIdLazyQuery,
   useCreateNewRequestMutation,
-  useGetAttendanceByUsernameQuery,
-  useGetUserByIdQuery
+  useGetAttendanceByUserIdLazyQuery,
+  useGetAttendanceByUsernameLazyQuery,
+  useGetUserByIdQuery,
 } from "@/src/generated/graphql";
+import { formatDate, formatTime } from "@/utils/misc";
 import { AntDesign } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -44,8 +49,7 @@ Notifications.setNotificationHandler({
 
 const { width } = Dimensions.get("window");
 
-export default function DashboardScreen() 
-{
+export default function DashboardScreen() {
   const presentDay = new Date().toISOString().slice(0, 10);
 
   const [selectedDate] = useState(presentDay);
@@ -66,34 +70,36 @@ export default function DashboardScreen()
   const [showAllRequests, setShowAllRequests] = useState(false);
 
   const keyboardOffset = useRef(new Animated.Value(0)).current;
-  const { data, loading, error, refetch } = useGetAttendanceByUsernameQuery({
-    variables: {
-      username: currentUser?.userName ?? "",
-      day: presentDay,
-    },
-  });
+  const [attendanceByUserName, { data, loading, error }] =
+    useGetAttendanceByUsernameLazyQuery();
   const { data: userData } = useGetUserByIdQuery({
     variables: { id: Number(currentUser?.id) },
   });
-  const [createNewRequestMutation] = useCreateNewRequestMutation();
-  // UI state for metric cards (updated when query result changes)
-  const [clockInText, setClockInText] = useState<string>("-");
-  const [clockOutText, setClockOutText] = useState<string>("-");
-  const [hoursWorkedText, setHoursWorkedText] = useState<string>("-");
-  const [timeOffText, setTimeOffText] = useState<string>("-");
+
+  // UI state for metric cards (consolidated from 4 separate states)
+  const [metrics, setMetrics] = useState({
+    clockInText: "-",
+    clockOutText: "-",
+    hoursWorkedText: "-",
+    timeOffText: "-",
+  });
   const [geofenceStarted, setGeofenceStarted] = useState(false);
 
   // Start User Attendance History ****************************************************************************************
-   // const [getAttendance, {uid_data,uid_loading,uid_error}] = useGetAttendanceByUserIdLazyQuery();
-   const [getAttendance, { data: uid_data, loading: uid_loading, error: uid_error }] = useGetAttendanceByUserIdLazyQuery();
-   
-   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null,null,]);
-  
+  const [getAttendance, { data: uid_data }] =
+    useGetAttendanceByUserIdLazyQuery();
+
+  const [createNewRequestMutation] = useCreateNewRequestMutation();
+  const [dateRange] = useState<[Date | null, Date | null]>([null, null]);
+
   const today = new Date().toISOString().split("T")[0];
 
-  const startDate = dateRange[0]? dateRange[0].toISOString().split("T")[0]: today;
-  const endDate = dateRange[1]? dateRange[1].toISOString().split("T")[0]: today;
-
+  const startDate = dateRange[0]
+    ? dateRange[0].toISOString().split("T")[0]
+    : today;
+  const endDate = dateRange[1]
+    ? dateRange[1].toISOString().split("T")[0]
+    : today;
 
   // Helper to fetch attendance with safe guards
   const fetchAttendanceForRange = (start: string, stop: string) => {
@@ -106,7 +112,45 @@ export default function DashboardScreen()
       },
     });
   };
- // fetch when date range is applied (only when both start & end are set)
+
+  // ✅ OPTIMIZATION: Memoized callback for attendance refresh to prevent duplicate registrations
+  const refreshAttendanceMetrics = useCallback(() => {
+    attendanceByUserName({
+      variables: {
+        username: currentUser?.userName ?? "",
+        day: presentDay,
+      },
+    });
+  }, [attendanceByUserName, currentUser?.userName, presentDay]);
+
+  useEffect(() => {
+    if (geofenceStarted) refreshAttendanceMetrics();
+    console.log(
+      "[Dashboard] Fetching attendance for user:",
+      currentUser?.userName
+    );
+  }, [refreshAttendanceMetrics, currentUser?.userName, geofenceStarted]);
+
+  // ✅ Register clock-in success callback to refresh attendance metrics
+  useEffect(() => {
+    onClockInSuccess(() => {
+      console.log(
+        "[Dashboard] Clock-in successful - Refreshing attendance query"
+      );
+      refreshAttendanceMetrics();
+    });
+  }, [refreshAttendanceMetrics]);
+
+  // ✅ Register clock-out success callback to refresh attendance metrics (shared logic)
+  useEffect(() => {
+    onClockOutSuccess(() => {
+      console.log(
+        "[Dashboard] Clock-out successful - Refreshing attendance query"
+      );
+      refreshAttendanceMetrics();
+    });
+  }, [refreshAttendanceMetrics]);
+  // fetch when date range is applied (only when both start & end are set)
   useEffect(() => {
     if (dateRange && dateRange[0] && dateRange[1]) {
       fetchAttendanceForRange(startDate, endDate);
@@ -115,8 +159,7 @@ export default function DashboardScreen()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, currentUser?.id]);
 
-
-   // fetch last 5 days history on mount (excluding today)
+  // fetch last 5 days history on mount (excluding today)
   useEffect(() => {
     if (!currentUser?.id) return;
 
@@ -130,53 +173,42 @@ export default function DashboardScreen()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
 
-// attendanceHistory: safely unwrap the lazy query result.
+  // attendanceHistory: safely unwrap the lazy query result.
   // The GraphQL shape is assumed to be uid_data.attendanceByUserId (array).
   const attendanceHistory = Array.isArray(uid_data?.attendanceByUserId)
     ? uid_data!.attendanceByUserId
     : [];
 
-// End  User Attendance History ******************************************************************************************
-  const formatTime = (dt: any) => {
-    if (!dt) return "-";
-    try {
-      const d = new Date(dt);
-      if (isNaN(d.getTime())) return "-";
-      let hours = d.getHours();
-      const minutes = d.getMinutes().toString().padStart(2, "0");
-      const period = hours >= 12 ? "Pm" : "Am";
-      hours = hours % 12 || 12;
-      return `${hours}:${minutes} ${period}`;
-    } catch {
-      return "-";
-    }
-  };
+  // End  User Attendance History ******************************************************************************************
+  // ✅ OPTIMIZATION: Memoized formatHours to prevent recreation
+  const formatHours = useCallback(
+    (val: number, mode: "floor" | "ceil" = "floor") => {
+      if (!isFinite(val) || isNaN(val)) return "-";
+      if (mode === "floor") return `${Math.floor(val)}`;
+      return `${Math.ceil(val)}`;
+    },
+    []
+  );
 
-  /**
-   * Format hours as whole numbers for display.
-   * - mode: 'floor' will round down (used for Hours Worked)
-   * - mode: 'ceil' will round up (used for Time Off)
-   */
-  const formatHours = (val: number, mode: "floor" | "ceil" = "floor") => {
-    if (!isFinite(val) || isNaN(val)) return "-";
-    if (mode === "floor") return `${Math.floor(val)}`;
-    return `${Math.ceil(val)}`;
-  };
-
-  useEffect(() => {
+  // ✅ OPTIMIZATION: Memoized metric calculation to prevent unnecessary updates
+  useMemo(() => {
     if (loading) {
-      setClockInText("...");
-      setClockOutText("...");
-      setHoursWorkedText("...");
-      setTimeOffText("-");
+      setMetrics({
+        clockInText: "...",
+        clockOutText: "...",
+        hoursWorkedText: "...",
+        timeOffText: "-",
+      });
       return;
     }
 
     if (error || !data || !data?.attendanceByUserName) {
-      setClockInText("-");
-      setClockOutText("-");
-      setHoursWorkedText("-");
-      setTimeOffText("-");
+      setMetrics({
+        clockInText: "-",
+        clockOutText: "-",
+        hoursWorkedText: "-",
+        timeOffText: "-",
+      });
       return;
     }
 
@@ -186,8 +218,9 @@ export default function DashboardScreen()
         ? data.attendanceByUserName[0]
         : null;
 
-    setClockInText(formatTime(latestAttendance?.clockIn));
-    setClockOutText(formatTime(latestAttendance?.clockOut));
+    const clockInText = formatTime(latestAttendance?.clockIn);
+    const clockOutText = formatTime(latestAttendance?.clockOut);
+
     // parse totalHoursWorked (may be string or number)
     let hoursNum: number | null = null;
     if (latestAttendance?.totalHoursWorked != null) {
@@ -195,17 +228,19 @@ export default function DashboardScreen()
       if (!isNaN(parsed)) hoursNum = parsed;
     }
 
+    let hoursWorkedText = "-";
+    let timeOffText = "-";
+
     if (hoursNum != null) {
       // Show whole numbers: floor for hours worked (don't overstate),
       // and ceil for time off (to show remaining hours conservatively)
-      setHoursWorkedText(`${formatHours(hoursNum, "floor")}hrs`);
+      hoursWorkedText = `${formatHours(hoursNum, "floor")}hrs`;
       const timeOff = Math.max(0, 8 - hoursNum);
-      setTimeOffText(`${formatHours(timeOff, "ceil")}hrs`);
-    } else {
-      setHoursWorkedText("-");
-      setTimeOffText("-");
+      timeOffText = `${formatHours(timeOff, "ceil")}hrs`;
     }
-  }, [data, loading, error]);
+
+    setMetrics({ clockInText, clockOutText, hoursWorkedText, timeOffText });
+  }, [data, loading, error, formatHours]);
 
   const geofenceStartedRef = useRef(false);
   // this ensures geofencing is only started once
@@ -215,6 +250,35 @@ export default function DashboardScreen()
       setGeofenceStarted(true);
     }
   }, []);
+
+  // ⏰ Check work hours and weekdays periodically to manage geofencing
+  useEffect(() => {
+    const checkWorkHoursAndUpdateGeofencing = () => {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+      const currentHour = now.getHours();
+      const isWeekday = dayOfWeek !== 0 && dayOfWeek !== 6;
+      const withinWorkHours = currentHour >= 7 && currentHour < 17; // 7 AM - 5 PM
+
+      const shouldHaveGeofencing = isWeekday && withinWorkHours;
+
+      if (shouldHaveGeofencing && !geofenceStarted) {
+        console.log("📍 Within work hours (weekday) - Starting geofencing");
+        setGeofenceStarted(true);
+      } else if (!shouldHaveGeofencing && geofenceStarted) {
+        console.log("⏸️  Outside work hours or weekend - Stopping geofencing");
+        setGeofenceStarted(false);
+      }
+    };
+
+    // Check immediately
+    checkWorkHoursAndUpdateGeofencing();
+
+    // Then check every minute
+    const interval = setInterval(checkWorkHoursAndUpdateGeofencing, 60000);
+
+    return () => clearInterval(interval);
+  }, [geofenceStarted]);
 
   const handlePolygonEvent = (event: PolygonEvent) => {
     console.log("Polygon event detected:", event);
@@ -262,12 +326,6 @@ export default function DashboardScreen()
       setIsChangePasswordVisible(false);
     }
   }, [currentUser]);
-
-  useEffect(() => {
-    if (geofenceStarted) {
-      refetch({ username: currentUser?.userName ?? "", day: today });
-    }
-  }, [geofenceStarted, refetch, currentUser?.userName, today]);
 
   const toggleHistoryExpansion = (index: number) => {
     setExpandedHistory(expandedHistory === index ? null : index);
@@ -325,9 +383,6 @@ export default function DashboardScreen()
       displayText = trimmed + "...";
     }
 
-    
-  
-  
     return (
       <View style={{ overflow: expanded ? "visible" : "hidden" }}>
         <Text style={style}>
@@ -350,7 +405,6 @@ export default function DashboardScreen()
     );
   };
 
-  
   return (
     <SafeAreaView style={styles.container}>
       <DashboardHeader />
@@ -379,9 +433,11 @@ export default function DashboardScreen()
             <View style={[styles.cardAccent, styles.blueAccent]} />
             <Text style={styles.metricTitle}>Clock In Time</Text>
             <Text style={styles.metricValue}>
-              <Text style={styles.metricTime}>{clockInText.split(" ")[0]}</Text>
+              <Text style={styles.metricTime}>
+                {metrics.clockInText.split(" ")[0]}
+              </Text>
               <Text style={styles.metricPeriod}>
-                {" " + (clockInText.split(" ")[1] ?? "")}
+                {" " + (metrics.clockInText.split(" ")[1] ?? "")}
               </Text>
             </Text>
           </View>
@@ -391,10 +447,10 @@ export default function DashboardScreen()
             <Text style={styles.metricTitle}>Clock Out Time</Text>
             <Text style={styles.metricValue}>
               <Text style={styles.metricTime}>
-                {clockOutText.split(" ")[0]}
+                {metrics.clockOutText.split(" ")[0]}
               </Text>
               <Text style={styles.metricPeriod}>
-                {" " + (clockOutText.split(" ")[1] ?? "")}
+                {" " + (metrics.clockOutText.split(" ")[1] ?? "")}
               </Text>
             </Text>
           </View>
@@ -402,13 +458,13 @@ export default function DashboardScreen()
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.greenAccent]} />
             <Text style={styles.metricTitle}>Hours Worked</Text>
-            <Text style={styles.metricValue}>{hoursWorkedText}</Text>
+            <Text style={styles.metricValue}>{metrics.hoursWorkedText}</Text>
           </View>
 
           <View style={styles.metricCard}>
             <View style={[styles.cardAccent, styles.redAccent]} />
             <Text style={styles.metricTitle}>Time Off</Text>
-            <Text style={styles.metricValue}>{timeOffText}</Text>
+            <Text style={styles.metricValue}>{metrics.timeOffText}</Text>
           </View>
         </View>
 
@@ -422,63 +478,68 @@ export default function DashboardScreen()
               </TouchableOpacity>
             </View>
 
-                <View style={styles.historyList}>
-                                                                        
-                            {/* Render attendanceHistory (safely handled) */}
-                              {attendanceHistory.length === 0 ? (
-                                <Text style={{ padding: 12, color: "#666" }}>
-                                  No history available
-                                </Text>
-                              ) : (
-                                attendanceHistory
-                                  // if the dateRange buttons are used, filter accordingly
-                                  .filter((d: any) => {
-                                    if (!rangeStart || !rangeEnd) return true;
-                                    // expecting d.date in DD/MM/YYYY
-                                    const parts = (d.currentDate || "").split("/");
-                                    if (parts.length !== 3) return true;
-                                    const dt = new Date(
-                                      Number(parts[2]),
-                                      Number(parts[1]) - 1,
-                                      Number(parts[0])
-                                    );
-                                    return (
-                                      dt.getTime() >= rangeStart.getTime() &&
-                                      dt.getTime() <= rangeEnd.getTime()
-                                    );
-                                  })
-                                  .map((item: any, index: number) => (
-                                    <TouchableOpacity
-                                      key={(item.currentDate ?? "") + "-" + index}
-                                      style={styles.historyItem}
-                                      onPress={() => toggleHistoryExpansion(index)}
-                                    >
-                                      <View style={styles.historyItemHeader}>
-                                        <Text style={styles.historyDate}>{item.currentDate}</Text>
-                                        <AntDesign
-                                          name={expandedHistory === index ? "up" : "down"}
-                                          size={12}
-                                          color="#666"
-                                        />
-                                      </View>
+            <View style={styles.historyList}>
+              {/* Render attendanceHistory (safely handled) */}
+              {attendanceHistory.length === 0 ? (
+                <Text style={{ padding: 12, color: "#666" }}>
+                  No history available
+                </Text>
+              ) : (
+                attendanceHistory
+                  // if the dateRange buttons are used, filter accordingly
+                  .filter((d: any) => {
+                    if (!rangeStart || !rangeEnd) return true;
+                    // expecting d.date in DD/MM/YYYY
+                    const parts = (d.currentDate || "").split("/");
+                    if (parts.length !== 3) return true;
+                    const dt = new Date(
+                      Number(parts[2]),
+                      Number(parts[1]) - 1,
+                      Number(parts[0])
+                    );
+                    return (
+                      dt.getTime() >= rangeStart.getTime() &&
+                      dt.getTime() <= rangeEnd.getTime()
+                    );
+                  })
+                  .map((item: any, index: number) => (
+                    <TouchableOpacity
+                      key={(item.currentDate ?? "") + "-" + index}
+                      style={styles.historyItem}
+                      onPress={() => toggleHistoryExpansion(index)}
+                    >
+                      <View style={styles.historyItemHeader}>
+                        <Text style={styles.historyDate}>
+                          {formatDate(item.currentDate)}
+                        </Text>
+                        <AntDesign
+                          name={expandedHistory === index ? "up" : "down"}
+                          size={12}
+                          color="#666"
+                        />
+                      </View>
 
-                                      {expandedHistory === index && (
-                                        <View style={styles.historyDetails}>
-                                          <View style={styles.historyRow}>
-                                            <Text style={styles.historyLabel}>Clock In</Text>
-                                            <Text style={styles.historyValue}>{`${item.clockIn}`}</Text>
-                                          </View>
+                      {expandedHistory === index && (
+                        <View style={styles.historyDetails}>
+                          <View style={styles.historyRow}>
+                            <Text style={styles.historyLabel}>Clock In</Text>
+                            <Text style={styles.historyValue}>
+                              {formatTime(item.clockIn)}
+                            </Text>
+                          </View>
 
-                                          <View style={styles.historyRow}>
-                                            <Text style={styles.historyLabel}>Clock Out</Text>
-                                            <Text style={styles.historyValue}>{item.clockOut}</Text>
-                                          </View>
-                                        </View>
-                                      )}
-                                    </TouchableOpacity>
-                                  ))
-                              )}
-                </View> 
+                          <View style={styles.historyRow}>
+                            <Text style={styles.historyLabel}>Clock Out</Text>
+                            <Text style={styles.historyValue}>
+                              {formatTime(item.clockOut)}
+                            </Text>
+                          </View>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  ))
+              )}
+            </View>
           </View>
         </View>
 

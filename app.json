@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "attendance-tracking-system",
-    "slug": "attendance-tracking-system",
+    "name": "HMCLOCKR",
+    "slug": "HMCLOCKR",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -24,7 +24,7 @@
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "monochromeImage": "./assets/images/android-icon-background.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -78,7 +78,7 @@
      /*  "router" : {
          "origin" : false
       }, */
-      "owner": "illusionalgod"
+      "owner": "Hieidelberg Materials Digital Hub Ghana"
     }
   }
 }
