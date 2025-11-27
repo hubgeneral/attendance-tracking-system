@@ -1,20 +1,23 @@
-import { useState } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 
 const { width } = Dimensions.get("window");
 
-export default function MetricCards() {
-  const [rangeStart] = useState<Date | null>(null);
-  const [rangeEnd] = useState<Date | null>(null);
-  const [clockInText] = useState<string>("-");
-  const [clockOutText] = useState<string>("-");
-  const [expandedHistory, setExpandedHistory] = useState<number | null>(0);
-  const [hoursWorkedText] = useState<string>("-");
-  const [timeOffText] = useState<string>("-");
+interface MetricData {
+  clockInText: string;
+  clockOutText: string;
+  hoursWorkedText: string;
+  timeOffText: string;
+}
 
-  const toggleHistoryExpansion = (index: number) => {
-    setExpandedHistory(expandedHistory === index ? null : index);
-  };
+interface MetricCardsProps {
+  data?: MetricData;
+}
+
+export default function MetricCards({ data }: MetricCardsProps) {
+  const clockInText = data?.clockInText ?? "-";
+  const clockOutText = data?.clockOutText ?? "-";
+  const hoursWorkedText = data?.hoursWorkedText ?? "-";
+  const timeOffText = data?.timeOffText ?? "-";
 
   return (
     <>

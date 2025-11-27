@@ -30,6 +30,37 @@ export interface PolygonEvent {
   timestamp: string;
 }
 
+// 🔍 DEBUG UTILITY: Validate polygon and test point-in-polygon
+export const debugPolygon = (point: PolygonPoint, polygon: PolygonPoint[]) => {
+  const isInside = GeoLib.isPointInPolygon(point, polygon);
+  console.log("🔍 [PolygonDebug] Testing point-in-polygon:");
+  console.log(`   Point: lat=${point.latitude}, lon=${point.longitude}`);
+  console.log(`   Polygon points: ${polygon.length}`);
+  polygon.forEach((p, i) => {
+    console.log(`     [${i}] lat=${p.latitude}, lon=${p.longitude}`);
+  });
+  console.log(`   Result: isInside=${isInside}`);
+
+  // Calculate bounds
+  const lats = polygon.map((p) => p.latitude);
+  const lons = polygon.map((p) => p.longitude);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+
+  console.log(
+    `   Bounds: lat [${minLat}, ${maxLat}], lon [${minLon}, ${maxLon}]`
+  );
+  console.log(
+    `   Point in bounds: lat=${
+      point.latitude >= minLat && point.latitude <= maxLat
+    }, lon=${point.longitude >= minLon && point.longitude <= maxLon}`
+  );
+
+  return isInside;
+};
+
 export interface GeolibFenceProps {
   polygon: PolygonGeofence;
   onEvent?: (event: PolygonEvent) => void;
@@ -326,17 +357,27 @@ TaskManager.defineTask(POLYGON_TASK_NAME, async ({ data, error }) => {
     );
     console.log(`[Geofence]  Accuracy: ${latest.coords.accuracy}m`);
 
-    // check  if you are currently inside the polygon using the geolib library
-    const isInsideNow = GeoLib.isPointInPolygon(
-      currentPoint,
-      config.coordinates
+    // 🔍 DEBUG: Log polygon info
+    console.log(`[Geofence] 📍 Polygon: ${config.identifier}`);
+    console.log(
+      `[Geofence] 📍 Polygon has ${config.coordinates.length} points`
     );
+    console.log(
+      `[Geofence] 📍 Polygon coords:`,
+      JSON.stringify(config.coordinates, null, 2)
+    );
+
+    // check  if you are currently inside the polygon using the geolib library
+    const isInsideNow = debugPolygon(currentPoint, config.coordinates);
     const stateKey = `${ASYNC_KEY_PREFIX}${config.identifier}-lastInside`;
     const lastRaw = await AsyncStorage.getItem(stateKey);
     const lastInside = lastRaw === "true";
 
     console.log(
       `[Geofence]  Inside now: ${isInsideNow}, Was inside: ${lastInside}`
+    );
+    console.log(
+      `[Geofence] 🔍 Point-in-polygon result: isInsideNow=${isInsideNow}`
     );
 
     //   This is what triggers clock in/out
